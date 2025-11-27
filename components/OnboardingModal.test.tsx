@@ -16,7 +16,7 @@ vi.mock('./Mascot', () => ({
 
 describe('OnboardingModal', () => {
     const mockCompleteOnboarding = vi.fn();
-    const mockCreateAccount = vi.fn();
+    const mockCreateAccount = vi.fn().mockResolvedValue({ error: null });
 
     beforeEach(() => {
         vi.clearAllMocks();
