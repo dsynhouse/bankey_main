@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bankey - Level Up Your Finances</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --color-paper: #F2F0E9;
+        --color-ink: #1A1A1A;
+        --color-surface: #FFFFFF;
+      }
+      
+      .dark-mode {
+        --color-paper: #0a0a0a;
+        --color-ink: #F2F0E9;
+        --color-surface: #1A1A1A;
+      }
+
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: var(--color-paper);
+        color: var(--color-ink);
+        overflow-x: hidden;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Bricolage Grotesque', sans-serif;
+      }
+      
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+      }
+
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar {
+        width: 12px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--color-paper);
+        border-left: 3px solid var(--color-ink);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #D4FF00;
+        border: 3px solid var(--color-ink);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #FF90E8;
+      }
+      
+      .clip-path-slant {
+        clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+      }
+
+      /* Scroll Reveal Animations */
+      .reveal {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .reveal-left {
+        opacity: 0;
+        transform: translateX(-50px);
+        transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reveal-left.active {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      .reveal-right {
+        opacity: 0;
+        transform: translateX(50px);
+        transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reveal-right.active {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      .text-stroke-3 {
+        -webkit-text-stroke: 3px var(--color-ink);
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+              display: ['"Bricolage Grotesque"', 'sans-serif'],
+            },
+            colors: {
+              paper: 'var(--color-paper)',
+              ink: 'var(--color-ink)',
+              white: 'var(--color-surface)', 
+              'fixed-ink': '#1A1A1A', // Always black
+              'fixed-white': '#FFFFFF', // Always white
+              banky: {
+                yellow: '#D4FF00', 
+                pink: '#FF90E8',   
+                blue: '#59C3FF',   
+                green: '#00FFA3',  
+                purple: '#B98EFF', 
+                orange: '#FF7D33', 
+                black: '#121212',
+              }
+            },
+            boxShadow: {
+              'neo': '5px 5px 0px 0px var(--color-ink)',
+              'neo-lg': '10px 10px 0px 0px var(--color-ink)',
+              'neo-sm': '3px 3px 0px 0px var(--color-ink)',
+              'neo-hover': '7px 7px 0px 0px var(--color-ink)',
+              'neo-xl': '15px 15px 0px 0px var(--color-ink)',
+            },
+            borderWidth: {
+              '3': '3px',
+              '4': '4px',
+            },
+            animation: {
+              'marquee': 'marquee 25s linear infinite',
+              'bounce-slow': 'bounce 3s infinite',
+              'wiggle': 'wiggle 2s ease-in-out infinite',
+              'shake': 'shake 0.3s linear infinite',
+              'blink': 'blink 4s infinite',
+              'shimmer': 'shimmer 1.5s linear infinite',
+              'float': 'float 4s ease-in-out infinite',
+              'float-delayed': 'float 4s ease-in-out 2s infinite',
+              'spin-slow': 'spin 12s linear infinite',
+            },
+            keyframes: {
+              marquee: {
+                '0%': { transform: 'translateX(0%)' },
+                '100%': { transform: 'translateX(-100%)' },
+              },
+              wiggle: {
+                '0%, 100%': { transform: 'rotate(-5deg)' },
+                '50%': { transform: 'rotate(5deg)' },
+              },
+              shake: {
+                '0%, 100%': { transform: 'translate(0, 0) rotate(0)' },
+                '25%': { transform: 'translate(-2px, 1px) rotate(-1deg)' },
+                '50%': { transform: 'translate(1px, -1px) rotate(1deg)' },
+                '75%': { transform: 'translate(-1px, 2px) rotate(0)' },
+              },
+              blink: {
+                 '0%, 96%, 100%': { transform: 'scaleY(1)' },
+                 '98%': { transform: 'scaleY(0.1)' },
+              },
+              shimmer: {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' }
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-15px)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
+    "canvas-confetti": "https://aistudiocdn.com/canvas-confetti@^1.9.4",
+    "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
