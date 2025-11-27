@@ -342,9 +342,45 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const addTransaction = async (t: Omit<Transaction, 'id'>) => {
         let targetAccountId = t.accountId;
-        if (!targetAccountId) {
+
+        // Auto-create default account if none exists
+        if (!targetAccountId && accounts.length === 0) {
+            console.log("No account found. Creating default account...");
+            const defaultAccountId = crypto.randomUUID();
+            const defaultAccount: Account = {
+                id: defaultAccountId,
+                name: 'Main Wallet',
+                type: AccountType.SPENDING,
+                balance: 0,
+                currency: currency.code,
+                color: 'bg-banky-pink'
+            };
+
+            setAccounts([defaultAccount]);
+            targetAccountId = defaultAccountId;
+
+            // Save to database
+            if (supabase && user) {
+                const { error } = await supabase.from('accounts').insert({
+                    id: defaultAccountId,
+                    user_id: user.id,
+                    name: 'Main Wallet',
+                    type: AccountType.SPENDING,
+                    balance: 0,
+                    currency: currency.code,
+                    color: 'bg-banky-pink'
+                });
+                if (error) {
+                    console.error("Error creating default account:", error);
+                    return;
+                }
+            }
+        } else if (!targetAccountId) {
             if (accounts.length > 0) targetAccountId = accounts[0].id;
-            else console.warn("No account found for transaction");
+            else {
+                console.warn("No account found for transaction");
+                return;
+            }
         }
 
         const optimisticId = crypto.randomUUID();
