@@ -361,6 +361,21 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
             // Save to database
             if (supabase && user) {
+                // CRITICAL: Ensure profile exists first (foreign key constraint)
+                const { error: profileError } = await supabase.from('profiles').upsert({
+                    id: user.id,
+                    total_xp: userState.totalXp || 0,
+                    level: userState.level || 1,
+                    streak_days: userState.streakDays || 1,
+                    has_completed_onboarding: userState.hasCompletedOnboarding || false
+                });
+
+                if (profileError) {
+                    console.error("Error ensuring profile exists:", profileError);
+                    return;
+                }
+
+                // Now create the account
                 const { error } = await supabase.from('accounts').insert({
                     id: defaultAccountId,
                     user_id: user.id,
