@@ -482,7 +482,22 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         if (supabase && user) {
-            await supabase.from('accounts').insert({
+            // 1. Ensure Profile Exists (Critical for Foreign Key)
+            const { error: profileError } = await supabase.from('profiles').upsert({
+                id: user.id,
+                total_xp: userState.totalXp || 0,
+                level: userState.level || 1,
+                streak_days: userState.streakDays || 1,
+                has_completed_onboarding: userState.hasCompletedOnboarding || false
+            });
+
+            if (profileError) {
+                console.error("Error ensuring profile exists during account creation:", profileError);
+                return { error: profileError };
+            }
+
+            // 2. Create Account
+            const { error } = await supabase.from('accounts').insert({
                 id: optimisticId,
                 user_id: user.id,
                 name: acc.name,
@@ -491,7 +506,14 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 currency: acc.currency,
                 color: acc.color
             });
+
+            if (error) {
+                console.error("Error creating account:", error);
+                // Rollback optimistic update if needed, or just let the user retry
+                return { error };
+            }
         }
+        return { error: null };
     };
 
     const deleteAccount = async (id: string) => {
