@@ -373,13 +373,20 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 date: t.date
             });
 
-            if (!error) {
-                const account = accounts.find(a => a.id === targetAccountId);
-                if (account) {
-                    const newBalance = t.type === 'income' ? account.balance + t.amount : account.balance - t.amount;
-                    await supabase.from('accounts').update({ balance: newBalance }).eq('id', targetAccountId);
-                }
+            if (error) {
+                console.error("Error adding transaction:", error);
+                // Optionally: revert optimistic update here
+                return;
             }
+
+            const account = accounts.find(a => a.id === targetAccountId);
+            if (account) {
+                const newBalance = t.type === 'income' ? account.balance + t.amount : account.balance - t.amount;
+                const { error: balanceError } = await supabase.from('accounts').update({ balance: newBalance }).eq('id', targetAccountId);
+                if (balanceError) console.error("Error updating account balance:", balanceError);
+            }
+        } else {
+            console.warn("Cannot save transaction: Missing user or account ID");
         }
     };
 
@@ -509,7 +516,12 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (userState.completedUnitIds.includes(unitId)) return;
         const newCompleted = [...userState.completedUnitIds, unitId];
         setUserState(prev => ({ ...prev, completedUnitIds: newCompleted }));
-        if (supabase && user) await supabase.from('profiles').upsert({ id: user.id, completed_unit_ids: newCompleted });
+        if (supabase && user) {
+            const { error } = await supabase.from('profiles').upsert({ id: user.id, completed_unit_ids: newCompleted });
+            if (error) console.error("Error marking unit complete:", error);
+        } else {
+            console.warn("Cannot save progress: User not authenticated");
+        }
     };
 
     const setCurrency = async (c: Currency) => {
