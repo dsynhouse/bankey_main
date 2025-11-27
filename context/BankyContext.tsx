@@ -165,6 +165,11 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     hydrateCurrency(profile.currency_code);
                 }
 
+                // Sync user name from profile if available
+                if (profile.name) {
+                    setUser(prev => prev ? { ...prev, name: profile.name } : prev);
+                }
+
                 // Check Daily Bonus using DB date and streak
                 checkDailyBonus(userId, profile.last_bonus_date, profile.streak_days || 1);
             } else {
