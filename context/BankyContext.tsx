@@ -241,8 +241,8 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 setGoals(gls.map(g => ({
                     id: g.id,
                     title: g.title,
-                    target_amount: parseFloat(g.target_amount),
-                    saved_amount: parseFloat(g.saved_amount),
+                    targetAmount: parseFloat(g.target_amount),
+                    savedAmount: parseFloat(g.saved_amount),
                     emoji: g.emoji,
                     deadline: g.deadline
                 })));
