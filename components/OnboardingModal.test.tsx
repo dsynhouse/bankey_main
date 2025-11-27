@@ -23,7 +23,7 @@ describe('OnboardingModal', () => {
     });
 
     it('does not render if isLoading is true', () => {
-        (useBanky as any).mockReturnValue({
+        (useBanky as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
             userState: { hasCompletedOnboarding: false },
             createAccount: mockCreateAccount,
             completeOnboarding: mockCompleteOnboarding,
@@ -36,7 +36,7 @@ describe('OnboardingModal', () => {
     });
 
     it('does not render if hasCompletedOnboarding is true', () => {
-        (useBanky as any).mockReturnValue({
+        (useBanky as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
             userState: { hasCompletedOnboarding: true },
             createAccount: mockCreateAccount,
             completeOnboarding: mockCompleteOnboarding,
@@ -49,7 +49,7 @@ describe('OnboardingModal', () => {
     });
 
     it('renders if hasCompletedOnboarding is false and not loading', () => {
-        (useBanky as any).mockReturnValue({
+        (useBanky as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
             userState: { hasCompletedOnboarding: false },
             createAccount: mockCreateAccount,
             completeOnboarding: mockCompleteOnboarding,
@@ -62,7 +62,7 @@ describe('OnboardingModal', () => {
     });
 
     it('calls completeOnboarding when "Enter Dashboard" is clicked', async () => {
-        (useBanky as any).mockReturnValue({
+        (useBanky as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
             userState: { hasCompletedOnboarding: false },
             createAccount: mockCreateAccount,
             completeOnboarding: mockCompleteOnboarding,

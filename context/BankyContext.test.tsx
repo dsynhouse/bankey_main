@@ -76,12 +76,12 @@ describe('BankyContext Logic', () => {
     it('completeOnboarding updates state and DB', async () => {
         // Mock user being logged in
         const mockUser = { id: 'user123', email: 'test@test.com' };
-        (supabase.auth.getSession as any).mockResolvedValue({ data: { session: { user: mockUser } } });
+        (supabase.auth.getSession as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { session: { user: mockUser } } });
 
         // Mock profile fetch with intelligent routing based on table name would be better, 
         // but for now we just ensure the chain supports what fetchData needs or we mock fetchData to not crash.
         // Simpler: Just add the missing methods to the chain.
-        (supabase.from as any).mockImplementation((table: string) => {
+        (supabase.from as unknown as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
             if (table === 'profiles') {
                 return {
                     select: vi.fn().mockReturnValue({
@@ -127,14 +127,14 @@ describe('BankyContext Logic', () => {
 
     it('Daily Bonus is awarded if not claimed today', async () => {
         const mockUser = { id: 'user123', email: 'test@test.com' };
-        (supabase.auth.getSession as any).mockResolvedValue({ data: { session: { user: mockUser } } });
+        (supabase.auth.getSession as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { session: { user: mockUser } } });
 
         // Mock profile with old bonus date
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-        (supabase.from as any).mockImplementation((table: string) => {
+        (supabase.from as unknown as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
             if (table === 'profiles') {
                 return {
                     select: vi.fn().mockReturnValue({
