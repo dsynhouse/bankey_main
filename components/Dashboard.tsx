@@ -415,6 +415,11 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Version Indicator */}
+            <div className="text-center py-4 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+                v0.0.1 • Bankey Native
+            </div>
         </div>
     );
 };
