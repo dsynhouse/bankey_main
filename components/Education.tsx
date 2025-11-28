@@ -827,16 +827,16 @@ const BASE_MODULES: EducationModule[] = [
             {
                 id: '27-2',
                 type: 'text-selector',
-                content: 'Tap the 3 suspicious words in this text message.',
-                hint: 'Look for urgency and requests for info.',
+                content: 'URGENT: Your account has been suspended. Click here to reset your password immediately.',
+                hint: 'Tap the 3 suspicious words in this text message.',
                 selectorTargetPhrases: ['URGENT', 'suspended', 'password'],
                 correctAnswerExplanation: 'Banks never text you "URGENT", they don\'t say your account is "suspended" via SMS, and they NEVER ask for your "password".'
             },
             {
                 id: '27-3',
                 type: 'text-selector',
-                content: 'Analyze this "Job Offer" email. Find the 3 lies.',
-                hint: 'Too good to be true?',
+                content: 'Earn $500 daily with No Experience. We will send you a check to buy equipment.',
+                hint: 'Analyze this "Job Offer" email. Find the 3 lies.',
                 selectorTargetPhrases: ['daily', 'No Experience', 'check'],
                 correctAnswerExplanation: 'Making $500 "daily" with "No Experience" is a lie. Sending you a "check" to buy equipment is a classic fake check scam.'
             }
@@ -905,8 +905,8 @@ const BASE_MODULES: EducationModule[] = [
             {
                 id: '29-2',
                 type: 'text-selector',
-                content: 'Tap the 3 dangerous terms in this loan agreement.',
-                hint: 'Look for high costs and access to your data.',
+                content: 'This loan has a 400% APR. Failure to pay allows wage garnishment and we may call your contacts.',
+                hint: 'Tap the 3 dangerous terms in this loan agreement.',
                 selectorTargetPhrases: ['400%', 'wage garnishment', 'contacts'],
                 correctAnswerExplanation: 'A "400%" APR is a debt trap. "Wage garnishment" means they take money from your paycheck. Accessing your "contacts" means they will harass your friends.'
             }
@@ -1043,8 +1043,8 @@ const BASE_MODULES: EducationModule[] = [
             {
                 id: '33-2',
                 type: 'text-selector',
-                content: 'Tap the 2 actions that HURT your credit score.',
-                hint: 'Think about debt and applications.',
+                content: 'I am Maxing out cards and Applying for 5 loans to get more cash.',
+                hint: 'Tap the 2 actions that HURT your credit score.',
                 selectorTargetPhrases: ['Maxing out cards', 'Applying for 5 loans'],
                 correctAnswerExplanation: 'Maxing out cards spikes your utilization. Applying for too many loans looks desperate (Hard Inquiries).'
             }
