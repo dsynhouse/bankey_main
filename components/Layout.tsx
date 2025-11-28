@@ -82,12 +82,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items - center gap - 4 px - 4 py - 3 border - 2 transition - all duration - 200 group ${isActive
-                    ? 'bg-banky-pink text-ink border-ink shadow-neo font-bold translate-x-1 -translate-y-1'
-                    : 'bg-transparent border-transparent text-gray-500 hover:text-ink hover:bg-banky-yellow hover:border-ink hover:shadow-neo hover:-translate-y-1'
-                  } `}
+                className={`flex items-center gap-4 px-4 py-3 border-2 transition-all duration-200 group ${isActive
+                  ? 'bg-banky-pink text-ink border-ink shadow-neo font-bold translate-x-1 -translate-y-1'
+                  : 'bg-transparent border-transparent text-gray-500 hover:text-ink hover:bg-banky-yellow hover:border-ink hover:shadow-neo hover:-translate-y-1'
+                  }`}
               >
-                <Icon className={`w - 6 h - 6 stroke - [2.5px] ${isActive ? 'text-ink' : 'text-current'} `} />
+                <Icon className={`w-6 h-6 stroke-[2.5px] ${isActive ? 'text-ink' : 'text-current'}`} />
                 <span className="text-lg">{item.label}</span>
               </Link>
             );
@@ -112,7 +112,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="w-full bg-gray-800 h-4 border border-white/20">
               <div
                 className="bg-banky-green h-full border-r border-white/20 relative overflow-hidden transition-all duration-1000"
-                style={{ width: `${(userState.totalXp % 500) / 5}% ` }}
+                style={{ width: `${(userState.totalXp % 500) / 5}%` }}
               >
                 <div className="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhZWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')] opacity-20"></div>
               </div>
@@ -154,10 +154,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex - col items - center gap - 1 p - 2 rounded - lg transition - all ${isActive ? 'bg-banky-yellow border-2 border-ink shadow-neo-sm -translate-y-2' : 'text-gray-400'
-                } `}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${isActive ? 'bg-banky-yellow border-2 border-ink shadow-neo-sm -translate-y-2' : 'text-gray-400'
+                }`}
             >
-              <Icon className={`w - 5 h - 5 ${isActive ? 'text-ink' : 'text-gray-400'} `} strokeWidth={2.5} />
+              <Icon className={`w-5 h-5 ${isActive ? 'text-ink' : 'text-gray-400'}`} strokeWidth={2.5} />
             </Link>
           );
         })}
