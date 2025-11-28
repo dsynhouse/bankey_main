@@ -431,20 +431,20 @@ const Tracker: React.FC = () => {
                 {displayTransactions.map(t => (
                   <div
                     key={t.id}
-                    className={`p-4 flex items-center justify-between transition-colors group relative overflow-hidden ${t.type === 'income' ? 'bg-banky-green/10 hover:bg-banky-green/20' : 'bg-white hover:bg-gray-50'
+                    className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors group relative overflow-hidden ${t.type === 'income' ? 'bg-banky-green/10 hover:bg-banky-green/20' : 'bg-white hover:bg-gray-50'
                       }`}
                   >
                     {t.type === 'income' && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-banky-green border-r border-ink"></div>}
-                    <div className={`flex items-center gap-4 ${t.type === 'income' ? 'pl-2' : ''}`}>
-                      <div className={`w-12 h-12 border-2 border-ink shadow-neo-sm flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform ${t.type === 'income' ? 'bg-banky-green text-ink' : 'bg-paper text-ink'
+                    <div className={`flex items-center gap-4 min-w-0 ${t.type === 'income' ? 'pl-2' : ''}`}>
+                      <div className={`w-12 h-12 flex-shrink-0 border-2 border-ink shadow-neo-sm flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform ${t.type === 'income' ? 'bg-banky-green text-ink' : 'bg-paper text-ink'
                         }`}>
                         <CategoryIcon category={t.category} />
                       </div>
-                      <div>
-                        <p className="font-bold text-ink text-lg font-sans flex items-center gap-2">
-                          {t.description}
-                          {t.type === 'income' && <ArrowDownRight className="w-4 h-4 text-banky-green" />}
-                          {t.type === 'expense' && <ArrowUpRight className="w-4 h-4 text-red-400" />}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-ink text-lg font-sans flex items-center gap-2 truncate">
+                          <span className="truncate">{t.description}</span>
+                          {t.type === 'income' && <ArrowDownRight className="w-4 h-4 text-banky-green flex-shrink-0" />}
+                          {t.type === 'expense' && <ArrowUpRight className="w-4 h-4 text-red-400 flex-shrink-0" />}
                         </p>
                         <div className="flex items-center gap-2 text-xs font-mono font-bold text-gray-500 uppercase">
                           <span>{new Date(t.date).toLocaleDateString()}</span>
@@ -454,7 +454,7 @@ const Tracker: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pl-[4rem] sm:pl-0">
                       <span className={`font-black text-xl font-mono border-2 border-transparent px-2 py-1 ${t.type === 'income' ? 'bg-ink text-banky-green border-ink shadow-sm' : 'text-ink'
                         }`}>
                         {t.type === 'income' ? '+' : '-'}{currency.symbol}{t.amount.toFixed(2)}

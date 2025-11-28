@@ -48,12 +48,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navItems = [
     { path: '/dashboard', label: 'Home', icon: LayoutDashboard },
-    { path: '/tracker', label: 'Tracker', icon: PieChart },
-    { path: '/budget', label: 'Budget', icon: Calculator },
+    { path: '/tracker', label: 'The Drip Check', icon: PieChart },
+    { path: '/budget', label: 'The Limit', icon: Calculator },
+    { path: '/accounts', label: 'The Wallet', icon: Wallet },
+    { path: '/education', label: 'The Learn Tab', icon: GraduationCap },
     { path: '/reports', label: 'Reports', icon: FileText },
-    { path: '/accounts', label: 'Wallets', icon: Wallet },
-    { path: '/education', label: 'Learn', icon: GraduationCap },
-    { path: '/advisor', label: 'Advisor', icon: MessageSquareText },
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
 

@@ -88,20 +88,20 @@ export interface AllocatorCategory {
 export interface LessonStep {
   id: string;
   // Added 'slider-allocator', 'text-selector', 'binary-choice'
-  type: 'info' | 'question' | 'puzzle' | 'sorting' | 'fill-blank' | 'scenario' | 'connections' | 'slider-allocator' | 'text-selector' | 'binary-choice'; 
+  type: 'info' | 'question' | 'puzzle' | 'sorting' | 'fill-blank' | 'scenario' | 'connections' | 'slider-allocator' | 'text-selector' | 'binary-choice' | 'card-swipe';
   content: string;
   options?: LessonOption[];
   infoBlurb?: string;
   hint?: string;
-  correctAnswerExplanation?: string; 
-  
+  correctAnswerExplanation?: string;
+
   // For Puzzle Type
-  puzzleWord?: string; 
-  scramble?: string;   
-  
+  puzzleWord?: string;
+  scramble?: string;
+
   // For Sorting Type
-  sortCorrectOrder?: string[]; 
-  
+  sortCorrectOrder?: string[];
+
   // For Fill Blank Type
   fillBlankCorrect?: string;
   fillBlankOptions?: string[];
@@ -144,7 +144,7 @@ export interface EducationModule {
   steps: LessonStep[];
   category: 'Basics' | 'Investing' | 'Taxes' | 'Business' | 'Credit' | 'Assets' | 'Economics' | 'Advanced';
   estimatedTime: string;
-  playbook?: PlaybookContent; 
+  playbook?: PlaybookContent;
 }
 
 // --- Report Types ---
@@ -152,7 +152,7 @@ export interface ReportData {
   id: string;
   fileName: string;
   uploadDate: string;
-  period: string; 
+  period: string;
   type: 'PandL' | 'BalanceSheet';
   data: {
     revenue: number;
@@ -187,7 +187,7 @@ export interface UserState {
   streakDays: number;
   completedUnitIds: string[];
   inventory: string[];
-  hasCompletedOnboarding: boolean; 
+  hasCompletedOnboarding: boolean;
 }
 
 export interface ChatMessage {
@@ -204,13 +204,13 @@ export type Theme = 'light' | 'dark';
 export interface BankyContextType {
   // Auth
   isAuthenticated: boolean;
-  isLoading: boolean; 
+  isLoading: boolean;
   user: UserProfile | null;
-  login: (rememberMe?: boolean) => Promise<void>; 
+  login: (rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
-  updateUserName: (name: string) => Promise<void>; 
-  completeOnboarding: () => Promise<void>; 
-  
+  updateUserName: (name: string) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
+
   // Data Read
   transactions: Transaction[];
   accounts: Account[];
@@ -218,36 +218,36 @@ export interface BankyContextType {
   budgets: Budget[];
   goals: Goal[];
   currency: Currency;
-  
+
   // Data Write (Database Actions)
   addTransaction: (t: Omit<Transaction, 'id'>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
-  
+
   createAccount: (acc: Omit<Account, 'id'>) => Promise<void>;
   deleteAccount: (id: string) => Promise<void>;
-  
+
   updateBudget: (category: Category, limit: number) => Promise<void>;
-  
+
   addGoal: (goal: Omit<Goal, 'id'>) => Promise<void>;
   updateGoal: (id: string, savedAmount: number) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
-  
+
   // Gamification Write
   addXp: (amount: number) => Promise<void>;
   unlockReward: (item: string) => Promise<void>;
-  markUnitComplete: (unitId: string) => Promise<void>; 
-  
+  markUnitComplete: (unitId: string) => Promise<void>;
+
   // Education Region
   region: RegionCode;
   setRegion: (r: RegionCode) => void;
-  
+
   // Daily Bonus
   showDailyBonus: boolean;
   closeDailyBonus: () => void;
 
   // Settings
   setCurrency: (c: Currency) => Promise<void>;
-  
+
   // Theme
   theme: Theme;
   toggleTheme: () => void;

@@ -70,6 +70,45 @@ const adaptContent = (text: string, region: RegionCode): string => {
     return adapted;
 };
 
+// --- 2.5. HELPER: TEXT WITH DEFINITIONS ---
+const TextWithDefinitions: React.FC<{ text: string, definitions?: { term: string, definition: string }[] }> = ({ text, definitions }) => {
+    const [activeTerm, setActiveTerm] = useState<string | null>(null);
+
+    if (!definitions || definitions.length === 0) return <>{text}</>;
+
+    // Create a regex pattern to match terms (case insensitive)
+    const pattern = new RegExp(`(${definitions.map(d => d.term).join('|')})`, 'gi');
+    const parts = text.split(pattern);
+
+    return (
+        <span>
+            {parts.map((part, i) => {
+                const def = definitions.find(d => d.term.toLowerCase() === part.toLowerCase());
+                if (def) {
+                    return (
+                        <span key={i} className="relative inline-block group">
+                            <button
+                                onClick={() => setActiveTerm(activeTerm === def.term ? null : def.term)}
+                                className="text-banky-blue font-black underline decoration-2 decoration-banky-yellow underline-offset-2 hover:bg-banky-yellow hover:text-ink transition-colors px-1 rounded"
+                            >
+                                {part}
+                            </button>
+                            {activeTerm === def.term && (
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-ink text-white text-xs p-3 rounded shadow-xl z-50 animate-fade-in text-center">
+                                    <p className="font-bold mb-1 uppercase text-banky-yellow">{def.term}</p>
+                                    <p>{def.definition}</p>
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-ink"></div>
+                                </div>
+                            )}
+                        </span>
+                    );
+                }
+                return <span key={i}>{part}</span>;
+            })}
+        </span>
+    );
+};
+
 // --- 3. BASE CURRICULUM ---
 const BASE_MODULES: EducationModule[] = [
     // UNIT 1: BASICS
@@ -82,7 +121,7 @@ const BASE_MODULES: EducationModule[] = [
         category: 'Basics',
         estimatedTime: '5m',
         playbook: {
-            summary: "Wealth isn't about how much money you make; it's about how much you keep. The fundamental rule: Buy assets, avoid liabilities.",
+            summary: "Wealth isn't about income; it's about retention. The Golden Rule: Assets feed you, Liabilities eat you.",
             realLifeExample: "Alex buys a $50k car (Liability). Sam buys $50k of Index Funds (Asset). In 5 years, the car is worth $20k. The stock is worth $90k.",
             definitions: [
                 { term: "Asset", definition: "Puts money IN your pocket." },
@@ -92,13 +131,13 @@ const BASE_MODULES: EducationModule[] = [
             actionableSteps: ["List your Assets vs Liabilities.", "Cancel one unused subscription today."]
         },
         steps: [
-            { id: '1-1', type: 'info', content: 'Wealth isn\'t just cash. It\'s "Assets"—things that put money IN your pocket.' },
+            { id: '1-1', type: 'info', content: 'Wealth isn\'t just cash. It\'s "Assets"—things that put money IN your pocket while you sleep.' },
             { id: '1-2', type: 'puzzle', content: 'Decode: A thing that puts money in your pocket.', scramble: 'STSEA', puzzleWord: 'ASSET', hint: 'Opposite of Liability.', correctAnswerExplanation: 'An ASSET is anything that puts money in your pocket (like stocks or real estate). A Liability takes it out.' },
             { id: '1-3', type: 'fill-blank', content: 'Rich people buy [BLANK], poor people buy liabilities.', fillBlankCorrect: 'Assets', fillBlankOptions: ['Assets', 'Liabilities', 'Stuff'], correctAnswerExplanation: 'Wealthy people prioritize buying income-generating assets first, then use that income to buy luxuries.' },
             {
                 id: '1-4', type: 'question', content: 'The goal of the game is to...', options: [
-                    { id: 'a', text: 'Buy more liabilities', isCorrect: false, feedback: 'That\'s the trap! Liabilities drain your wealth.' },
-                    { id: 'b', text: 'Work harder forever', isCorrect: false, feedback: 'Work smarter, not harder. Make money work for you.' },
+                    { id: 'a', text: 'Buy more liabilities', isCorrect: false, feedback: 'Wrong. That is how you stay broke forever.' },
+                    { id: 'b', text: 'Work harder forever', isCorrect: false, feedback: 'Nope. Even hustle culture has limits.' },
                     { id: 'c', text: 'Buy assets that pay for your liabilities', isCorrect: true, feedback: 'Bingo! That is financial freedom.' }
                 ], correctAnswerExplanation: 'Financial Freedom is when your assets generate enough cash flow to pay for your lifestyle.'
             }
@@ -127,9 +166,9 @@ const BASE_MODULES: EducationModule[] = [
             { id: '2-2', type: 'sorting', content: 'Sort these into "Needs" (Top) vs "Wants" (Bottom).', sortCorrectOrder: ['Rent', 'Groceries', 'Netflix', 'Designer Shoes'], correctAnswerExplanation: 'Rent and Food are survival needs. Streaming and Fashion are wants.' },
             {
                 id: '2-3', type: 'question', content: 'If you earn $1000, how much should go to savings?', options: [
-                    { id: 'a', text: '$100', isCorrect: false, feedback: 'Too low! Aim higher.' },
+                    { id: 'a', text: '$100', isCorrect: false, feedback: 'Too low! You can do better.' },
                     { id: 'b', text: '$200', isCorrect: true, feedback: 'Correct! 20% of $1000 is $200.' },
-                    { id: 'c', text: '$500', isCorrect: false, feedback: 'Ambitious, but 50% is hard to sustain.' }
+                    { id: 'c', text: '$500', isCorrect: false, feedback: 'Ambitious, but 50% is hard to sustain unless you live in a van.' }
                 ]
             }
         ]
@@ -142,6 +181,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Investing',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Compound interest is the snowball effect for money. Your interest earns its own interest.",
+            realLifeExample: "Invest $100/mo at 10%. In 40 years, you put in $48k, but have $632k. That is the power of time.",
+            definitions: [
+                { term: "Compound Interest", definition: "Interest calculated on the initial principal and also on the accumulated interest." },
+                { term: "Exponential Growth", definition: "Growth whose rate becomes ever more rapid in proportion to the growing total number or size." }
+            ],
+            actionableSteps: ["Start investing early.", "Reinvest your dividends."]
+        },
         steps: [
             { id: '3-1', type: 'info', content: 'Compound interest is interest on interest. It makes money grow exponentially.' },
             { id: '3-2', type: 'fill-blank', content: 'Time in the market beats [BLANK] the market.', fillBlankCorrect: 'Timing', fillBlankOptions: ['Timing', 'Trading', 'Selling'] },
@@ -156,13 +204,22 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Basics',
         estimatedTime: '5m',
+        playbook: {
+            summary: "An emergency fund is your financial shield. It prevents you from using debt when life happens.",
+            realLifeExample: "Car breaks down ($1000). No fund = Credit Card debt at 20%. With fund = $0 debt.",
+            definitions: [
+                { term: "Liquidity", definition: "How quickly you can get cash." },
+                { term: "High Yield Savings", definition: "A bank account that pays higher interest than standard ones." }
+            ],
+            actionableSteps: ["Open a High Yield Savings Account.", "Save $1000 fast."]
+        },
         steps: [
             { id: '4-1', type: 'info', content: 'An emergency fund prevents you from going into debt when bad things happen.' },
             {
                 id: '4-2', type: 'question', content: 'How much should be in an emergency fund?', options: [
-                    { id: 'a', text: '$500', isCorrect: false, feedback: 'A good start, but not enough.' },
+                    { id: 'a', text: '$500', isCorrect: false, feedback: 'A good start, but that barely covers a flat tire.' },
                     { id: 'b', text: '3-6 months of expenses', isCorrect: true, feedback: 'Yes. This covers job loss or major repairs.' },
-                    { id: 'c', text: '1 year of income', isCorrect: false, feedback: 'A bit overkill for cash sitting idle.' }
+                    { id: 'c', text: '1 year of income', isCorrect: false, feedback: 'A bit overkill. You are losing money to inflation.' }
                 ]
             }
         ]
@@ -175,11 +232,20 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Basics',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Not all debt is evil. Good debt buys assets (House). Bad debt buys liabilities (Shoes).",
+            realLifeExample: "Mortgage at 3% allows you to own a home. Credit card at 25% for a vacation destroys your wealth.",
+            definitions: [
+                { term: "Principal", definition: "The original sum of money borrowed in a loan." },
+                { term: "Interest Rate", definition: "The proportion of a loan that is charged as interest to the borrower." }
+            ],
+            actionableSteps: ["List all your debts.", "Identify which are 'Bad' (High Interest)."]
+        },
         steps: [
             { id: '5-1', type: 'sorting', content: 'Order from "Worst Debt" to "Best Debt".', sortCorrectOrder: ['Payday Loan', 'Credit Card (20%)', 'Student Loan (5%)', 'Mortgage (3%)'] },
             {
                 id: '5-2', type: 'question', content: 'Why is a mortgage considered "Good Debt"?', options: [
-                    { id: 'a', text: 'It isn\'t.', isCorrect: false, feedback: 'Real estate generally appreciates.' },
+                    { id: 'a', text: 'It isn\'t.', isCorrect: false, feedback: 'Incorrect. Real estate generally appreciates.' },
                     { id: 'b', text: 'It buys an appreciating asset.', isCorrect: true, feedback: 'Correct. The house value usually goes up over time.' }
                 ]
             }
@@ -193,6 +259,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Investing',
         estimatedTime: '7m',
+        playbook: {
+            summary: "Stocks represent ownership in a company. Over the long run, they are the best wealth builder.",
+            realLifeExample: "If you bought $1000 of Apple in 2000, it would be worth over $150,000 today.",
+            definitions: [
+                { term: "Share", definition: "One unit of ownership in a company." },
+                { term: "Market Cap", definition: "The total value of a company's shares." }
+            ],
+            actionableSteps: ["Open a brokerage account.", "Buy your first fractional share."]
+        },
         steps: [
             { id: '6-1', type: 'info', content: 'When you buy a stock, you become a partial owner of that business.' },
             { id: '6-2', type: 'fill-blank', content: 'A [BLANK] is a payment of profit to shareholders.', fillBlankCorrect: 'Dividend', fillBlankOptions: ['Dividend', 'Coupon', 'Interest'] },
@@ -207,11 +282,20 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Investing',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Don't look for the needle in the haystack. Just buy the haystack. Index funds own everything.",
+            realLifeExample: "S&P 500 ETF (VOO) owns the 500 biggest US companies. If one fails, you are still fine.",
+            definitions: [
+                { term: "ETF", definition: "Exchange Traded Fund. A basket of stocks you can buy like a single stock." },
+                { term: "Diversification", definition: "Spreading risk across many investments." }
+            ],
+            actionableSteps: ["Research 'S&P 500 ETF'.", "Set up auto-investing."]
+        },
         steps: [
             { id: '7-1', type: 'info', content: 'Index funds track the whole market (like S&P 500). They are lower risk than picking single stocks.' },
             {
                 id: '7-2', type: 'question', content: 'What is the main benefit of an ETF?', options: [
-                    { id: 'a', text: 'Guaranteed 100% returns', isCorrect: false, feedback: 'Nothing is guaranteed.' },
+                    { id: 'a', text: 'Guaranteed 100% returns', isCorrect: false, feedback: 'Nothing is guaranteed. Not even your haircut.' },
                     { id: 'b', text: 'Diversification', isCorrect: true, feedback: 'Yes! You own hundreds of companies at once.' }
                 ]
             }
@@ -225,12 +309,21 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Credit',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Your credit score is a measure of your trustworthiness to lenders. High score = Cheap loans.",
+            realLifeExample: "700 score gets a 3% mortgage. 600 score gets a 5% mortgage. The difference is $100,000 over 30 years.",
+            definitions: [
+                { term: "FICO", definition: "The most common credit scoring model." },
+                { term: "Credit Bureau", definition: "Agencies that collect data on consumer credit behavior." }
+            ],
+            actionableSteps: ["Check your credit report for free.", "Pay all bills on time."]
+        },
         steps: [
             { id: '8-1', type: 'info', content: 'Your FICO score determines if you can get a loan and what interest rate you pay.' },
             { id: '8-2', type: 'fill-blank', content: 'Keep your credit utilization below [BLANK]%.', fillBlankCorrect: '30', fillBlankOptions: ['30', '50', '80'] },
             {
                 id: '8-3', type: 'question', content: 'What hurts your score the most?', options: [
-                    { id: 'a', text: 'Checking your own score', isCorrect: false, feedback: 'Soft pulls don\'t hurt.' },
+                    { id: 'a', text: 'Checking your own score', isCorrect: false, feedback: 'Myth! Soft pulls don\'t hurt.' },
                     { id: 'b', text: 'Missing a payment', isCorrect: true, feedback: 'Yes. Payment history is 35% of your score.' }
                 ]
             }
@@ -244,11 +337,20 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Credit',
         estimatedTime: '5m',
+        playbook: {
+            summary: "Credit cards are like chainsaws. Useful tools if handled with care, dangerous if reckless.",
+            realLifeExample: "Pay in full = Free points and fraud protection. Carry a balance = 20% interest penalty.",
+            definitions: [
+                { term: "APR", definition: "Annual Percentage Rate. The cost of borrowing." },
+                { term: "Grace Period", definition: "Time you have to pay your bill before interest starts." }
+            ],
+            actionableSteps: ["Set up auto-pay for the full statement balance."]
+        },
         steps: [
             { id: '9-1', type: 'info', content: 'Credit cards offer rewards and fraud protection, but high interest if unpaid.' },
             {
                 id: '9-2', type: 'question', content: 'How do you avoid interest?', options: [
-                    { id: 'a', text: 'Pay the minimum', isCorrect: false, feedback: 'You will still be charged interest on the rest.' },
+                    { id: 'a', text: 'Pay the minimum', isCorrect: false, feedback: 'Trap! You will still be charged interest on the rest.' },
                     { id: 'b', text: 'Pay the full balance', isCorrect: true, feedback: 'Correct. Pay in full every month = $0 interest.' }
                 ]
             }
@@ -262,6 +364,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Taxes',
         estimatedTime: '7m',
+        playbook: {
+            summary: "Taxes are your biggest lifetime expense. Understanding them saves you thousands.",
+            realLifeExample: "Earning $100k doesn't mean you keep $100k. After taxes, it might be $75k.",
+            definitions: [
+                { term: "Gross Income", definition: "Total earnings before taxes." },
+                { term: "Net Income", definition: "Take-home pay after taxes." }
+            ],
+            actionableSteps: ["Look at your pay stub.", "See how much goes to taxes."]
+        },
         steps: [
             { id: '10-1', type: 'info', content: 'Gross income is what you earn. Net income is what you keep after taxes.' },
             { id: '10-2', type: 'puzzle', content: 'Unscramble: Money back from the gov.', scramble: 'DNEFUR', puzzleWord: 'REFUND', hint: 'Tax season bonus.' },
@@ -276,11 +387,20 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Investing',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Retirement accounts are tax shelters. They protect your money from taxes so it grows faster.",
+            realLifeExample: "401k Match is free money. If you put in $1 and your boss puts in $1, you just made 100% return instantly.",
+            definitions: [
+                { term: "401k", definition: "Employer-sponsored retirement plan." },
+                { term: "IRA", definition: "Individual Retirement Account." }
+            ],
+            actionableSteps: ["Log into your 401k provider.", "Check if you are getting the full match."]
+        },
         steps: [
             { id: '11-1', type: 'connections', content: 'Match the account to its benefit.', connectionPairs: [{ term: '401k', match: 'Employer Match' }, { term: 'Roth IRA', match: 'Tax-Free Growth' }, { term: 'Traditional IRA', match: 'Tax Deduction Now' }] },
             {
                 id: '11-2', type: 'question', content: 'If your employer offers a match, you should...', options: [
-                    { id: 'a', text: 'Ignore it', isCorrect: false, feedback: 'Never turn down free money.' },
+                    { id: 'a', text: 'Ignore it', isCorrect: false, feedback: 'Never turn down free money. Are you allergic to cash?' },
                     { id: 'b', text: 'Contribute enough to get it', isCorrect: true, feedback: 'Always take the match. It is an instant 100% return.' }
                 ]
             }
@@ -294,12 +414,21 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Economics',
         estimatedTime: '5m',
+        playbook: {
+            summary: "Inflation is the invisible tax. It makes your cash worth less every year.",
+            realLifeExample: "A movie ticket cost $5 in 2000. Today it is $15. Your $5 bill didn't change, but its power did.",
+            definitions: [
+                { term: "Inflation Rate", definition: "The percentage increase in prices over a year." },
+                { term: "Purchasing Power", definition: "The value of a currency expressed in terms of the amount of goods or services that one unit of money can buy." }
+            ],
+            actionableSteps: ["Invest cash that you don't need for 5+ years."]
+        },
         steps: [
             { id: '12-1', type: 'info', content: 'Inflation means things get more expensive over time. Cash loses value.' },
             {
                 id: '12-2', type: 'question', content: 'If inflation is 3% and your bank pays 0.1%...', options: [
                     { id: 'a', text: 'You are losing purchasing power', isCorrect: true, feedback: 'Correct. You effectively lost 2.9% of value.' },
-                    { id: 'b', text: 'You are making money', isCorrect: false, feedback: 'Not in real terms.' }
+                    { id: 'b', text: 'You are making money', isCorrect: false, feedback: 'Math error. You are losing money safely.' }
                 ]
             }
         ]
@@ -312,6 +441,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Assets',
         estimatedTime: '7m',
+        playbook: {
+            summary: "Real estate is a tangible asset. You can live in it, rent it out, or sell it for a profit.",
+            realLifeExample: "Buying a duplex. You live in one side, tenant pays rent on the other. Their rent pays your mortgage.",
+            definitions: [
+                { term: "Equity", definition: "The difference between what your home is worth and what you owe." },
+                { term: "Appreciation", definition: "Increase in value over time." }
+            ],
+            actionableSteps: ["Research 'House Hacking'."]
+        },
         steps: [
             { id: '13-1', type: 'fill-blank', content: 'Rental income is a form of [BLANK] cash flow.', fillBlankCorrect: 'Passive', fillBlankOptions: ['Passive', 'Active', 'Negative'] },
             { id: '13-2', type: 'puzzle', content: 'Unscramble: The loan for a house.', scramble: 'EGAGTROM', puzzleWord: 'MORTGAGE', hint: 'Monthly house payment.' }
@@ -325,6 +463,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Investing',
         estimatedTime: '6m',
+        playbook: {
+            summary: "High risk assets can make you rich or broke. Only invest what you can afford to lose.",
+            realLifeExample: "Bitcoin went from $60k to $16k in a year. If you needed that money for rent, you were in trouble.",
+            definitions: [
+                { term: "Volatility", definition: "How much a price swings up and down." },
+                { term: "Speculation", definition: "Buying something hoping someone else pays more later." }
+            ],
+            actionableSteps: ["Limit crypto to 5% of your portfolio."]
+        },
         steps: [
             { id: '14-1', type: 'info', content: 'Crypto is volatile. Never invest money you cannot afford to lose.' },
             { id: '14-2', type: 'sorting', content: 'Sort by Risk (Low to High).', sortCorrectOrder: ['Savings Account', 'Index Fund', 'Individual Stock', 'Crypto/NFT'] }
@@ -338,10 +485,19 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Business',
         estimatedTime: '5m',
+        playbook: {
+            summary: "A side hustle is a way to increase your income without quitting your job. It accelerates your wealth.",
+            realLifeExample: "Walking dogs on weekends for $200 extra a month. Invest that $200 and it becomes $100k in 30 years.",
+            definitions: [
+                { term: "Active Income", definition: "Trading time for money." },
+                { term: "Scalability", definition: "Ability to grow revenue without increasing work linearly." }
+            ],
+            actionableSteps: ["List 3 skills you can sell."]
+        },
         steps: [
             {
                 id: '15-1', type: 'question', content: 'The best side hustle is...', options: [
-                    { id: 'a', text: 'Driving Uber', isCorrect: false, feedback: 'It pays, but it is not scalable.' },
+                    { id: 'a', text: 'Driving Uber', isCorrect: false, feedback: 'It pays, but it is not scalable. You are trading time for money.' },
                     { id: 'b', text: 'One that scales or teaches skills', isCorrect: true, feedback: 'Correct. Build assets or skills, not just hourly wages.' }
                 ]
             }
@@ -355,6 +511,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Business',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Everything is negotiable. Salary, rent, bills. If you don't ask, the answer is always no.",
+            realLifeExample: "Calling your internet provider and saying 'I'm thinking of switching' can save you $20/mo.",
+            definitions: [
+                { term: "Leverage", definition: "Power to influence a situation." },
+                { term: "Counter-offer", definition: "An offer made in response to another." }
+            ],
+            actionableSteps: ["Negotiate one bill this week."]
+        },
         steps: [
             { id: '16-1', type: 'info', content: 'Your salary is negotiable. Never accept the first offer immediately.' },
             { id: '16-2', type: 'fill-blank', content: 'Always do your [BLANK] on market rates before negotiating.', fillBlankCorrect: 'Research', fillBlankOptions: ['Research', 'Guessing', 'Complaining'] }
@@ -368,11 +533,20 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Advanced',
         estimatedTime: '8m',
+        playbook: {
+            summary: "FIRE = Financial Independence, Retire Early. It's about freedom, not just not working.",
+            realLifeExample: "Saving 50% of your income allows you to retire in roughly 17 years.",
+            definitions: [
+                { term: "Savings Rate", definition: "Percentage of income you save." },
+                { term: "Financial Independence", definition: "When passive income > expenses." }
+            ],
+            actionableSteps: ["Calculate your savings rate."]
+        },
         steps: [
             { id: '17-1', type: 'info', content: 'The 4% Rule: If you can live on 4% of your portfolio, you are financially free.' },
             {
                 id: '17-2', type: 'question', content: 'If you spend $40k a year, how much do you need to retire?', options: [
-                    { id: 'a', text: '$400k', isCorrect: false, feedback: 'Too low.' },
+                    { id: 'a', text: '$400k', isCorrect: false, feedback: 'Too low. You will run out of money in 10 years.' },
                     { id: 'b', text: '$1 Million', isCorrect: true, feedback: 'Correct. $1M * 4% = $40,000.' }
                 ]
             }
@@ -386,6 +560,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Investing',
         estimatedTime: '5m',
+        playbook: {
+            summary: "Markets move in cycles. Bulls go up, Bears go down. Don't fear the Bear, it's a sale.",
+            realLifeExample: "In 2008, the market crashed (Bear). People who bought then made huge profits in the following Bull market.",
+            definitions: [
+                { term: "Bull Market", definition: "Market is rising and optimism is high." },
+                { term: "Bear Market", definition: "Market falls 20% or more." }
+            ],
+            actionableSteps: ["Don't check your portfolio daily."]
+        },
         steps: [
             { id: '18-1', type: 'info', content: 'Markets move in cycles. "Bull" means up (horns thrust up). "Bear" means down (claws swipe down).' },
             { id: '18-2', type: 'connections', content: 'Connect the term to the definition.', connectionPairs: [{ term: 'Bull Market', match: 'Prices Rising' }, { term: 'Bear Market', match: 'Prices Falling' }, { term: 'Correction', match: 'Drop of 10%' }] },
@@ -405,11 +588,20 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Basics',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Scammers prey on fear and greed. If it sounds too good to be true, it is.",
+            realLifeExample: "A text saying 'Your account is locked, click here' is a phishing scam to steal your password.",
+            definitions: [
+                { term: "Phishing", definition: "Fake emails/texts looking like real companies." },
+                { term: "Social Engineering", definition: "Manipulating people into giving up confidential info." }
+            ],
+            actionableSteps: ["Enable 2-Factor Authentication (2FA) on everything."]
+        },
         steps: [
             { id: '19-1', type: 'sorting', content: 'Sort into Safe vs Scam.', sortCorrectOrder: ['Bank App', 'Official Email', 'IG DM "Free Crypto"', 'WhatsApp "IRS Agent"'] },
             {
                 id: '19-2', type: 'question', content: 'Your bank calls asking for your password. You...', options: [
-                    { id: 'a', text: 'Give it to them', isCorrect: false, feedback: 'Banks NEVER ask for passwords.' },
+                    { id: 'a', text: 'Give it to them', isCorrect: false, feedback: 'Banks NEVER ask for passwords. Never.' },
                     { id: 'b', text: 'Hang up and call the official number', isCorrect: true, feedback: 'Always verify the source.' }
                 ]
             }
@@ -423,6 +615,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Business',
         estimatedTime: '5m',
+        playbook: {
+            summary: "Your network is your net worth. It's not about using people, it's about helping them.",
+            realLifeExample: "Sending a 'How can I help you?' email to someone you admire is better than asking for a job.",
+            definitions: [
+                { term: "Networking", definition: "Building professional relationships." },
+                { term: "Value Add", definition: "Contributing something useful to others." }
+            ],
+            actionableSteps: ["Connect with 3 people in your field on LinkedIn."]
+        },
         steps: [
             { id: '20-1', type: 'fill-blank', content: 'People do business with people they [BLANK].', fillBlankCorrect: 'Trust', fillBlankOptions: ['Trust', 'Fear', 'Pay'] },
             {
@@ -441,6 +642,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Basics',
         estimatedTime: '4m',
+        playbook: {
+            summary: "Willpower is a finite resource. Automation is infinite. Set your money to move automatically on payday.",
+            realLifeExample: "You set up a $500 auto-transfer to savings on the 1st. You don't even see the money, so you don't spend it.",
+            definitions: [
+                { term: "Automation", definition: "Using technology to perform tasks without human intervention." },
+                { term: "Pay Yourself First", definition: "Saving before spending." }
+            ],
+            actionableSteps: ["Set up one auto-transfer today."]
+        },
         steps: [
             { id: '21-1', type: 'info', content: 'Willpower fails. Automation doesn\'t. Automate your savings and bills.' },
             { id: '21-2', type: 'puzzle', content: 'Unscramble: Automatic payments.', scramble: 'TOUA YAP', puzzleWord: 'AUTOPAY', hint: 'Never miss a bill.' }
@@ -454,6 +664,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Advanced',
         estimatedTime: '10m',
+        playbook: {
+            summary: "You have learned the basics. Now it's about execution. Knowledge without action is poverty.",
+            realLifeExample: "Knowing how to do a pushup doesn't make you strong. Doing them does.",
+            definitions: [
+                { term: "Execution", definition: "The carrying out of a plan." },
+                { term: "Consistency", definition: "Doing small things repeatedly over time." }
+            ],
+            actionableSteps: ["Review your financial goals."]
+        },
         steps: [
             { id: '22-1', type: 'question', content: 'Which asset class historically has the highest return?', options: [{ id: 'a', text: 'Cash', isCorrect: false, feedback: 'Loses to inflation.' }, { id: 'b', text: 'Stocks', isCorrect: true, feedback: 'Avg 10% per year.' }] },
             { id: '22-2', type: 'sorting', content: 'Order the steps to wealth.', sortCorrectOrder: ['Earn Income', 'Save Emergency Fund', 'Pay High Interest Debt', 'Invest in Index Funds'] },
@@ -623,7 +842,6 @@ const BASE_MODULES: EducationModule[] = [
             }
         ]
     },
-    // NEW UNIT 28: ASSET VS LIABILITY (BINARY CHOICE)
     {
         id: 'unit-28',
         title: 'Rapid Fire: Assets',
@@ -632,6 +850,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Basics',
         estimatedTime: '3m',
+        playbook: {
+            summary: "Speed matters. You need to be able to identify an asset vs a liability instantly.",
+            realLifeExample: "A boat? Liability (Maintenance, Gas). A boat rental business? Asset (Income).",
+            definitions: [
+                { term: "Depreciation", definition: "Decrease in value over time." },
+                { term: "Cash Flow", definition: "The net amount of cash moving in and out." }
+            ],
+            actionableSteps: ["Look at everything you own. Is it an asset or liability?"]
+        },
         steps: [
             { id: '28-1', type: 'info', content: 'Welcome to the Speed Round. You have to decide instantly: Asset (Puts money in pocket) or Liability (Takes money out).' },
             {
@@ -656,7 +883,6 @@ const BASE_MODULES: EducationModule[] = [
             }
         ]
     },
-    // NEW UNIT 29: THE FINE PRINT (TEXT SELECTOR)
     {
         id: 'unit-29',
         title: 'The Fine Print',
@@ -665,6 +891,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Credit',
         estimatedTime: '7m',
+        playbook: {
+            summary: "The devil is in the details. Contracts are designed to protect the lender, not you.",
+            realLifeExample: "0% APR for 12 months... but if you miss one payment, they charge you 25% interest back to Day 1.",
+            definitions: [
+                { term: "Terms and Conditions", definition: "The rules you agree to." },
+                { term: "Default", definition: "Failure to repay a loan." }
+            ],
+            actionableSteps: ["Read the last contract you signed."]
+        },
         steps: [
             { id: '29-1', type: 'info', content: 'Predatory lenders hide their traps in the fine print. Let\'s analyze a "Payday Loan" contract.' },
             {
@@ -677,7 +912,6 @@ const BASE_MODULES: EducationModule[] = [
             }
         ]
     },
-    // NEW UNIT 30: AGE & RISK (SLIDER ALLOCATOR)
     {
         id: 'unit-30',
         title: 'Risk Profiler',
@@ -686,6 +920,15 @@ const BASE_MODULES: EducationModule[] = [
         isCompleted: false,
         category: 'Investing',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Risk capacity changes with age. When young, take risks. When old, preserve capital.",
+            realLifeExample: "At 20, a market crash is a buying opportunity. At 70, it's a crisis.",
+            definitions: [
+                { term: "Risk Tolerance", definition: "How much loss you can handle emotionally." },
+                { term: "Time Horizon", definition: "How long you plan to hold an investment." }
+            ],
+            actionableSteps: ["Determine your risk profile."]
+        },
         steps: [
             { id: '30-1', type: 'info', content: 'Your investment strategy should change as you age. Young = Growth (Risk). Old = Preservation (Safe).' },
             {
@@ -701,24 +944,33 @@ const BASE_MODULES: EducationModule[] = [
             {
                 id: '30-3',
                 type: 'slider-allocator',
-                content: 'You are 65 and retired. Build a portfolio for INCOME & SAFETY.',
+                content: 'You are 65 and retiring. Build a portfolio for SAFETY.',
                 allocatorCategories: [
-                    { label: 'Stocks', targetPercent: 40, startPercent: 90 },
-                    { label: 'Bonds/Cash', targetPercent: 60, startPercent: 10 }
+                    { label: 'Stocks', targetPercent: 40, startPercent: 50 },
+                    { label: 'Bonds/Cash', targetPercent: 60, startPercent: 50 }
                 ],
-                correctAnswerExplanation: 'In retirement, you cannot afford a 50% market crash. You need bonds and cash to pay your bills.'
+                correctAnswerExplanation: 'At 65, you cannot afford a 50% crash. You need more bonds and cash to pay your bills safely.'
             }
         ]
     },
-    // NEW UNIT 31: EMOTIONAL TRADER
+    // NEW UNIT 31: CARD SWIPE (NEW GAME)
     {
         id: 'unit-31',
-        title: 'Emotional Trader',
-        description: 'Master your mind, master the market.',
+        title: 'Swipe Right on Wealth',
+        description: 'Make split-second financial decisions.',
         xpReward: 1500,
         isCompleted: false,
         category: 'Investing',
         estimatedTime: '6m',
+        playbook: {
+            summary: "Investing is emotional. The market tests your discipline every day. Master your emotions, master your money.",
+            realLifeExample: "Selling when the market drops 10% feels safe, but it locks in a loss. Holding usually leads to recovery.",
+            definitions: [
+                { term: "FOMO", definition: "Fear Of Missing Out. Buying because everyone else is." },
+                { term: "Panic Selling", definition: "Selling assets because of fear, usually at a loss." }
+            ],
+            actionableSteps: ["Create an 'Investment Policy Statement' for yourself."]
+        },
         steps: [
             { id: '31-1', type: 'info', content: 'The stock market is a device for transferring money from the impatient to the patient.' },
             { id: '31-2', type: 'connections', content: 'Match the Emotion to the Action.', connectionPairs: [{ term: 'FOMO', match: 'Buying at the Top' }, { term: 'Panic', match: 'Selling at the Bottom' }, { term: 'Discipline', match: 'Holding during crash' }] },
@@ -728,6 +980,282 @@ const BASE_MODULES: EducationModule[] = [
                 content: 'Market crashes 20% tomorrow. What do you do?',
                 binaryLeft: { label: 'Sell Everything', isCorrect: false, feedback: 'You just locked in your losses. Bad move.' },
                 binaryRight: { label: 'Do Nothing / Buy', isCorrect: true, feedback: 'Correct. Stocks are on sale.' }
+            }
+        ]
+    },
+    // NEW UNIT 32: SIDE HUSTLE (BINARY CHOICE)
+    {
+        id: 'unit-32',
+        title: 'Side Hustle Hustler',
+        description: 'Active vs Passive Income.',
+        xpReward: 1500,
+        isCompleted: false,
+        category: 'Business',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "Active income requires your time. Passive income requires your money (or upfront effort). Aim for passive.",
+            realLifeExample: "Active: Driving Uber. Passive: Selling a stock photo online that people download for years.",
+            definitions: [
+                { term: "Passive Income", definition: "Earnings derived from an enterprise in which a person is not actively involved." },
+                { term: "Scalability", definition: "The ability to handle a growing amount of work without adding resources." }
+            ],
+            actionableSteps: ["Brainstorm one passive income idea."]
+        },
+        steps: [
+            { id: '32-1', type: 'info', content: 'Not all income is created equal. Active means you work for it. Passive means it works for you.' },
+            {
+                id: '32-2', type: 'binary-choice', content: 'Driving for Uber',
+                binaryLeft: { label: 'Active Income', isCorrect: true, feedback: 'Correct. No drive = No pay.' },
+                binaryRight: { label: 'Passive Income', isCorrect: false, feedback: 'Wrong. You have to be there to earn.' }
+            },
+            {
+                id: '32-3', type: 'binary-choice', content: 'Selling a Digital Course',
+                binaryLeft: { label: 'Active Income', isCorrect: false, feedback: 'Nope. You make it once, sell it forever.' },
+                binaryRight: { label: 'Passive Income', isCorrect: true, feedback: 'Bingo. Build once, sell twice.' }
+            },
+            {
+                id: '32-4', type: 'binary-choice', content: 'Dividend Stocks',
+                binaryLeft: { label: 'Active Income', isCorrect: false, feedback: 'Incorrect. You do nothing but hold.' },
+                binaryRight: { label: 'Passive Income', isCorrect: true, feedback: 'Yes! Money while you sleep.' }
+            }
+        ]
+    },
+    // NEW UNIT 33: CREDIT HACKER (TEXT SELECTOR)
+    {
+        id: 'unit-33',
+        title: 'Credit Score Hacker',
+        description: 'Boost your score fast.',
+        xpReward: 1500,
+        isCompleted: false,
+        category: 'Credit',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "Your credit score is your adult report card. 35% is Payment History, 30% is Utilization.",
+            realLifeExample: "Paying off a maxed-out card can boost your score by 50+ points in a month.",
+            definitions: [
+                { term: "Utilization", definition: "Percentage of credit limit you are using." },
+                { term: "Hard Inquiry", definition: "When a lender checks your credit (drops score slightly)." }
+            ],
+            actionableSteps: ["Keep utilization under 30%.", "Never miss a payment."]
+        },
+        steps: [
+            { id: '33-1', type: 'info', content: 'Want a higher score? Attack the factors that matter most.' },
+            {
+                id: '33-2',
+                type: 'text-selector',
+                content: 'Tap the 2 actions that HURT your credit score.',
+                hint: 'Think about debt and applications.',
+                selectorTargetPhrases: ['Maxing out cards', 'Applying for 5 loans'],
+                correctAnswerExplanation: 'Maxing out cards spikes your utilization. Applying for too many loans looks desperate (Hard Inquiries).'
+            }
+        ]
+    },
+    // NEW UNIT 34: CRYPTO & WEB3 (CARD SWIPE)
+    {
+        id: 'unit-34',
+        title: 'Crypto Casino',
+        description: 'High risk, high reward?',
+        xpReward: 2000,
+        isCompleted: false,
+        category: 'Investing',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "Crypto is the Wild West. High rewards come with extreme risks. Never bet the farm.",
+            realLifeExample: "FTX collapsed overnight. People lost millions. Not your keys, not your coins.",
+            definitions: [
+                { term: "Cold Storage", definition: "Storing crypto offline to prevent hacking." },
+                { term: "Seed Phrase", definition: "A list of words that grant access to your crypto wallet." }
+            ],
+            actionableSteps: ["If you own crypto, move it to a self-custody wallet."]
+        },
+        steps: [
+            { id: '34-1', type: 'info', content: 'Crypto is volatile. It is not savings, it is speculation. Only bet what you can lose.' },
+            {
+                id: '34-2', type: 'card-swipe', content: 'Investing your Emergency Fund in Dogecoin',
+                binaryLeft: { label: 'Bad Idea', isCorrect: true, feedback: 'Correct. Never gamble your safety net.' },
+                binaryRight: { label: 'Good Idea', isCorrect: false, feedback: 'Are you crazy? Much wow, much broke.' }
+            },
+            {
+                id: '34-3', type: 'card-swipe', content: 'Buying Bitcoin and holding for 10 years',
+                binaryLeft: { label: 'Bad Idea', isCorrect: false, feedback: 'Debatable, but historically a good long-term play.' },
+                binaryRight: { label: 'Good Idea', isCorrect: true, feedback: 'HODL. Long time horizon reduces risk.' }
+            },
+            {
+                id: '34-4', type: 'card-swipe', content: 'Giving your seed phrase to "Tech Support"',
+                binaryLeft: { label: 'Bad Idea', isCorrect: true, feedback: 'Smart. Never share your keys.' },
+                binaryRight: { label: 'Good Idea', isCorrect: false, feedback: 'And... your wallet is drained.' }
+            }
+        ]
+    },
+    // NEW UNIT 35: REAL ESTATE TYCOON (CONNECTIONS)
+    {
+        id: 'unit-35',
+        title: 'Real Estate Tycoon',
+        description: 'Landlords vs REITs.',
+        xpReward: 1800,
+        isCompleted: false,
+        category: 'Assets',
+        estimatedTime: '7m',
+        playbook: {
+            summary: "Real estate uses leverage (debt) to amplify returns. You put 20% down, but get 100% of the appreciation.",
+            realLifeExample: "You buy a $100k house with $20k down. It goes up 10% to $110k. You made $10k on a $20k investment (50% return).",
+            definitions: [
+                { term: "Leverage", definition: "Using borrowed capital for (an investment), expecting the profits made to be greater than the interest payable." },
+                { term: "REIT", definition: "Real Estate Investment Trust." }
+            ],
+            actionableSteps: ["Look at Zillow for properties in your area."]
+        },
+        steps: [
+            { id: '35-1', type: 'info', content: 'You do not need to buy a house to invest in real estate. REITs let you own pieces of malls and apartments.' },
+            { id: '35-2', type: 'connections', content: 'Match the Real Estate term.', connectionPairs: [{ term: 'REIT', match: 'Stock Market Real Estate' }, { term: 'Mortgage', match: 'House Loan' }, { term: 'Equity', match: 'Ownership Value' }] },
+            { id: '35-3', type: 'question', content: 'What is the "BRRRR" method?', options: [{ id: 'a', text: 'Being cold', isCorrect: false, feedback: 'Put on a sweater.' }, { id: 'b', text: 'Buy, Rehab, Rent, Refinance, Repeat', isCorrect: true, feedback: 'The landlord infinite money glitch.' }] }
+        ]
+    },
+    // NEW UNIT 36: TAX AVOIDANCE (LEGAL) (SLIDER ALLOCATOR)
+    {
+        id: 'unit-36',
+        title: 'Tax Ninja',
+        description: 'Keep more of what you earn.',
+        xpReward: 2000,
+        isCompleted: false,
+        category: 'Advanced',
+        estimatedTime: '8m',
+        playbook: {
+            summary: "Tax Evasion is illegal. Tax Avoidance is smart. Use tax-advantaged accounts like 401k and IRA.",
+            realLifeExample: "Putting $6000 in a Traditional IRA reduces your taxable income by $6000 instantly.",
+            definitions: [
+                { term: "Pre-Tax", definition: "Money invested before taxes are taken out (401k)." },
+                { term: "Post-Tax", definition: "Money invested after taxes (Roth IRA)." }
+            ],
+            actionableSteps: ["Open a Roth IRA.", "Max out employer 401k match."]
+        },
+        steps: [
+            { id: '36-1', type: 'info', content: 'The government takes a cut. Your job is to make that cut smaller legally.' },
+            {
+                id: '36-2',
+                type: 'slider-allocator',
+                content: 'Allocate your $10,000 bonus to minimize taxes.',
+                allocatorCategories: [
+                    { label: 'Traditional 401k (Tax Deduction)', targetPercent: 60, startPercent: 20 },
+                    { label: 'Checking Account (Taxed Fully)', targetPercent: 40, startPercent: 80 }
+                ],
+                correctAnswerExplanation: 'Putting more in the 401k lowers your tax bill now. The Checking Account money gets taxed at your highest rate.'
+            }
+        ]
+    },
+    // NEW UNIT 37: MILLIONAIRE MINDSET (BINARY CHOICE)
+    {
+        id: 'unit-37',
+        title: 'Millionaire Mindset',
+        description: 'Rich vs Poor thinking.',
+        xpReward: 1500,
+        isCompleted: false,
+        category: 'Basics',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "Rich people buy assets. Poor people buy liabilities. It's not about how much you make, it's what you buy.",
+            realLifeExample: "A millionaire drives a 5-year-old Toyota and owns apartments. A 'fake rich' person drives a leased BMW and rents.",
+            definitions: [
+                { term: "Mindset", definition: "The established set of attitudes held by someone." },
+                { term: "Delayed Gratification", definition: "Resisting an impulse to take an immediately available reward in the hope of obtaining a more valued reward in the future." }
+            ],
+            actionableSteps: ["Read 'The Millionaire Next Door'."]
+        },
+        steps: [
+            { id: '37-1', type: 'info', content: 'Wealth is a mindset before it is a number.' },
+            {
+                id: '37-2', type: 'binary-choice', content: 'Buying a new iPhone every year',
+                binaryLeft: { label: 'Rich Mindset', isCorrect: false, feedback: 'No. That is consumerism.' },
+                binaryRight: { label: 'Poor Mindset', isCorrect: true, feedback: 'Correct. Staying broke to look rich.' }
+            },
+            {
+                id: '37-3', type: 'binary-choice', content: 'Reading books on finance',
+                binaryLeft: { label: 'Rich Mindset', isCorrect: true, feedback: 'Yes. Knowledge is the best asset.' },
+                binaryRight: { label: 'Poor Mindset', isCorrect: false, feedback: 'Wrong. Leaders are readers.' }
+            }
+        ]
+    },
+    // NEW UNIT 38: NEGOTIATION JEDI (SCENARIO)
+    {
+        id: 'unit-38',
+        title: 'Negotiation Jedi',
+        description: 'Get paid what you are worth.',
+        xpReward: 1800,
+        isCompleted: false,
+        category: 'Business',
+        estimatedTime: '7m',
+        playbook: {
+            summary: "In business, you don't get what you deserve, you get what you negotiate. Always ask for more.",
+            realLifeExample: "Negotiating a $5k raise every 3 years adds up to over $100k in extra earnings over a career.",
+            definitions: [
+                { term: "BATNA", definition: "Best Alternative to a Negotiated Agreement." },
+                { term: "Anchoring", definition: "The tendency to rely too heavily on the first piece of information offered." }
+            ],
+            actionableSteps: ["Practice negotiating on a small purchase (like a mattress or car)."]
+        },
+        steps: [
+            { id: '38-1', type: 'info', content: 'You don\'t get what you deserve, you get what you negotiate.' },
+            {
+                id: '38-2', type: 'scenario', content: 'Boss offers $50k. You want $60k. You say...', scenarioOptions: [
+                    { text: 'Okay, thanks!', isCorrect: false, feedback: 'You just left $10k on the table.' },
+                    { text: 'I need $60k because I have bills.', isCorrect: false, feedback: 'They do not care about your bills.' },
+                    { text: 'Based on my market value and results, $60k is appropriate.', isCorrect: true, feedback: 'Correct. Use data, not emotion.' }
+                ]
+            }
+        ]
+    },
+    // NEW UNIT 39: ECONOMIC CYCLES (PUZZLE)
+    {
+        id: 'unit-39',
+        title: 'Recession Proof',
+        description: 'Survive the crash.',
+        xpReward: 1500,
+        isCompleted: false,
+        category: 'Advanced',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "Recessions are part of the economic cycle. They are scary, but they are also the best time to build wealth.",
+            realLifeExample: "During the 2008 recession, houses and stocks were 50% off. Those who bought then are rich now.",
+            definitions: [
+                { term: "Recession", definition: "A period of temporary economic decline." },
+                { term: "Emergency Fund", definition: "Cash saved for unexpected expenses." }
+            ],
+            actionableSteps: ["Increase your emergency fund to 6 months."]
+        },
+        steps: [
+            { id: '39-1', type: 'info', content: 'Economies go up and down. Winter is coming. Be ready.' },
+            { id: '39-2', type: 'puzzle', content: 'Unscramble: The R-Word.', scramble: 'CESSIREON', puzzleWord: 'RECESSION', hint: 'When the economy shrinks.' },
+            { id: '39-3', type: 'question', content: 'Cash is ___ during a crash.', options: [{ id: 'a', text: 'Trash', isCorrect: false, feedback: 'No, you need liquidity.' }, { id: 'b', text: 'King', isCorrect: true, feedback: 'Correct. Cash lets you buy cheap assets.' }] }
+        ]
+    },
+    // NEW UNIT 40: FINANCIAL FREEDOM (SLIDER ALLOCATOR)
+    {
+        id: 'unit-40',
+        title: 'The 4% Rule',
+        description: 'When can you quit?',
+        xpReward: 2500,
+        isCompleted: false,
+        category: 'Advanced',
+        estimatedTime: '8m',
+        playbook: {
+            summary: "The 4% Rule says you can safely withdraw 4% of your portfolio every year forever. To spend $40k/year, you need $1 Million.",
+            realLifeExample: "$1,000,000 x 0.04 = $40,000/year passive income.",
+            definitions: [
+                { term: "FIRE", definition: "Financial Independence, Retire Early." },
+                { term: "Safe Withdrawal Rate", definition: "The % you can take out without running out of money." }
+            ],
+            actionableSteps: ["Calculate your FIRE number: Annual Expenses x 25."]
+        },
+        steps: [
+            { id: '40-1', type: 'info', content: 'The math of freedom is simple. Annual Spend x 25 = Freedom Number.' },
+            {
+                id: '40-2',
+                type: 'slider-allocator',
+                content: 'You spend $40,000 a year. How much do you need to retire?',
+                allocatorCategories: [
+                    { label: 'Portfolio Value', targetPercent: 100, startPercent: 10 } // Represents $1M
+                ],
+                correctAnswerExplanation: 'You need $1,000,000. Because 4% of $1M is $40,000. Now get to work!'
             }
         ]
     }
@@ -956,6 +1484,15 @@ const Education: React.FC = () => {
         processResult(isCorrect, feedback);
     };
 
+    // NEW: Card Swipe Handler
+    const handleCardSwipe = (direction: 'left' | 'right', step: LessonStep) => {
+        if (lessonStatus !== 'idle') return;
+        const choice = direction === 'left' ? step.binaryLeft : step.binaryRight;
+        if (choice) {
+            processResult(choice.isCorrect, choice.feedback);
+        }
+    };
+
     const processResult = (isCorrect: boolean, feedback: string) => {
         const currentStep = activeModule?.steps[currentStepIndex];
         const explanation = currentStep?.correctAnswerExplanation ? ` ${currentStep.correctAnswerExplanation}` : '';
@@ -996,7 +1533,7 @@ const Education: React.FC = () => {
             setAllocatorValues(currentStep.allocatorCategories?.map(c => ({ label: c.label, value: c.targetPercent })) || []);
         } else if (currentStep.type === 'text-selector') {
             answerText = "Look for the red highlighted words.";
-        } else if (currentStep.type === 'binary-choice') {
+        } else if (currentStep.type === 'binary-choice' || currentStep.type === 'card-swipe') {
             answerText = currentStep.binaryLeft?.isCorrect ? currentStep.binaryLeft.label : currentStep.binaryRight?.label || '';
         }
 
@@ -1163,11 +1700,13 @@ const Education: React.FC = () => {
                 <div className="bg-white border-2 border-ink shadow-neo p-8 min-h-[400px] flex flex-col justify-center relative overflow-hidden">
                     <div className="relative z-10">
                         <span className={`px-2 py-1 text-xs font-black uppercase mb-4 inline-block tracking-widest bg-ink text-white`}>
-                            {currentStep.type === 'connections' ? 'Link Data' : currentStep.type === 'slider-allocator' ? 'Budget Balance' : currentStep.type === 'text-selector' ? 'Red Flag Hunter' : currentStep.type === 'binary-choice' ? 'Rapid Fire' : currentStep.type}
+                            {currentStep.type === 'connections' ? 'Link Data' : currentStep.type === 'slider-allocator' ? 'Budget Balance' : currentStep.type === 'text-selector' ? 'Red Flag Hunter' : currentStep.type === 'binary-choice' ? 'Rapid Fire' : currentStep.type === 'card-swipe' ? 'Swipe Decision' : currentStep.type}
                         </span>
 
-                        {currentStep.type !== 'fill-blank' && currentStep.type !== 'text-selector' && (
-                            <h2 className="text-2xl md:text-3xl font-black mb-8 font-display leading-tight">{currentStep.content}</h2>
+                        {currentStep.type !== 'fill-blank' && currentStep.type !== 'text-selector' && currentStep.type !== 'card-swipe' && (
+                            <h2 className="text-2xl md:text-3xl font-black mb-8 font-display leading-tight">
+                                <TextWithDefinitions text={currentStep.content} definitions={activeModule.playbook?.definitions} />
+                            </h2>
                         )}
 
                         {currentStep.type === 'text-selector' && (
@@ -1219,6 +1758,36 @@ const Education: React.FC = () => {
                                     <ThumbsDown className="w-12 h-12" />
                                     <span className="font-black text-xl uppercase font-display">{currentStep.binaryRight.label}</span>
                                 </button>
+                            </div>
+                        )}
+
+                        {/* NEW: CARD SWIPE RENDER */}
+                        {currentStep.type === 'card-swipe' && currentStep.binaryLeft && currentStep.binaryRight && (
+                            <div className="flex flex-col items-center justify-center h-80 relative animate-fade-in">
+                                <div className="absolute inset-0 flex items-center justify-between px-4 pointer-events-none opacity-20">
+                                    <span className="font-black uppercase text-xl -rotate-90">{currentStep.binaryLeft.label}</span>
+                                    <span className="font-black uppercase text-xl rotate-90">{currentStep.binaryRight.label}</span>
+                                </div>
+
+                                <div className="w-64 h-64 bg-white border-4 border-ink rounded-2xl shadow-neo-xl flex flex-col items-center justify-center p-6 text-center relative z-10 transition-transform hover:scale-105">
+                                    <h3 className="text-2xl font-black uppercase font-display mb-4">{currentStep.content}</h3>
+                                    <div className="flex gap-4 mt-8 w-full">
+                                        <button
+                                            onClick={() => handleCardSwipe('left', currentStep)}
+                                            disabled={lessonStatus !== 'idle'}
+                                            className="flex-1 bg-red-100 border-2 border-ink p-2 rounded hover:bg-red-200 font-bold text-xs uppercase"
+                                        >
+                                            👈 {currentStep.binaryLeft.label}
+                                        </button>
+                                        <button
+                                            onClick={() => handleCardSwipe('right', currentStep)}
+                                            disabled={lessonStatus !== 'idle'}
+                                            className="flex-1 bg-green-100 border-2 border-ink p-2 rounded hover:bg-green-200 font-bold text-xs uppercase"
+                                        >
+                                            {currentStep.binaryRight.label} 👉
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         )}
 
@@ -1463,7 +2032,7 @@ const Education: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-center bg-white border-2 border-ink p-4 shadow-neo sticky top-0 z-40 gap-4">
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <div className="bg-banky-yellow p-2 border-2 border-ink"><MapIcon className="w-5 h-5" /></div>
-                    <div><h1 className="font-black uppercase font-display leading-none">Campaign</h1><p className="text-xs font-bold text-gray-500">Level {userState.level}</p></div>
+                    <div><h1 className="font-black uppercase font-display leading-none">Campaign</h1><p className="text-xs font-bold text-gray-500">Level {userState.level} • {modules.length} Units</p></div>
                 </div>
 
                 {/* Right Side: Unified Actions */}
@@ -1564,11 +2133,11 @@ const Education: React.FC = () => {
             {/* --- PLAYBOOK MODAL --- (Existing Playbook code remains...) */}
             {showPlaybook && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white border-4 border-ink shadow-neo-xl w-full max-w-5xl h-[85vh] overflow-hidden flex relative">
+                    <div className="bg-white border-4 border-ink shadow-neo-xl w-full max-w-5xl h-[85vh] overflow-hidden flex flex-col md:flex-row relative">
                         <button onClick={() => setShowPlaybook(false)} className="absolute top-4 right-4 bg-gray-100 border-2 border-ink p-2 hover:bg-red-500 hover:text-white z-30"><X className="w-6 h-6" /></button>
 
                         {/* Sidebar */}
-                        <div className="w-1/3 border-r-4 border-ink bg-gray-50 flex flex-col">
+                        <div className="w-full md:w-1/3 h-[200px] md:h-auto border-b-4 md:border-b-0 md:border-r-4 border-ink bg-gray-50 flex flex-col">
                             <div className="p-6 border-b-4 border-ink bg-banky-blue text-white">
                                 <h2 className="text-2xl font-black uppercase font-display flex items-center gap-2"><Book className="w-6 h-6" /> Playbook</h2>
                                 <div className="flex items-center gap-2 mt-1 opacity-80 text-xs font-bold uppercase tracking-widest"><Globe className="w-3 h-3" /> {region} Edition</div>
@@ -1599,7 +2168,7 @@ const Education: React.FC = () => {
                         </div>
 
                         {/* Main Content (Fixed Fonts) */}
-                        <div className="w-2/3 bg-[#fffef0] flex flex-col relative">
+                        <div className="w-full md:w-2/3 flex-1 bg-[#fffef0] flex flex-col relative">
                             {playbookModuleId ? (
                                 <>
                                     {(() => {
