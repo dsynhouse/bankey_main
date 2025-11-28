@@ -94,11 +94,23 @@ const TextWithDefinitions: React.FC<{ text: string, definitions?: { term: string
                                 {part}
                             </button>
                             {activeTerm === def.term && (
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-ink text-white text-xs p-3 rounded shadow-xl z-50 animate-fade-in text-center">
-                                    <p className="font-bold mb-1 uppercase text-banky-yellow">{def.term}</p>
-                                    <p>{def.definition}</p>
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-ink"></div>
-                                </div>
+                                <>
+                                    {/* Mobile: Fixed Modal */}
+                                    <div className="md:hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/20 backdrop-blur-[1px]" onClick={(e) => { e.stopPropagation(); setActiveTerm(null); }}>
+                                        <div className="bg-ink text-white p-6 rounded-lg shadow-neo-xl w-full max-w-xs relative text-center animate-fade-in border-2 border-white" onClick={(e) => e.stopPropagation()}>
+                                            <p className="font-black text-banky-yellow uppercase mb-2 text-lg">{def.term}</p>
+                                            <p className="font-medium leading-relaxed">{def.definition}</p>
+                                            <button onClick={() => setActiveTerm(null)} className="mt-6 w-full bg-white text-ink font-black uppercase py-2 rounded hover:bg-gray-200">Got it</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Desktop: Tooltip */}
+                                    <div className="hidden md:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-ink text-white text-xs p-3 rounded shadow-xl z-50 animate-fade-in text-center">
+                                        <p className="font-bold mb-1 uppercase text-banky-yellow">{def.term}</p>
+                                        <p>{def.definition}</p>
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-ink"></div>
+                                    </div>
+                                </>
                             )}
                         </span>
                     );
@@ -2133,16 +2145,19 @@ const Education: React.FC = () => {
             {/* --- PLAYBOOK MODAL --- (Existing Playbook code remains...) */}
             {showPlaybook && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white border-4 border-ink shadow-neo-xl w-full max-w-5xl h-[85vh] overflow-hidden flex flex-col md:flex-row relative">
+                    <div className="bg-white border-4 border-ink shadow-neo-xl w-full max-w-5xl h-[85vh] overflow-hidden flex flex-row relative">
                         <button onClick={() => setShowPlaybook(false)} className="absolute top-4 right-4 bg-gray-100 border-2 border-ink p-2 hover:bg-red-500 hover:text-white z-30"><X className="w-6 h-6" /></button>
 
                         {/* Sidebar */}
-                        <div className="w-full md:w-1/3 h-[140px] md:h-auto border-b-4 md:border-b-0 md:border-r-4 border-ink bg-gray-50 flex flex-col flex-shrink-0">
-                            <div className="p-6 border-b-4 border-ink bg-banky-blue text-white">
-                                <h2 className="text-2xl font-black uppercase font-display flex items-center gap-2"><Book className="w-6 h-6" /> Playbook</h2>
-                                <div className="flex items-center gap-2 mt-1 opacity-80 text-xs font-bold uppercase tracking-widest"><Globe className="w-3 h-3" /> {region} Edition</div>
+                        <div className="w-16 md:w-1/3 h-full border-r-4 border-ink bg-gray-50 flex flex-col flex-shrink-0 transition-all duration-300">
+                            <div className="p-4 md:p-6 border-b-4 border-ink bg-banky-blue text-white flex flex-col md:block items-center justify-center">
+                                <div className="flex items-center gap-2">
+                                    <Book className="w-6 h-6 flex-shrink-0" />
+                                    <h2 className="hidden md:block text-2xl font-black uppercase font-display">Playbook</h2>
+                                </div>
+                                <div className="hidden md:flex items-center gap-2 mt-1 opacity-80 text-xs font-bold uppercase tracking-widest"><Globe className="w-3 h-3" /> {region} Edition</div>
                             </div>
-                            <div className="overflow-y-auto flex-1 p-2 space-y-2">
+                            <div className="overflow-y-auto flex-1 p-0 md:p-2 space-y-0 md:space-y-2">
                                 {modules.map((mod, idx) => {
                                     const isUnlocked = userState.completedUnitIds.includes(mod.id);
                                     const isActive = playbookModuleId === mod.id;
@@ -2151,16 +2166,19 @@ const Education: React.FC = () => {
                                             key={mod.id}
                                             onClick={() => isUnlocked && setPlaybookModuleId(mod.id)}
                                             disabled={!isUnlocked}
-                                            className={`w-full text-left p-4 border-2 transition-all flex items-center justify-between ${isActive ? 'bg-banky-yellow border-ink shadow-neo-sm translate-x-1' :
+                                            className={`w-full text-left p-3 md:p-4 border-b-2 md:border-2 transition-all flex items-center justify-center md:justify-between ${isActive ? 'bg-banky-yellow border-ink shadow-neo-sm md:translate-x-1' :
                                                 isUnlocked ? 'bg-white border-gray-200 hover:border-ink hover:bg-white' :
                                                     'bg-gray-100 border-transparent opacity-50 cursor-not-allowed'
                                                 }`}
                                         >
-                                            <div>
+                                            <div className="hidden md:block">
                                                 <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Unit {idx + 1}</span>
                                                 <p className="font-black font-display text-sm uppercase">{mod.title}</p>
                                             </div>
-                                            {!isUnlocked && <Lock className="w-4 h-4" />}
+                                            <div className="md:hidden font-black font-display text-xl">
+                                                {idx + 1}
+                                            </div>
+                                            {!isUnlocked && <Lock className="w-4 h-4 md:ml-0 text-gray-400" />}
                                         </button>
                                     )
                                 })}
