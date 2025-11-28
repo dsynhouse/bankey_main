@@ -142,7 +142,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         try {
             // 1. Profile & Preferences
-            const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
             if (profile) {
                 setUserState({
