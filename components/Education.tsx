@@ -2137,7 +2137,7 @@ const Education: React.FC = () => {
                         <button onClick={() => setShowPlaybook(false)} className="absolute top-4 right-4 bg-gray-100 border-2 border-ink p-2 hover:bg-red-500 hover:text-white z-30"><X className="w-6 h-6" /></button>
 
                         {/* Sidebar */}
-                        <div className="w-full md:w-1/3 h-[200px] md:h-auto border-b-4 md:border-b-0 md:border-r-4 border-ink bg-gray-50 flex flex-col">
+                        <div className="w-full md:w-1/3 h-[140px] md:h-auto border-b-4 md:border-b-0 md:border-r-4 border-ink bg-gray-50 flex flex-col flex-shrink-0">
                             <div className="p-6 border-b-4 border-ink bg-banky-blue text-white">
                                 <h2 className="text-2xl font-black uppercase font-display flex items-center gap-2"><Book className="w-6 h-6" /> Playbook</h2>
                                 <div className="flex items-center gap-2 mt-1 opacity-80 text-xs font-bold uppercase tracking-widest"><Globe className="w-3 h-3" /> {region} Edition</div>
@@ -2178,9 +2178,9 @@ const Education: React.FC = () => {
                                             <div className="flex-1 flex flex-col relative z-10">
                                                 <div className="p-8 pb-4">
                                                     <h2 className="text-4xl font-black uppercase font-display mb-2 bg-white inline-block px-2 border-2 border-transparent">{module.title}</h2>
-                                                    <div className="flex gap-2 border-b-4 border-ink bg-white/50 backdrop-blur-sm">
+                                                    <div className="flex gap-2 border-b-4 border-ink bg-white/50 backdrop-blur-sm overflow-x-auto whitespace-nowrap pb-1 scrollbar-hide">
                                                         {[{ id: 'summary', label: 'Breakdown', icon: Split }, { id: 'real-life', label: 'Real Life', icon: Briefcase }, { id: 'dictionary', label: 'Dictionary', icon: BookOpen }, { id: 'actions', label: 'Actions', icon: Check }].map(tab => (
-                                                            <button key={tab.id} onClick={() => setPlaybookTab(tab.id as 'summary' | 'real-life' | 'dictionary' | 'actions')} className={`flex items-center gap-2 px-4 py-3 font-black uppercase text-sm border-t-2 border-x-2 border-ink -mb-[4px] relative z-10 transition-all ${playbookTab === tab.id ? 'bg-banky-pink text-ink shadow-[0_-2px_0_0_#1A1A1A]' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}><tab.icon className="w-4 h-4" /> {tab.label}</button>
+                                                            <button key={tab.id} onClick={() => setPlaybookTab(tab.id as 'summary' | 'real-life' | 'dictionary' | 'actions')} className={`flex items-center gap-2 px-4 py-3 font-black uppercase text-sm border-t-2 border-x-2 border-ink -mb-[4px] relative z-10 transition-all flex-shrink-0 ${playbookTab === tab.id ? 'bg-banky-pink text-ink shadow-[0_-2px_0_0_#1A1A1A]' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}><tab.icon className="w-4 h-4" /> {tab.label}</button>
                                                         ))}
                                                     </div>
                                                 </div>
