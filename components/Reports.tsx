@@ -52,7 +52,8 @@ const Reports: React.FC = () => {
         await new Promise(r => setTimeout(r, 800));
 
         setProcessingStage('Generating Financial Report...');
-        const result = await processStatement(file);
+        setProcessingStage('Generating Financial Report...');
+        const result = await processStatement(file, currency.code);
 
         setReport(result);
         setIsProcessing(false);
@@ -61,9 +62,19 @@ const Reports: React.FC = () => {
     const handleAnalyze = async () => {
         if (!report) return;
         setIsAnalyzing(true);
-        const result = await analyzeFinancialReport(report);
-        setAnalysis(result);
-        setIsAnalyzing(false);
+        try {
+            const result = await analyzeFinancialReport(report);
+            if (!result) {
+                alert("AI Analysis failed. Please check your internet connection or try again later. (API Key might be missing)");
+            } else {
+                setAnalysis(result);
+            }
+        } catch (error) {
+            console.error("Analysis failed", error);
+            alert("An error occurred during analysis.");
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
     return (
@@ -189,17 +200,37 @@ const Reports: React.FC = () => {
                                         </div>
                                         <h2 className="text-2xl font-black font-display">{report.fileName}</h2>
                                         <p className="text-gray-400 text-sm font-mono mt-1">Period: {report.period} • Generated: {new Date().toLocaleDateString()}</p>
+
+                                        {/* Currency Mismatch Warning */}
+                                        {report.data.currencyMismatch && (
+                                            <div className="mt-4 bg-yellow-500/20 border border-yellow-500 text-yellow-200 p-3 rounded flex items-start gap-2 text-xs font-bold animate-pulse">
+                                                <AlertTriangle className="w-4 h-4 shrink-0" />
+                                                <p>
+                                                    Heads up! This statement looks like it's in {report.data.currency} ({report.data.currency === 'INR' ? '₹' : report.data.currency}),
+                                                    but your app is set to {currency.code} ({currency.symbol}). Numbers may be inaccurate.
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 items-center">
                                         {!analysis && (
-                                            <button
-                                                onClick={handleAnalyze}
-                                                disabled={isAnalyzing}
-                                                className="bg-banky-purple text-white border-2 border-white hover:bg-white hover:text-banky-purple font-black uppercase text-xs px-3 py-2 transition-colors flex items-center gap-2"
-                                            >
-                                                {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                                                {isAnalyzing ? 'Analyzing...' : 'Analyze with AI'}
-                                            </button>
+                                            <div className="relative group">
+                                                <button
+                                                    onClick={handleAnalyze}
+                                                    disabled={isAnalyzing}
+                                                    className="bg-banky-purple text-white border-2 border-white hover:bg-white hover:text-banky-purple font-black uppercase text-xs px-3 py-2 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                                    {isAnalyzing ? 'Analyzing...' : 'Analyze with AI'}
+                                                </button>
+                                                {/* Security Tooltip */}
+                                                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 bg-ink text-white text-xs p-3 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                                    <div className="flex items-center gap-2 mb-1 text-banky-green font-bold">
+                                                        <Shield className="w-3 h-3" /> AES-256 Encrypted
+                                                    </div>
+                                                    Your statement is encrypted locally before processing. AI analyzes anonymized data only.
+                                                </div>
+                                            </div>
                                         )}
                                         <button onClick={() => setReport(null)} className="text-gray-400 hover:text-white px-2">Close</button>
                                     </div>

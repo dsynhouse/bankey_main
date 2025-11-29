@@ -210,28 +210,34 @@ export const getRealTimeLearnContext = async (topic: string) => {
   }
 }
 
-// Helper to analyze a financial report
 export const analyzeFinancialReport = async (report: ReportData): Promise<ReportAnalysis | null> => {
-  if (!apiKey || !ai) return null;
+  if (!apiKey || !ai) {
+    console.warn("analyzeFinancialReport: Missing API Key or AI instance.");
+    return null;
+  }
 
   try {
     const prompt = `
-      Analyze this financial report for a young adult/small business owner. 
-      Report Data: ${JSON.stringify(report.data)}
+      ACT AS A STRICT FINANCIAL ANALYST.
+      Analyze this financial report for a small business.
       
-      Provide a structured analysis with:
-      1. A short, punchy summary (max 20 words).
-      2. 3 Key Strengths (Good habits or metrics).
-      3. 3 Weaknesses (Areas to improve).
-      4. 3 Actionable Tips (Specific advice to make more money or save).
+      DATA: ${JSON.stringify(report.data)}
       
-      Tone: Professional but modern, encouraging, and clear. No boring jargon.
+      RULES:
+      1. USE ONLY THE DATA PROVIDED. DO NOT HALLUCINATE NUMBERS.
+      2. Summary must be under 20 words.
+      3. Provide 3 Strengths based on the numbers.
+      4. Provide 3 Weaknesses based on the numbers.
+      5. Provide 3 Actionable Tips to improve Net Income.
+      
+      Tone: Professional, objective, concise.
     `;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
+        temperature: 0, // Maximum determinism
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -251,6 +257,74 @@ export const analyzeFinancialReport = async (report: ReportData): Promise<Report
     return JSON.parse(text);
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
+    return null;
+  }
+};
+
+// New: Parse Financial Document (PDF/Image)
+export const parseFinancialDocument = async (base64Data: string, mimeType: string): Promise<ReportData['data'] | null> => {
+  if (!apiKey || !ai) {
+    console.warn("parseFinancialDocument: Missing API Key or AI instance.");
+    return null;
+  }
+
+  try {
+    const prompt = `
+      ACT AS A STRICT FINANCIAL ANALYST.
+      Extract data from this financial document (Bank Statement, P&L, or Balance Sheet).
+      
+      EXTRACT:
+      1. Total Revenue/Income
+      2. Cost of Goods Sold (COGS) - if available, else 0
+      3. Expenses - categorized list
+      4. Net Income
+      5. Currency Code (e.g. USD, INR, EUR, GBP) - Infer from symbols (₹=INR, $=USD/CAD, £=GBP).
+      
+      RULES:
+      - Use the EXACT numbers found in the document.
+      - If currency is Rupees (₹), keep the numbers as is.
+      - Return JSON matching the schema.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        { text: prompt },
+        { inlineData: { mimeType: mimeType, data: base64Data } }
+      ],
+      config: {
+        temperature: 0,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            revenue: { type: Type.NUMBER },
+            cogs: { type: Type.NUMBER },
+            grossProfit: { type: Type.NUMBER },
+            expenses: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  category: { type: Type.STRING },
+                  amount: { type: Type.NUMBER }
+                }
+              }
+            },
+            netIncome: { type: Type.NUMBER },
+            currency: { type: Type.STRING }
+          },
+          required: ["revenue", "cogs", "grossProfit", "expenses", "netIncome", "currency"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) return null;
+    return JSON.parse(text);
+
+  } catch (error) {
+    console.error("Gemini PDF Parse Error:", error);
     return null;
   }
 };

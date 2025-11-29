@@ -163,6 +163,8 @@ export interface ReportData {
     assets?: number;
     liabilities?: number;
     equity?: number;
+    currency?: string; // Detected currency code (e.g. 'USD', 'INR')
+    currencyMismatch?: boolean; // Flag if it doesn't match user preference
   };
 }
 
