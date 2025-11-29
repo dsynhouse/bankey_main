@@ -142,7 +142,7 @@ export interface EducationModule {
   xpReward: number;
   isCompleted: boolean;
   steps: LessonStep[];
-  category: 'Basics' | 'Investing' | 'Taxes' | 'Business' | 'Credit' | 'Assets' | 'Economics' | 'Advanced';
+  category: 'Basics' | 'Investing' | 'Taxes' | 'Business' | 'Credit' | 'Assets' | 'Economics' | 'Advanced' | 'Mastery';
   estimatedTime: string;
   playbook?: PlaybookContent;
 }

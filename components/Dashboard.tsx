@@ -42,8 +42,9 @@ const Dashboard: React.FC = () => {
     const savingsRate = monthlyIncome > 0 ? Math.round(((monthlyIncome - monthlyExpense) / monthlyIncome) * 100) : 0;
 
     // Mock total units count for progress bar (should match Education.tsx)
-    const totalUnits = 17; // Updated to match current module count
-    const progressPercent = (userState.completedUnitIds?.length || 0) / totalUnits * 100;
+    const totalUnits = 44; // Updated to match expanded module count
+    const rawProgress = (userState.completedUnitIds?.length || 0) / totalUnits * 100;
+    const progressPercent = Math.min(rawProgress, 100);
 
     const handleAddGoal = (e: React.FormEvent) => {
         e.preventDefault();
@@ -418,7 +419,7 @@ const Dashboard: React.FC = () => {
 
             {/* Version Indicator */}
             <div className="text-center py-4 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
-                v0.0.1 • Bankey Native
+                v0.0.1 • Bankey Native (Beta Version)
             </div>
         </div>
     );

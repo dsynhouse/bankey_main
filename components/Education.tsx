@@ -1270,6 +1270,122 @@ const BASE_MODULES: EducationModule[] = [
                 correctAnswerExplanation: 'You need $1,000,000. Because 4% of $1M is $40,000. Now get to work!'
             }
         ]
+    },
+    // NEW UNIT 41: VENTURE CAPITAL
+    {
+        id: 'unit-41',
+        title: 'Venture Capital',
+        description: 'High risk, massive reward.',
+        xpReward: 3000,
+        isCompleted: false,
+        category: 'Mastery',
+        estimatedTime: '10m',
+        playbook: {
+            summary: "VCs invest in early-stage startups. Most fail, but one 'unicorn' pays for all the losses.",
+            realLifeExample: "Investing $10k in Uber's seed round would be worth $100M+ today.",
+            definitions: [
+                { term: "Seed Round", definition: "The first official equity funding stage." },
+                { term: "Dilution", definition: "Reduction in ownership percentage as new shares are issued." }
+            ],
+            actionableSteps: ["Research equity crowdfunding platforms."]
+        },
+        steps: [
+            { id: '41-1', type: 'info', content: 'Venture Capital is about power laws. One winner returns 100x, covering 99 losers.' },
+            {
+                id: '41-2', type: 'binary-choice', content: 'Safe 10% return vs 1% chance of 1000x return',
+                binaryLeft: { label: 'Safe Play', isCorrect: false, feedback: 'That is investing, not VC.' },
+                binaryRight: { label: 'VC Play', isCorrect: true, feedback: 'Correct. You are hunting unicorns.' }
+            }
+        ]
+    },
+    // NEW UNIT 42: GLOBAL ECONOMICS
+    {
+        id: 'unit-42',
+        title: 'Global Macro',
+        description: 'How the world works.',
+        xpReward: 3000,
+        isCompleted: false,
+        category: 'Mastery',
+        estimatedTime: '12m',
+        playbook: {
+            summary: "Currencies, interest rates, and geopolitics move markets. Everything is connected.",
+            realLifeExample: "When the US raises interest rates, money flows out of emerging markets into the Dollar.",
+            definitions: [
+                { term: "Forex", definition: "Foreign Exchange Market." },
+                { term: "GDP", definition: "Gross Domestic Product - total value of goods produced." }
+            ],
+            actionableSteps: ["Read the Financial Times or WSJ."]
+        },
+        steps: [
+            { id: '42-1', type: 'info', content: 'Money flows to where it is treated best. High interest rates attract capital.' },
+            {
+                id: '42-2', type: 'connections', content: 'Connect the Cause and Effect.',
+                connectionPairs: [
+                    { term: 'High Inflation', match: 'Raise Interest Rates' },
+                    { term: 'Strong Dollar', match: 'Cheap Imports' },
+                    { term: 'Weak Dollar', match: 'More Exports' }
+                ]
+            }
+        ]
+    },
+    // NEW UNIT 43: BEHAVIORAL MASTERY
+    {
+        id: 'unit-43',
+        title: 'Zen Investor',
+        description: 'Mastering your mind.',
+        xpReward: 3500,
+        isCompleted: false,
+        category: 'Mastery',
+        estimatedTime: '15m',
+        playbook: {
+            summary: "The biggest risk to your wealth is looking in the mirror. Emotional discipline beats IQ.",
+            realLifeExample: "Isaac Newton lost millions in the South Sea Bubble because he couldn't control his greed.",
+            definitions: [
+                { term: "Stoicism", definition: "Endurance of pain or hardship without the display of feelings." },
+                { term: "Hindsight Bias", definition: "Believing past events were predictable." }
+            ],
+            actionableSteps: ["Meditate on your financial goals."]
+        },
+        steps: [
+            { id: '43-1', type: 'info', content: 'If you cannot control your emotions, you cannot control your money.' },
+            {
+                id: '43-2', type: 'scenario', content: 'Your portfolio drops 50% in a crash. Everyone is panicking.',
+                scenarioOptions: [
+                    { text: 'Sell to save what is left.', isCorrect: false, feedback: 'You just crystallized a loss.' },
+                    { text: 'Check the price every hour.', isCorrect: false, feedback: 'This causes anxiety and bad decisions.' },
+                    { text: 'Do nothing. Stick to the plan.', isCorrect: true, feedback: 'The hardest and best thing to do.' }
+                ]
+            }
+        ]
+    },
+    // NEW UNIT 44: LEGACY
+    {
+        id: 'unit-44',
+        title: 'The Dynasty',
+        description: 'Building generational wealth.',
+        xpReward: 5000,
+        isCompleted: false,
+        category: 'Mastery',
+        estimatedTime: '20m',
+        playbook: {
+            summary: "True wealth is what you leave behind. Trusts, wills, and values matter more than money.",
+            realLifeExample: "The Rockefellers built a system to pass down wealth and values for generations.",
+            definitions: [
+                { term: "Trust", definition: "A legal entity to hold assets for beneficiaries." },
+                { term: "Estate Tax", definition: "Tax on the transfer of property at death." }
+            ],
+            actionableSteps: ["Create a Will."]
+        },
+        steps: [
+            { id: '44-1', type: 'info', content: 'You can\'t take it with you. But you can decide where it goes.' },
+            {
+                id: '44-2', type: 'question', content: 'What is the best way to protect assets for your kids?',
+                options: [
+                    { id: 'a', text: 'Give them cash now', isCorrect: false, feedback: 'They might spend it all.' },
+                    { id: 'b', text: 'Put it in a Trust', isCorrect: true, feedback: 'Correct. You control the rules even after you are gone.' }
+                ]
+            }
+        ]
     }
 ];
 
