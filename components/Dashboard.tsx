@@ -94,17 +94,17 @@ const Dashboard: React.FC = () => {
     return (
         <div className="space-y-8 animate-fade-in pb-20 md:pb-0">
             {/* Header / Welcome */}
-            <div className="bg-banky-yellow border-4 border-ink p-6 md:p-8 shadow-neo transform hover:-translate-y-1 transition-transform duration-300 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
+            <div className="bg-banky-yellow border-4 border-ink p-6 shadow-neo transform hover:-translate-y-1 transition-transform duration-300 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4 overflow-hidden">
                 {/* Left Side: Text */}
-                <div className="text-center md:text-left">
-                    <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-ink font-display mb-1 whitespace-nowrap">
+                <div className="text-center md:text-left min-w-0 flex-1">
+                    <h1 className="text-3xl md:text-4xl xl:text-5xl font-black uppercase italic tracking-tighter text-ink font-display mb-1 whitespace-nowrap overflow-hidden text-ellipsis">
                         YO, {user?.name || 'ROHAN'}!
                     </h1>
                     <p className="text-lg md:text-xl font-bold text-ink font-sans tracking-tight">Let's build that wealth.</p>
                 </div>
 
                 {/* Right Side: Date & Tabs */}
-                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 flex-shrink-0">
                     {/* Date */}
                     <div className="bg-white border-2 border-ink p-2 px-4 shadow-neo-sm transform -rotate-2 hover:rotate-0 transition-transform">
                         <p className="font-mono font-bold text-ink text-sm md:text-base whitespace-nowrap">

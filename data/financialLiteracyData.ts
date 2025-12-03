@@ -106,7 +106,7 @@ This is the most important category for your future.
 **Pro Tip:** If you live in a high-cost city, your "Needs" might be 60% or 70%. That's okay! Adjust the other categories accordingly (e.g., 70/20/10). The goal is to have a plan, not to be perfect.
                         `,
                         resources: [
-                            { title: 'NerdWallet Budget Calculator', url: 'https://www.nerdwallet.com/article/finance/budget-calculator', type: 'tool' },
+                            { title: 'Calculator.net: Budget Calculator', url: 'https://www.calculator.net/budget-calculator.html', type: 'tool' },
                             { title: 'Investopedia: 50/30/20 Rule', url: 'https://www.investopedia.com/ask/answers/022916/what-502030-budget-rule.asp', type: 'article' }
                         ]
                     },

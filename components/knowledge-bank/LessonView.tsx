@@ -43,8 +43,27 @@ const LessonView: React.FC = () => {
                     </h1>
                 </header>
 
-                <div className="prose prose-lg max-w-none prose-headings:font-black prose-headings:text-ink prose-p:text-gray-600 prose-strong:text-ink prose-li:text-gray-600">
-                    <ReactMarkdown>{lesson.content}</ReactMarkdown>
+                <div className="font-sans">
+                    <ReactMarkdown
+                        components={{
+                            h1: ({ node, ...props }) => <h1 className="text-3xl font-black font-display uppercase text-ink mt-10 mb-6 border-b-4 border-banky-yellow inline-block pr-4" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="text-2xl font-black font-display uppercase text-ink mt-10 mb-4 flex items-center gap-2" {...props} />,
+                            h3: ({ node, ...props }) => <h3 className="text-xl font-black font-display uppercase text-ink mt-8 mb-3 text-banky-blue" {...props} />,
+                            p: ({ node, ...props }) => <p className="text-lg leading-relaxed text-gray-700 mb-6" {...props} />,
+                            ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-6 space-y-3 mb-8 text-gray-700" {...props} />,
+                            ol: ({ node, ...props }) => <ol className="list-decimal list-outside ml-6 space-y-3 mb-8 text-gray-700" {...props} />,
+                            li: ({ node, ...props }) => <li className="pl-2 leading-relaxed" {...props} />,
+                            strong: ({ node, ...props }) => <strong className="font-black text-ink bg-banky-yellow/20 px-1 rounded" {...props} />,
+                            blockquote: ({ node, ...props }) => (
+                                <blockquote className="border-l-8 border-banky-purple bg-gray-50 p-6 my-8 rounded-r-xl italic text-gray-600 shadow-sm" {...props} />
+                            ),
+                            code: ({ node, ...props }) => (
+                                <code className="bg-gray-100 text-banky-pink font-mono font-bold px-2 py-1 rounded text-sm border border-gray-200" {...props} />
+                            ),
+                        }}
+                    >
+                        {lesson.content}
+                    </ReactMarkdown>
                 </div>
 
                 {lesson.resources && lesson.resources.length > 0 && (
