@@ -246,6 +246,7 @@ export const BASE_MODULES: EducationModule[] = [
             }
         ]
     },
+
     {
         id: 'unit-10',
         title: 'Taxes 101',
@@ -815,6 +816,489 @@ export const BASE_MODULES: EducationModule[] = [
                     { id: 'b', text: 'Hang up and call the official number', isCorrect: true, feedback: 'Always verify the source.' }
                 ]
             }
+        ]
+    },
+    {
+        id: 'unit-28',
+        title: 'The Psychology of Money',
+        description: 'Money is emotional, not just math.',
+        xpReward: 300,
+        isCompleted: false,
+        category: 'Basics',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "Doing well with money has a little to do with how smart you are and a lot to do with how you behave.",
+            realLifeExample: "Ronald Read, a janitor, died with $8M because he saved consistently. A Harvard MBA went broke because he was greedy.",
+            definitions: [
+                { term: "Behavioral Finance", definition: "The study of psychological influences on financial decisions." },
+                { term: "Greed & Fear", definition: "The two emotions that drive markets." }
+            ],
+            actionableSteps: ["Identify your emotional triggers for spending."]
+        },
+        steps: [
+            { id: '28-1', type: 'info', content: 'Logic says "Save". Emotion says "Buy". Mastering money means mastering yourself.' },
+            { id: '28-2', type: 'fill-blank', content: 'Being [BLANK] is more important than being rational.', fillBlankCorrect: 'Reasonable', fillBlankOptions: ['Reasonable', 'Perfect', 'Rich'] },
+            { id: '28-3', type: 'puzzle', content: 'Unscramble: The enemy of wealth.', scramble: 'GOE', puzzleWord: 'EGO', hint: 'Spending to impress others.' }
+        ]
+    },
+    {
+        id: 'unit-29',
+        title: 'Opportunity Cost',
+        description: 'The cost of the next best alternative.',
+        xpReward: 250,
+        isCompleted: false,
+        category: 'Basics',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "Every choice has a hidden cost. It's not just what you spend, it's what you give up.",
+            realLifeExample: "Spending $1000 on a phone isn't just $1000. It's $1000 that could have been invested to become $10,000.",
+            definitions: [
+                { term: "Trade-off", definition: "Giving up one thing to get another." },
+                { term: "Scarcity", definition: "Limited resources (time/money) means we must choose." }
+            ],
+            actionableSteps: ["Before buying, ask: 'What else could this money do?'"]
+        },
+        steps: [
+            { id: '29-1', type: 'info', content: 'Opportunity Cost is the value of the road not taken.' },
+            {
+                id: '29-2', type: 'question', content: 'You spend 4 years in college. The cost is...', options: [
+                    { id: 'a', text: 'Just tuition', isCorrect: false, feedback: 'Missing something big.' },
+                    { id: 'b', text: 'Tuition + 4 years of lost wages', isCorrect: true, feedback: 'Correct. You could have been working.' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'unit-30',
+        title: 'Sunk Cost Fallacy',
+        description: 'Throwing good money after bad.',
+        xpReward: 300,
+        isCompleted: false,
+        category: 'Advanced',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "Don't cling to a mistake just because you spent a lot of time making it.",
+            realLifeExample: "You hate a movie but stay because you paid $15. Result: You lost $15 AND 2 hours of your life.",
+            definitions: [
+                { term: "Sunk Cost", definition: "Money/time already spent that cannot be recovered." },
+                { term: "Rational Choice", definition: "Deciding based on future potential, not past loss." }
+            ],
+            actionableSteps: ["Cut your losses on one bad subscription or habit today."]
+        },
+        steps: [
+            { id: '30-1', type: 'info', content: 'The past is gone. Only the future matters for decision making.' },
+            { id: '30-2', type: 'scenario', content: 'You fixed your old car for $1000. It breaks again. Repair is $2000. Car is worth $1500.', scenarioOptions: [{ text: 'Fix it (I already spent $1000)', isCorrect: false, feedback: 'Sunk Cost Fallacy! That $1000 is gone.' }, { text: 'Sell it', isCorrect: true, feedback: 'Correct. Stop the bleeding.' }] }
+        ]
+    },
+    {
+        id: 'unit-31',
+        title: 'Lifestyle Creep',
+        description: 'Spending more as you earn more.',
+        xpReward: 350,
+        isCompleted: false,
+        category: 'Basics',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "The silent wealth killer. You get a raise, so you buy a nicer car. You never get ahead.",
+            realLifeExample: "Making $50k, spending $50k. Making $100k, spending $100k. You are still broke.",
+            definitions: [
+                { term: "Golden Handcuffs", definition: "High income but high expenses, trapping you in a job." },
+                { term: "Gap", definition: "The difference between income and expenses." }
+            ],
+            actionableSteps: ["Save 50% of your next raise."]
+        },
+        steps: [
+            { id: '31-1', type: 'fill-blank', content: 'Wealth is what you [BLANK] see.', fillBlankCorrect: 'Dont', fillBlankOptions: ['Dont', 'Can', 'Always'] },
+            { id: '31-2', type: 'sorting', content: 'Order by Wealth Building Power.', sortCorrectOrder: ['Keep expenses same, Income up', 'Expenses up, Income up', 'Expenses up, Income same'] }
+        ]
+    },
+    {
+        id: 'unit-32',
+        title: 'The Rule of 72',
+        description: 'Magic math for doubling money.',
+        xpReward: 200,
+        isCompleted: false,
+        category: 'Investing',
+        estimatedTime: '4m',
+        playbook: {
+            summary: "A mental shortcut to estimate investment growth. Divide 72 by your interest rate.",
+            realLifeExample: "At 8% return: 72 / 8 = 9 years to double your money.",
+            definitions: [
+                { term: "Doubling Time", definition: "Time it takes for an investment to grow 100%." },
+                { term: "Rate of Return", definition: "The gain or loss on an investment over a specified period." }
+            ],
+            actionableSteps: ["Calculate when your savings will double."]
+        },
+        steps: [
+            { id: '32-1', type: 'info', content: 'Formula: 72 ÷ Interest Rate = Years to Double.' },
+            {
+                id: '32-2', type: 'question', content: 'If you get 10% returns, how long to double?', options: [
+                    { id: 'a', text: '10 years', isCorrect: false, feedback: 'Close, but no.' },
+                    { id: 'b', text: '7.2 years', isCorrect: true, feedback: 'Correct. 72 / 10 = 7.2.' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'unit-33',
+        title: 'Diversification Deep Dive',
+        description: 'Don\'t put all eggs in one basket.',
+        xpReward: 300,
+        isCompleted: false,
+        category: 'Investing',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "There are two types of risk: Systematic (Market crash) and Unsystematic (Company fails). Diversification kills the second one.",
+            realLifeExample: "Enron employees lost their jobs AND their retirement because they were 100% invested in Enron stock.",
+            definitions: [
+                { term: "Systematic Risk", definition: "Risk that affects the whole market (War, Recession)." },
+                { term: "Unsystematic Risk", definition: "Risk specific to one company or industry." }
+            ],
+            actionableSteps: ["Check if any single stock is >5% of your portfolio."]
+        },
+        steps: [
+            { id: '33-1', type: 'info', content: 'Diversification is the only "free lunch" in investing. You lower risk without lowering expected return.' },
+            { id: '33-2', type: 'sorting', content: 'Sort by Safety.', sortCorrectOrder: ['Total World Stock ETF', 'S&P 500 ETF', 'Tech Sector ETF', 'Single Tech Stock'] }
+        ]
+    },
+    {
+        id: 'unit-34',
+        title: 'Bonds 101',
+        description: 'Being the bank.',
+        xpReward: 250,
+        isCompleted: false,
+        category: 'Investing',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "When you buy a bond, you are loaning money to a government or company. They pay you interest.",
+            realLifeExample: "US Treasury Bonds are considered the safest investment on earth. They pay less than stocks but won't go to zero.",
+            definitions: [
+                { term: "Coupon", definition: "The interest payment on a bond." },
+                { term: "Maturity", definition: "When the loan is paid back." }
+            ],
+            actionableSteps: ["Look up current 'Treasury Yields'."]
+        },
+        steps: [
+            { id: '34-1', type: 'info', content: 'Stocks = Ownership. Bonds = Loanership.' },
+            {
+                id: '34-2', type: 'question', content: 'Why hold bonds?', options: [
+                    { id: 'a', text: 'To get rich fast', isCorrect: false, feedback: 'No, stocks grow faster.' },
+                    { id: 'b', text: 'Stability and income', isCorrect: true, feedback: 'Correct. They zig when stocks zag.' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'unit-35',
+        title: 'REITs',
+        description: 'Real Estate for everyone.',
+        xpReward: 300,
+        isCompleted: false,
+        category: 'Assets',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "Real Estate Investment Trusts (REITs) are companies that own buildings. You buy shares, they pay you rent (dividends).",
+            realLifeExample: "You can own a piece of a Manhattan skyscraper for $100 through a REIT.",
+            definitions: [
+                { term: "Liquidity", definition: "REITs are liquid (sold in seconds). Physical houses are illiquid (take months to sell)." },
+                { term: "Dividend Yield", definition: "Annual payout divided by share price." }
+            ],
+            actionableSteps: ["Research 'VNQ' (Vanguard Real Estate ETF)."]
+        },
+        steps: [
+            { id: '35-1', type: 'info', content: 'REITs allow you to be a landlord without fixing toilets.' },
+            { id: '35-2', type: 'fill-blank', content: 'REITs must pay out [BLANK]% of taxable income to shareholders.', fillBlankCorrect: '90', fillBlankOptions: ['90', '50', '10'] }
+        ]
+    },
+    {
+        id: 'unit-36',
+        title: 'Dollar Cost Averaging',
+        description: 'Timing the market is for losers.',
+        xpReward: 250,
+        isCompleted: false,
+        category: 'Investing',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "Invest the same amount every month, regardless of price. You buy more shares when cheap and fewer when expensive.",
+            realLifeExample: "Investing $500 on the 1st of every month beats trying to guess the bottom of a crash.",
+            definitions: [
+                { term: "DCA", definition: "Dollar Cost Averaging." },
+                { term: "Market Timing", definition: "Trying to predict future price movements (usually fails)." }
+            ],
+            actionableSteps: ["Automate your monthly investment."]
+        },
+        steps: [
+            { id: '36-1', type: 'info', content: 'Time IN the market beats TIMING the market.' },
+            { id: '36-2', type: 'scenario', content: 'Market drops 20%. What do you do?', scenarioOptions: [{ text: 'Stop investing until it recovers', isCorrect: false, feedback: 'You miss the sale!' }, { text: 'Keep investing your usual amount', isCorrect: true, feedback: 'Correct. You are buying more shares at a discount.' }] }
+        ]
+    },
+    {
+        id: 'unit-37',
+        title: 'Expense Ratios',
+        description: 'The hidden fee that bleeds you.',
+        xpReward: 300,
+        isCompleted: false,
+        category: 'Investing',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "Fees matter. A 1% fee sounds small, but it can eat 30% of your lifetime returns.",
+            realLifeExample: "Fund A charges 0.04%. Fund B charges 1.00%. Over 30 years, Fund B costs you $100,000 more.",
+            definitions: [
+                { term: "Expense Ratio", definition: "Annual fee charged by a fund." },
+                { term: "Active Management", definition: "Paying experts to pick stocks (usually expensive)." }
+            ],
+            actionableSteps: ["Check the expense ratio of your funds. Aim for <0.10%."]
+        },
+        steps: [
+            { id: '37-1', type: 'info', content: 'In investing, you get what you DON\'T pay for. Lower fees = Higher returns.' },
+            {
+                id: '37-2', type: 'question', content: 'Which is better?', options: [
+                    { id: 'a', text: 'Fund with 1.5% fee and 5-star rating', isCorrect: false, feedback: 'Ratings change. Fees are forever.' },
+                    { id: 'b', text: 'Index Fund with 0.03% fee', isCorrect: true, feedback: 'Correct. Low cost wins.' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'unit-38',
+        title: 'Active vs Passive Investing',
+        description: 'Beating the market vs Joining it.',
+        xpReward: 300,
+        isCompleted: false,
+        category: 'Investing',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "Active investing tries to beat the market by picking winners. Passive investing buys the whole market. Passive wins 90% of the time.",
+            realLifeExample: "Warren Buffett bet $1M that a simple index fund would beat a team of hedge fund managers over 10 years. He won easily.",
+            definitions: [
+                { term: "Alpha", definition: "Return above the market average." },
+                { term: "Beta", definition: "Volatility relative to the market." }
+            ],
+            actionableSteps: ["Buy 'VTI' or 'VOO' and chill."]
+        },
+        steps: [
+            { id: '38-1', type: 'info', content: 'Trying to find the "needle in the haystack" (winning stock) is hard. Just buy the haystack (Index Fund).' },
+            { id: '38-2', type: 'binary-choice', content: 'Who usually makes more money?', binaryLeft: { label: 'Active Trader', isCorrect: false, feedback: 'Fees and bad timing usually kill their returns.' }, binaryRight: { label: 'Passive Investor', isCorrect: true, feedback: 'Correct. Slow and steady wins the race.' } }
+        ]
+    },
+    {
+        id: 'unit-39',
+        title: 'The Fiduciary Standard',
+        description: 'Who is really on your side?',
+        xpReward: 350,
+        isCompleted: false,
+        category: 'Advanced',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "Not all financial advisors are the same. A 'Fiduciary' is legally required to act in YOUR best interest. Others are just salespeople.",
+            realLifeExample: "A non-fiduciary might sell you a fund with high fees because they get a commission. A fiduciary would recommend the low-fee option.",
+            definitions: [
+                { term: "Fiduciary", definition: "Legal obligation to put client interests first." },
+                { term: "Suitability Standard", definition: "Lower standard; product just has to be 'suitable', not the best." }
+            ],
+            actionableSteps: ["Ask any advisor: 'Are you a fiduciary 100% of the time?'"]
+        },
+        steps: [
+            { id: '39-1', type: 'info', content: 'If they are not a Fiduciary, they are a salesperson.' },
+            { id: '39-2', type: 'fill-blank', content: 'Always hire a [BLANK] advisor.', fillBlankCorrect: 'Fee-Only', fillBlankOptions: ['Fee-Only', 'Commission-Based', 'Free'] }
+        ]
+    },
+    {
+        id: 'unit-40',
+        title: 'Umbrella Insurance',
+        description: 'Protection for the wealthy.',
+        xpReward: 300,
+        isCompleted: false,
+        category: 'Assets',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "Umbrella insurance sits on top of your home/auto insurance. It protects you from massive lawsuits.",
+            realLifeExample: "You cause a car crash. The other driver sues for $1M. Your car insurance only covers $250k. Umbrella covers the remaining $750k.",
+            definitions: [
+                { term: "Liability", definition: "Legal responsibility for damage/injury." },
+                { term: "Asset Protection", definition: "Shielding wealth from lawsuits." }
+            ],
+            actionableSteps: ["If your net worth > $500k, get a quote."]
+        },
+        steps: [
+            { id: '40-1', type: 'info', content: 'It is cheap peace of mind. Usually $200/year for $1M coverage.' },
+            { id: '40-2', type: 'question', content: 'Who needs Umbrella Insurance?', options: [{ id: 'a', text: 'Everyone', isCorrect: false, feedback: 'Not if you have no assets to seize.' }, { id: 'b', text: 'High Net Worth Individuals', isCorrect: true, feedback: 'Correct. You are a target for lawsuits.' }] }
+        ]
+    },
+    {
+        id: 'unit-41',
+        title: 'Estate Planning Basics',
+        description: 'Control from the grave.',
+        xpReward: 400,
+        isCompleted: false,
+        category: 'Advanced',
+        estimatedTime: '7m',
+        playbook: {
+            summary: "If you don't have a plan, the state has one for you (and you won't like it). Wills and Trusts ensure your money goes where you want.",
+            realLifeExample: "Prince died without a will. The government took half his money and lawyers took the rest.",
+            definitions: [
+                { term: "Will", definition: "Document stating who gets what." },
+                { term: "Trust", definition: "Entity that holds assets for beneficiaries." }
+            ],
+            actionableSteps: ["Create a basic Will online."]
+        },
+        steps: [
+            { id: '41-1', type: 'connections', content: 'Match the tool to the goal.', connectionPairs: [{ term: 'Will', match: 'Distribute Assets' }, { term: 'Living Will', match: 'Medical Decisions' }, { term: 'Trust', match: 'Avoid Probate' }] },
+            { id: '41-2', type: 'info', content: 'Probate is a public court process. Trusts keep things private.' }
+        ]
+    },
+    {
+        id: 'unit-42',
+        title: 'HSA (Health Savings Account)',
+        description: 'The triple tax threat.',
+        xpReward: 350,
+        isCompleted: false,
+        category: 'Taxes',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "The HSA is the best tax account in existence. Tax-free in, Tax-free growth, Tax-free out (for medical).",
+            realLifeExample: "You put in $3000 (save $900 in taxes). It grows to $30,000. You spend it on surgery tax-free.",
+            definitions: [
+                { term: "HDHP", definition: "High Deductible Health Plan (required for HSA)." },
+                { term: "Triple Tax Advantage", definition: "No tax on contribution, growth, or withdrawal." }
+            ],
+            actionableSteps: ["Max out your HSA if eligible."]
+        },
+        steps: [
+            { id: '42-1', type: 'info', content: 'Use it as a retirement account. Pay medical bills with cash now, reimburse yourself from HSA in 20 years.' },
+            { id: '42-2', type: 'sorting', content: 'Order by Tax Efficiency.', sortCorrectOrder: ['HSA (Triple Tax Free)', 'Roth IRA (Tax Free Growth)', '401k (Tax Deferred)', 'Brokerage (Taxable)'] }
+        ]
+    },
+    {
+        id: 'unit-43',
+        title: 'Roth vs Traditional IRA',
+        description: 'Tax now or tax later?',
+        xpReward: 350,
+        isCompleted: false,
+        category: 'Taxes',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "Roth = Pay tax now, grow tax-free. Traditional = Save tax now, pay tax later. Roth is usually better if you are young.",
+            realLifeExample: "You put $5000 in a Roth. It grows to $50,000. You withdraw $50,000 tax-free. In Traditional, you'd owe taxes on the $50,000.",
+            definitions: [
+                { term: "After-Tax Dollars", definition: "Money you have already paid taxes on (Roth)." },
+                { term: "Pre-Tax Dollars", definition: "Money deducted from income before taxes (Traditional)." }
+            ],
+            actionableSteps: ["Open a Roth IRA if you earn under the limit."]
+        },
+        steps: [
+            { id: '43-1', type: 'info', content: 'Think of taxes as seeds vs harvest. Roth taxes the seed. Traditional taxes the harvest.' },
+            { id: '43-2', type: 'binary-choice', content: 'You expect to be in a HIGHER tax bracket when you retire.', binaryLeft: { label: 'Choose Traditional', isCorrect: false, feedback: 'No, you want to pay taxes now while they are low.' }, binaryRight: { label: 'Choose Roth', isCorrect: true, feedback: 'Correct. Lock in the low tax rate now.' } }
+        ]
+    },
+    {
+        id: 'unit-44',
+        title: 'Capital Gains Tax',
+        description: 'Short term vs Long term.',
+        xpReward: 300,
+        isCompleted: false,
+        category: 'Taxes',
+        estimatedTime: '5m',
+        playbook: {
+            summary: "How long you hold an asset determines how much tax you pay. Hold for >1 year for a discount.",
+            realLifeExample: "You make $100 profit. Short term tax (30%) = You keep $70. Long term tax (15%) = You keep $85.",
+            definitions: [
+                { term: "Short Term Capital Gains", definition: "Assets held < 1 year. Taxed as regular income (High)." },
+                { term: "Long Term Capital Gains", definition: "Assets held > 1 year. Taxed at lower rates (0%, 15%, 20%)." }
+            ],
+            actionableSteps: ["Don't sell winners in less than a year unless necessary."]
+        },
+        steps: [
+            { id: '44-1', type: 'info', content: 'Patience pays. The government rewards long-term investors with lower taxes.' },
+            { id: '44-2', type: 'fill-blank', content: 'To get the lower tax rate, hold for at least [BLANK] year + 1 day.', fillBlankCorrect: 'One', fillBlankOptions: ['One', 'Two', 'Five'] }
+        ]
+    },
+    {
+        id: 'unit-45',
+        title: 'Understanding Inflation (Adv)',
+        description: 'CPI and Purchasing Power.',
+        xpReward: 400,
+        isCompleted: false,
+        category: 'Economics',
+        estimatedTime: '7m',
+        playbook: {
+            summary: "Inflation isn't just prices going up; it's money becoming worthless. The CPI measures this change.",
+            realLifeExample: "If your raise was 3% but inflation was 5%, you actually got a 2% pay cut.",
+            definitions: [
+                { term: "CPI", definition: "Consumer Price Index. A basket of goods used to measure inflation." },
+                { term: "Hyperinflation", definition: "Out of control inflation (prices doubling daily)." }
+            ],
+            actionableSteps: ["Calculate your 'Real Wage' growth."]
+        },
+        steps: [
+            { id: '45-1', type: 'info', content: 'Inflation benefits debtors (borrowers) and hurts savers. Why? Because you pay back loans with cheaper dollars.' },
+            { id: '45-2', type: 'question', content: 'Who suffers most from high inflation?', options: [{ id: 'a', text: 'People with fixed debt (Mortgage)', isCorrect: false, feedback: 'No, their debt gets easier to pay.' }, { id: 'b', text: 'People holding cash', isCorrect: true, feedback: 'Correct. Their savings melt away.' }] }
+        ]
+    },
+    {
+        id: 'unit-46',
+        title: 'The Federal Reserve',
+        description: 'Who controls the money supply?',
+        xpReward: 450,
+        isCompleted: false,
+        category: 'Economics',
+        estimatedTime: '8m',
+        playbook: {
+            summary: "The Fed is the central bank of the US. They control interest rates to balance inflation and employment.",
+            realLifeExample: "When the Fed raises rates, mortgages get expensive, and the economy slows down.",
+            definitions: [
+                { term: "Interest Rate", definition: "The cost of borrowing money." },
+                { term: "Quantitative Easing", definition: "Printing money to buy bonds and inject cash into the economy." }
+            ],
+            actionableSteps: ["Watch the next FOMC meeting summary."]
+        },
+        steps: [
+            { id: '46-1', type: 'connections', content: 'Match the Fed action to the result.', connectionPairs: [{ term: 'Raise Rates', match: 'Slow Economy' }, { term: 'Lower Rates', match: 'Boost Economy' }, { term: 'Print Money', match: 'Increase Inflation' }] },
+            { id: '46-2', type: 'info', content: 'Don\'t fight the Fed. When they print money, assets usually go up.' }
+        ]
+    },
+    {
+        id: 'unit-47',
+        title: 'GDP & The Economy',
+        description: 'Measuring economic health.',
+        xpReward: 350,
+        isCompleted: false,
+        category: 'Economics',
+        estimatedTime: '6m',
+        playbook: {
+            summary: "GDP (Gross Domestic Product) is the scorecard of a country's economy. It measures the value of all stuff produced.",
+            realLifeExample: "If GDP is growing, businesses are making money and hiring. If it shrinks, people lose jobs.",
+            definitions: [
+                { term: "GDP", definition: "Total value of goods/services produced." },
+                { term: "Per Capita", definition: "Per person (GDP / Population)." }
+            ],
+            actionableSteps: ["Check if US GDP is growing or shrinking."]
+        },
+        steps: [
+            { id: '47-1', type: 'info', content: 'GDP = C + I + G + (X - M). Consumption + Investment + Gov Spending + Net Exports.' },
+            { id: '47-2', type: 'fill-blank', content: 'Consumption (spending by people) makes up [BLANK]% of US GDP.', fillBlankCorrect: '70', fillBlankOptions: ['70', '20', '50'] }
+        ]
+    },
+    {
+        id: 'unit-48',
+        title: 'Recessions',
+        description: 'How to survive the crash.',
+        xpReward: 500,
+        isCompleted: false,
+        category: 'Economics',
+        estimatedTime: '7m',
+        playbook: {
+            summary: "A recession is two quarters of negative GDP growth. It's a normal part of the cycle. Cash is king.",
+            realLifeExample: "In 2008, people with cash bought houses for half price. People with debt went bankrupt.",
+            definitions: [
+                { term: "Recession", definition: "Economic decline lasting > 6 months." },
+                { term: "Depression", definition: "Severe and prolonged recession." }
+            ],
+            actionableSteps: ["Build a 6-month Emergency Fund."]
+        },
+        steps: [
+            { id: '48-1', type: 'info', content: 'Recessions are opportunities for the prepared. While others panic, you shop for assets.' },
+            { id: '48-2', type: 'sorting', content: 'Order the Economic Cycle.', sortCorrectOrder: ['Expansion', 'Peak', 'Recession', 'Trough'] }
         ]
     }
 ];
