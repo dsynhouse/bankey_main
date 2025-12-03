@@ -116,7 +116,7 @@ const Dashboard: React.FC = () => {
                     <div className="bg-white border-2 border-ink p-1 shadow-neo-sm flex">
                         <button
                             onClick={() => setActiveTab('overview')}
-                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all ${activeTab === 'overview'
+                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'overview'
                                 ? 'bg-ink text-white shadow-sm'
                                 : 'bg-transparent text-gray-400 hover:text-ink'
                                 }`}
@@ -125,7 +125,7 @@ const Dashboard: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab('dreamboard')}
-                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all ${activeTab === 'dreamboard'
+                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'dreamboard'
                                 ? 'bg-banky-pink text-ink shadow-sm'
                                 : 'bg-transparent text-gray-400 hover:text-ink'
                                 }`}
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab('bills')}
-                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all ${activeTab === 'bills'
+                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'bills'
                                 ? 'bg-banky-purple text-white shadow-sm'
                                 : 'bg-transparent text-gray-400 hover:text-ink'
                                 }`}
@@ -193,9 +193,11 @@ const Dashboard: React.FC = () => {
                                                 >
                                                     <option value="Food">Food</option>
                                                     <option value="Transport">Transport</option>
+                                                    <option value="Leisure">Leisure</option>
                                                     <option value="Shopping">Shopping</option>
-                                                    <option value="Entertainment">Fun</option>
                                                     <option value="Bills">Bills</option>
+                                                    <option value="Investment">Investment</option>
+                                                    <option value="Other">Other</option>
                                                 </select>
                                             </div>
                                         </div>

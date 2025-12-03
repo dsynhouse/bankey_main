@@ -85,11 +85,7 @@ const BillSplitter: React.FC = () => {
             const message = generateSettlementNotification(fromMember, toMember, debt.amount);
             notifyMember(toMember, "Debt Settled", message);
 
-            // Optional: Open mailto for manual send
-            if (toMember.email) {
-                const link = getMailtoLink(toMember, "Debt Settled on Bankey", message);
-                if (link) window.open(link, '_blank');
-            }
+
         }
     };
 
