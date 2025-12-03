@@ -14,8 +14,11 @@ const Dashboard: React.FC = () => {
     // Quick Add State
     const [flashSpendAmount, setFlashSpendAmount] = useState('');
     const [flashSpendCategory, setFlashSpendCategory] = useState('Food');
+    const [flashSpendWalletId, setFlashSpendWalletId] = useState('');
+
     const [flashEarnAmount, setFlashEarnAmount] = useState('');
     const [flashEarnSource, setFlashEarnSource] = useState('Salary');
+    const [flashEarnWalletId, setFlashEarnWalletId] = useState('');
 
     const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
     const currencySymbol = currency.symbol;
@@ -55,7 +58,7 @@ const Dashboard: React.FC = () => {
             amount: amount,
             category: flashSpendCategory as Category, // Simplified for now
             description: flashSpendCategory,
-            accountId: accounts[0].id,
+            accountId: flashSpendWalletId || accounts[0].id,
             type: 'expense'
         });
 
@@ -83,7 +86,7 @@ const Dashboard: React.FC = () => {
             amount: amount,
             category: Category.INCOME,
             description: flashEarnSource,
-            accountId: accounts[0].id,
+            accountId: flashEarnWalletId || accounts[0].id,
             type: 'income'
         });
 
@@ -201,6 +204,18 @@ const Dashboard: React.FC = () => {
                                                 </select>
                                             </div>
                                         </div>
+                                        <div>
+                                            <label className="block text-xs font-black uppercase mb-1 text-gray-500">Wallet</label>
+                                            <select
+                                                value={flashSpendWalletId || (accounts[0]?.id || '')}
+                                                onChange={(e) => setFlashSpendWalletId(e.target.value)}
+                                                className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow bg-white"
+                                            >
+                                                {accounts.map(acc => (
+                                                    <option key={acc.id} value={acc.id}>{acc.name} ({currencySymbol}{acc.balance.toFixed(2)})</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                         <button
                                             type="submit"
                                             className="w-full bg-ink text-white p-3 border-2 border-transparent hover:bg-banky-pink hover:border-ink hover:text-white font-black uppercase transition-all shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1"
@@ -237,6 +252,18 @@ const Dashboard: React.FC = () => {
                                                     <option value="Investment">Stonks</option>
                                                 </select>
                                             </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-black uppercase mb-1 text-gray-500">Wallet</label>
+                                            <select
+                                                value={flashEarnWalletId || (accounts[0]?.id || '')}
+                                                onChange={(e) => setFlashEarnWalletId(e.target.value)}
+                                                className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow bg-white"
+                                            >
+                                                {accounts.map(acc => (
+                                                    <option key={acc.id} value={acc.id}>{acc.name} ({currencySymbol}{acc.balance.toFixed(2)})</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <button
                                             type="submit"

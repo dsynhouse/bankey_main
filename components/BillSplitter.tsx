@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
 import { calculateNetBalances, simplifyDebts } from '../services/billSplitterService';
-import { notifyMember, generateSettlementNotification, getMailtoLink } from '../services/notificationService';
+import { notifyMember, generateSettlementNotification } from '../services/notificationService';
 import AddExpenseModal from './AddExpenseModal';
 import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus } from 'lucide-react';
 import { Member } from '../types';
