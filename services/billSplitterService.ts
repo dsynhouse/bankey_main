@@ -17,15 +17,10 @@ export const calculateNetBalances = (members: Member[], expenses: Expense[]): Re
         const payerId = expense.paidBy;
         const amount = expense.amount;
 
-        // Payer gets positive balance (they are owed this amount initially)
-        // BUT we subtract their share later.
-        // Actually, simpler: Payer paid X. They are "owed" X from the group pot.
-        // Each person "owes" their split share to the pot.
-
-        // Payer +Amount
+        // Payer +Amount (they paid, so they are owed this amount initially)
         balances[payerId] = (balances[payerId] || 0) + amount;
 
-        // Subtract each person's share
+        // Subtract each person's share (they owe this amount)
         expense.splitDetails.forEach(split => {
             balances[split.memberId] = (balances[split.memberId] || 0) - split.amount;
         });
@@ -94,44 +89,45 @@ export const calculateSplits = (
     amount: number,
     memberIds: string[],
     method: 'equal' | 'percentage',
-    customValues?: Record<string, number> // percentages or exact amounts depending on future expansion
+    customPercentages?: { [memberId: string]: number }
 ): SplitDetail[] => {
-    if (method === 'equal') {
-        const count = memberIds.length;
-        if (count === 0) return [];
-        const splitAmount = amount / count;
-        // Handle rounding penny issues by adding remainder to first person? 
-        // Or just standard rounding. Let's do standard for now, but ensure sum matches total.
-
+    if (method === 'percentage' && customPercentages) {
         let distributed = 0;
-        const splits = memberIds.map((id, index) => {
-            let share = Math.floor(splitAmount * 100) / 100;
+        return memberIds.map((id, index) => {
+            const pct = customPercentages[id] || 0;
+            let share = Math.floor((amount * (pct / 100)) * 100) / 100;
+
             if (index === memberIds.length - 1) {
-                // Last person gets the remainder to ensure exact sum
+                // Adjust last person to ensure total matches exactly (handling rounding errors)
                 share = Math.round((amount - distributed) * 100) / 100;
-            } else {
-                distributed += share;
             }
-            return { memberId: id, amount: share };
+            distributed += share;
+
+            return {
+                memberId: id,
+                amount: share,
+                percentage: pct
+            };
         });
-        return splits;
     }
 
-    if (method === 'percentage' && customValues) {
-        let distributed = 0;
-        const splits = memberIds.map((id, index) => {
-            const percent = customValues[id] || 0;
-            let share = Math.floor((amount * (percent / 100)) * 100) / 100;
-            if (index === memberIds.length - 1) {
-                // Last person adjustment if needed? 
-                // Percentage might not sum to 100 exactly if user input is weird, 
-                // but assuming validation happens before this.
-                // Ideally we trust the calc but floating point math...
-            }
-            return { memberId: id, amount: share, percentage: percent };
-        });
-        return splits;
-    }
+    // Default: Equal Split
+    const count = memberIds.length;
+    if (count === 0) return [];
+    const splitAmount = amount / count;
 
-    return [];
+    let distributed = 0;
+    return memberIds.map((id, index) => {
+        let share = Math.floor(splitAmount * 100) / 100;
+        if (index === memberIds.length - 1) {
+            // Last person gets the remainder to ensure exact sum
+            share = Math.round((amount - distributed) * 100) / 100;
+        }
+        distributed += share;
+
+        return {
+            memberId: id,
+            amount: share
+        };
+    });
 };

@@ -267,6 +267,8 @@ export interface BankyContextType {
 export interface Member {
   id: string;
   name: string;
+  email?: string;
+  phone?: string;
   balance: number; // Net balance within the group
 }
 

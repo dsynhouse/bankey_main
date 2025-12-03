@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Member, Expense, SplitDetail } from '../types';
+import { Member, Expense } from '../types';
 import { calculateSplits } from '../services/billSplitterService';
-import { X, DollarSign, Users, Check } from 'lucide-react';
+import { notifyMember, generateExpenseNotification } from '../services/notificationService';
+import { X, DollarSign, Check, Percent } from 'lucide-react';
 
 interface AddExpenseModalProps {
     members: Member[];
@@ -15,6 +16,16 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ members, onClose, onA
     const [amount, setAmount] = useState('');
     const [paidBy, setPaidBy] = useState(members[0]?.id || '');
     const [splitMethod, setSplitMethod] = useState<'equal' | 'percentage'>('equal');
+    const [percentages, setPercentages] = useState<{ [id: string]: number }>({});
+
+    // Initialize percentages equally - Logic moved to button click
+
+    const handlePercentageChange = (memberId: string, value: string) => {
+        const num = parseFloat(value) || 0;
+        setPercentages(prev => ({ ...prev, [memberId]: num }));
+    };
+
+    const totalPercentage = Object.values(percentages).reduce((sum, val) => sum + val, 0);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,113 +37,148 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ members, onClose, onA
             return;
         }
 
+        if (splitMethod === 'percentage' && Math.abs(totalPercentage - 100) > 0.1) {
+            alert(`Total percentage must be 100%. Current: ${totalPercentage.toFixed(1)}%`);
+            return;
+        }
+
         // Calculate splits
         const memberIds = members.map(m => m.id);
-        const splitDetails = calculateSplits(numAmount, memberIds, splitMethod);
+        const splitDetails = calculateSplits(numAmount, memberIds, splitMethod, percentages);
 
-        onAdd({
+        const newExpense = {
             description,
             amount: numAmount,
             paidBy,
             date: new Date().toISOString(),
             splitDetails,
             splitMethod
+        };
+
+        onAdd(newExpense);
+
+        // Notify members involved (excluding payer)
+        splitDetails.forEach(split => {
+            if (split.memberId !== paidBy && split.amount > 0) {
+                const member = members.find(m => m.id === split.memberId);
+                if (member) {
+                    const message = generateExpenseNotification(newExpense as Expense, member, split.amount);
+                    notifyMember(member, "New Expense Added", message);
+                }
+            }
         });
+
         onClose();
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-white border-4 border-ink shadow-neo-lg w-full max-w-md relative">
-                <button onClick={onClose} className="absolute top-2 right-2 p-2 hover:bg-gray-100 border-2 border-transparent hover:border-ink transition-all">
-                    <X className="w-6 h-6 text-ink" />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+            <div className="bg-white border-2 border-ink shadow-neo w-full max-w-md relative">
+                <button onClick={onClose} className="absolute top-2 right-2 p-1 hover:bg-gray-100 rounded-full transition-colors">
+                    <X className="w-6 h-6" />
                 </button>
 
-                <div className="bg-banky-yellow border-b-4 border-ink p-6">
-                    <h2 className="text-2xl font-black uppercase font-display text-ink flex items-center gap-2">
-                        <DollarSign className="w-6 h-6" /> Add Expense
-                    </h2>
-                </div>
+                <div className="p-6">
+                    <h3 className="text-xl font-black uppercase font-display mb-6 flex items-center gap-2">
+                        <DollarSign className="w-6 h-6 text-banky-green" /> Add Expense
+                    </h3>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* Amount & Description */}
-                    <div className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-black uppercase mb-1 text-gray-500 font-display">Description</label>
+                            <label className="block text-xs font-black uppercase mb-1 text-gray-500">Description</label>
                             <input
                                 autoFocus
-                                type="text"
-                                placeholder="e.g. Dinner, Uber, Rent"
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
-                                className="w-full border-2 border-ink p-3 font-bold text-lg outline-none focus:shadow-neo-sm transition-shadow bg-white text-ink placeholder-gray-400"
+                                placeholder="e.g. Dinner, Taxi"
+                                className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow"
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-black uppercase mb-1 text-gray-500 font-display">Amount</label>
-                            <div className="flex items-center border-b-4 border-ink bg-ink p-2 focus-within:border-banky-green transition-colors">
-                                <span className="text-2xl font-black text-white mr-2">{currencySymbol}</span>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    value={amount}
-                                    onChange={e => setAmount(e.target.value)}
-                                    className="w-full text-4xl font-black text-white outline-none bg-transparent placeholder-gray-600 font-display"
-                                />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-black uppercase mb-1 text-gray-500">Amount</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-3 font-bold text-gray-400">{currencySymbol}</span>
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={e => setAmount(e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full border-2 border-ink p-3 pl-8 font-mono font-bold outline-none focus:shadow-neo-sm transition-shadow"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black uppercase mb-1 text-gray-500">Paid By</label>
+                                <select
+                                    value={paidBy}
+                                    onChange={e => setPaidBy(e.target.value)}
+                                    className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow bg-white"
+                                >
+                                    {members.map(m => (
+                                        <option key={m.id} value={m.id}>{m.name}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Payer Selection */}
-                    <div>
-                        <label className="block text-xs font-black uppercase mb-2 text-gray-500 font-display">Paid By</label>
-                        <div className="flex flex-wrap gap-2">
-                            {members.map(m => (
+                        <div>
+                            <label className="block text-xs font-black uppercase mb-2 text-gray-500">Split Method</label>
+                            <div className="flex gap-2">
                                 <button
-                                    key={m.id}
                                     type="button"
-                                    onClick={() => setPaidBy(m.id)}
-                                    className={`px-3 py-1 border-2 font-bold text-sm transition-all ${paidBy === m.id
-                                        ? 'bg-ink text-white border-ink shadow-neo-sm'
-                                        : 'bg-white text-ink border-gray-300 hover:border-ink'
-                                        }`}
+                                    onClick={() => setSplitMethod('equal')}
+                                    className={`flex-1 py-2 font-black uppercase border-2 transition-all ${splitMethod === 'equal' ? 'bg-banky-yellow border-ink shadow-neo-sm' : 'bg-white border-gray-200 text-gray-400 hover:border-ink hover:text-ink'}`}
                                 >
-                                    {m.name}
+                                    Equally
                                 </button>
-                            ))}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSplitMethod('percentage');
+                                        const initialPct = 100 / members.length;
+                                        const newPcts: { [id: string]: number } = {};
+                                        members.forEach(m => newPcts[m.id] = parseFloat(initialPct.toFixed(2)));
+                                        setPercentages(newPcts);
+                                    }}
+                                    className={`flex-1 py-2 font-black uppercase border-2 transition-all flex items-center justify-center gap-2 ${splitMethod === 'percentage' ? 'bg-banky-purple text-white border-ink shadow-neo-sm' : 'bg-white border-gray-200 text-gray-400 hover:border-ink hover:text-ink'}`}
+                                >
+                                    <Percent className="w-4 h-4" /> By %
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Split Method (Simplified for MVP) */}
-                    <div>
-                        <label className="block text-xs font-black uppercase mb-2 text-gray-500 font-display">Split Method</label>
-                        <div className="flex gap-4">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <div className={`w-5 h-5 border-2 border-ink flex items-center justify-center ${splitMethod === 'equal' ? 'bg-banky-green' : 'bg-white'}`}>
-                                    {splitMethod === 'equal' && <Check className="w-3 h-3 text-ink stroke-[4]" />}
+                        {splitMethod === 'percentage' && (
+                            <div className="bg-gray-50 p-4 border-2 border-gray-200 space-y-2">
+                                {members.map(m => (
+                                    <div key={m.id} className="flex items-center justify-between">
+                                        <span className="font-bold text-sm">{m.name}</span>
+                                        <div className="flex items-center gap-1">
+                                            <input
+                                                type="number"
+                                                value={percentages[m.id] || ''}
+                                                onChange={e => handlePercentageChange(m.id, e.target.value)}
+                                                className="w-16 border-2 border-gray-300 p-1 font-mono text-right font-bold focus:border-ink outline-none"
+                                            />
+                                            <span className="font-black text-gray-400">%</span>
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className={`text-right text-xs font-black ${Math.abs(totalPercentage - 100) < 0.1 ? 'text-banky-green' : 'text-banky-pink'}`}>
+                                    Total: {totalPercentage.toFixed(1)}%
                                 </div>
-                                <span className="font-bold text-ink group-hover:underline">Equally</span>
-                            </label>
-                            {/* Percentage disabled for MVP simplicity, but UI ready */}
-                            <label className="flex items-center gap-2 cursor-not-allowed opacity-50" title="Coming soon">
-                                <div className="w-5 h-5 border-2 border-gray-400 bg-gray-100"></div>
-                                <span className="font-bold text-gray-400">By % (Pro)</span>
-                            </label>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2 font-mono">
-                            Each person owes {amount && members.length > 0 ? (parseFloat(amount) / members.length).toFixed(2) : '0.00'}
-                        </p>
-                    </div>
+                            </div>
+                        )}
 
-                    <button
-                        type="submit"
-                        className="w-full bg-banky-green border-2 border-ink p-4 font-black uppercase tracking-wider shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2 text-lg font-display"
-                    >
-                        <Check className="w-6 h-6" /> Save Expense
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            className="w-full bg-ink text-white py-4 font-black uppercase border-2 border-transparent hover:bg-banky-green hover:text-ink hover:border-ink transition-colors flex items-center justify-center gap-2 mt-4"
+                        >
+                            <Check className="w-5 h-5" /> Save Expense
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );

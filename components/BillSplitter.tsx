@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
 import { calculateNetBalances, simplifyDebts } from '../services/billSplitterService';
+import { notifyMember, generateSettlementNotification, getMailtoLink } from '../services/notificationService';
 import AddExpenseModal from './AddExpenseModal';
-import { Plus, Users, ArrowRight, CheckCircle, Receipt } from 'lucide-react';
+import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus } from 'lucide-react';
 import { Member } from '../types';
 
 const BillSplitter: React.FC = () => {
@@ -10,42 +11,85 @@ const BillSplitter: React.FC = () => {
     const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
     const [showAddExpense, setShowAddExpense] = useState(false);
 
-    // Local state for creating a new group (MVP: Auto-create one if none exists)
+    // Group Creation State
     const [newGroupName, setNewGroupName] = useState('');
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
+    // Custom Member State
+    const [customMembers, setCustomMembers] = useState<Omit<Member, 'id' | 'balance'>[]>([]);
+    const [newMemberName, setNewMemberName] = useState('');
+    const [newMemberEmail, setNewMemberEmail] = useState('');
+    const [newMemberPhone, setNewMemberPhone] = useState('');
+
     // Derived state
-    const activeGroup = groups.find(g => g.id === activeGroupId);
+    const effectiveActiveGroupId = activeGroupId || (groups.length > 0 ? groups[0].id : null);
+    const activeGroup = groups.find(g => g.id === effectiveActiveGroupId);
     const netBalances = activeGroup ? calculateNetBalances(activeGroup.members, activeGroup.expenses) : {};
     const simplifiedDebts = activeGroup ? simplifyDebts(netBalances) : [];
 
     // Auto-select first group or prompt to create
-    useEffect(() => {
-        if (groups.length > 0 && !activeGroupId) {
-            setActiveGroupId(groups[0].id);
-        }
-    }, [groups, activeGroupId]);
+    // Auto-select first group or prompt to create - Logic handled via derived state below
+
+    const handleAddCustomMember = () => {
+        if (!newMemberName) return;
+        setCustomMembers([...customMembers, { name: newMemberName, email: newMemberEmail, phone: newMemberPhone }]);
+        setNewMemberName('');
+        setNewMemberEmail('');
+        setNewMemberPhone('');
+    };
 
     const handleCreateGroup = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newGroupName) return;
 
-        // MVP: Add current user + 2 mock friends
+        // Start with current user
         const members: Member[] = [
-            { id: user?.id || 'me', name: 'You', balance: 0 },
-            { id: 'friend1', name: 'Alice', balance: 0 },
-            { id: 'friend2', name: 'Bob', balance: 0 }
+            { id: user?.id || 'me', name: 'You', email: user?.email, balance: 0 }
         ];
+
+        // Add custom members
+        customMembers.forEach((m, idx) => {
+            members.push({
+                id: `member-${Date.now()}-${idx}`,
+                name: m.name,
+                email: m.email,
+                phone: m.phone,
+                balance: 0
+            });
+        });
+
+        // Fallback if no custom members added (for quick testing)
+        if (customMembers.length === 0) {
+            members.push({ id: 'friend1', name: 'Alice', balance: 0 });
+            members.push({ id: 'friend2', name: 'Bob', balance: 0 });
+        }
 
         addGroup(newGroupName, members);
         setNewGroupName('');
+        setCustomMembers([]);
         setIsCreatingGroup(false);
     };
 
     const handleSettle = (debt: { from: string, to: string, amount: number }) => {
-        if (!activeGroupId) return;
-        if (confirm(`Settle debt: ${debt.amount} from ${activeGroup?.members.find(m => m.id === debt.from)?.name} to ${activeGroup?.members.find(m => m.id === debt.to)?.name}?`)) {
-            settleDebt(activeGroupId, debt.from, debt.to, debt.amount);
+        if (!effectiveActiveGroupId) return;
+
+        const fromMember = activeGroup?.members.find(m => m.id === debt.from);
+        const toMember = activeGroup?.members.find(m => m.id === debt.to);
+
+        if (!fromMember || !toMember) return;
+
+        if (confirm(`Settle debt: ${debt.amount} from ${fromMember.name} to ${toMember.name}?`)) {
+            settleDebt(effectiveActiveGroupId, debt.from, debt.to, debt.amount);
+
+            // Notify
+            const message = generateSettlementNotification(fromMember, toMember, debt.amount);
+            notifyMember(toMember, "Debt Settled", message);
+
+            // Optional: Open mailto for manual send
+            if (toMember.email) {
+                const link = getMailtoLink(toMember, "Debt Settled on Bankey", message);
+                if (link) window.open(link, '_blank');
+            }
         }
     };
 
@@ -69,21 +113,85 @@ const BillSplitter: React.FC = () => {
 
     if (isCreatingGroup) {
         return (
-            <div className="bg-white border-2 border-ink shadow-neo p-6 animate-fade-in">
-                <h3 className="text-xl font-black uppercase font-display mb-4">Name your Squad</h3>
-                <form onSubmit={handleCreateGroup} className="flex gap-2">
-                    <input
-                        autoFocus
-                        value={newGroupName}
-                        onChange={e => setNewGroupName(e.target.value)}
-                        placeholder="e.g. Roommates, Trip to Vegas"
-                        className="flex-1 border-2 border-ink p-2 font-bold outline-none focus:shadow-neo-sm transition-shadow"
-                    />
-                    <button type="submit" className="bg-ink text-white px-4 font-black uppercase border-2 border-transparent hover:bg-banky-yellow hover:text-ink hover:border-ink transition-colors">
-                        Create
-                    </button>
-                </form>
-                <button onClick={() => setIsCreatingGroup(false)} className="text-xs font-bold text-gray-400 mt-2 hover:text-ink uppercase">Cancel</button>
+            <div className="bg-white border-2 border-ink shadow-neo p-6 animate-fade-in max-w-2xl mx-auto">
+                <h3 className="text-xl font-black uppercase font-display mb-4 border-b-2 border-gray-100 pb-2">Create New Squad</h3>
+
+                <div className="space-y-6">
+                    <div>
+                        <label className="block text-xs font-black uppercase mb-1 text-gray-500">Group Name</label>
+                        <input
+                            autoFocus
+                            value={newGroupName}
+                            onChange={e => setNewGroupName(e.target.value)}
+                            placeholder="e.g. Roommates, Trip to Vegas"
+                            className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow text-lg"
+                        />
+                    </div>
+
+                    <div className="bg-gray-50 p-4 border-2 border-gray-200 rounded-lg">
+                        <h4 className="font-black uppercase text-sm mb-3 flex items-center gap-2">
+                            <UserPlus className="w-4 h-4" /> Add Members
+                        </h4>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+                            <input
+                                value={newMemberName}
+                                onChange={e => setNewMemberName(e.target.value)}
+                                placeholder="Name"
+                                className="border-2 border-gray-300 p-2 font-bold text-sm focus:border-ink outline-none"
+                            />
+                            <input
+                                value={newMemberEmail}
+                                onChange={e => setNewMemberEmail(e.target.value)}
+                                placeholder="Email (Optional)"
+                                className="border-2 border-gray-300 p-2 font-bold text-sm focus:border-ink outline-none"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddCustomMember}
+                                disabled={!newMemberName}
+                                className="bg-white border-2 border-ink font-black uppercase text-xs hover:bg-banky-yellow disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Add Member
+                            </button>
+                        </div>
+
+                        {/* Member List Preview */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm font-bold text-gray-500">
+                                <div className="w-6 h-6 bg-banky-green text-white flex items-center justify-center rounded-full text-xs">Y</div>
+                                You (Admin)
+                            </div>
+                            {customMembers.map((m, idx) => (
+                                <div key={idx} className="flex items-center justify-between bg-white p-2 border border-gray-200">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 bg-banky-purple text-white flex items-center justify-center rounded-full text-xs">{m.name[0]}</div>
+                                        <span className="font-bold text-sm">{m.name}</span>
+                                    </div>
+                                    <div className="flex gap-2 text-xs text-gray-400">
+                                        {m.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {m.email}</span>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                        <button
+                            onClick={handleCreateGroup}
+                            disabled={!newGroupName}
+                            className="flex-1 bg-ink text-white py-3 font-black uppercase border-2 border-transparent hover:bg-banky-green hover:text-ink hover:border-ink transition-colors disabled:opacity-50"
+                        >
+                            Create Squad
+                        </button>
+                        <button
+                            onClick={() => setIsCreatingGroup(false)}
+                            className="px-6 font-bold text-gray-500 hover:text-ink uppercase"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -95,19 +203,27 @@ const BillSplitter: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <Users className="w-6 h-6 text-banky-purple" />
                     <select
-                        value={activeGroupId || ''}
+                        value={effectiveActiveGroupId || ''}
                         onChange={e => setActiveGroupId(e.target.value)}
                         className="font-black uppercase text-xl bg-transparent outline-none cursor-pointer font-display"
                     >
                         {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                     </select>
                 </div>
-                <button
-                    onClick={() => setShowAddExpense(true)}
-                    className="bg-banky-yellow border-2 border-ink px-4 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 text-sm"
-                >
-                    <Plus className="w-4 h-4" /> Add Expense
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setIsCreatingGroup(true)}
+                        className="bg-white border-2 border-ink px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-xs"
+                    >
+                        New Group
+                    </button>
+                    <button
+                        onClick={() => setShowAddExpense(true)}
+                        className="bg-banky-yellow border-2 border-ink px-4 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 text-sm"
+                    >
+                        <Plus className="w-4 h-4" /> Add Expense
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -120,12 +236,15 @@ const BillSplitter: React.FC = () => {
                         const owes = bal < -0.01;
 
                         return (
-                            <div key={member.id} className="flex justify-between items-center bg-white border-2 border-ink p-3 shadow-sm">
+                            <div key={member.id} className="flex justify-between items-center bg-white border-2 border-ink p-3 shadow-sm group">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-8 h-8 flex items-center justify-center font-black text-white border-2 border-ink ${isOwed ? 'bg-banky-green' : owes ? 'bg-banky-pink' : 'bg-gray-300'}`}>
                                         {member.name[0]}
                                     </div>
-                                    <span className="font-bold text-ink">{member.name}</span>
+                                    <div>
+                                        <span className="font-bold text-ink block leading-none">{member.name}</span>
+                                        {member.email && <span className="text-[10px] text-gray-400 font-mono">{member.email}</span>}
+                                    </div>
                                 </div>
                                 <div className={`font-mono font-bold ${isOwed ? 'text-banky-green' : owes ? 'text-banky-pink' : 'text-gray-400'}`}>
                                     {isOwed ? '+' : ''}{currency.symbol}{bal.toFixed(2)}
