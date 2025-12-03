@@ -171,6 +171,8 @@ const Login: React.FC = () => {
           <p className="mt-8 text-center font-bold text-gray-500">
             New to the squad? <Link to="/register" className="text-ink underline hover:text-banky-pink">Join the Clan</Link>
           </p>
+
+
         </div>
       </div>
     </div>

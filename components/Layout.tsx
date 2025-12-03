@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PieChart, GraduationCap, Wallet, Calculator, LogOut, Settings, FileText, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, PieChart, GraduationCap, Wallet, Calculator, LogOut, Settings, Moon, Sun } from 'lucide-react';
 import { useBanky } from '../context/useBanky';
 import Mascot from './Mascot';
 import DsynLabsLogo from './DsynLabsLogo';
@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/budget', label: 'The Limit', icon: Calculator },
     { path: '/accounts', label: 'The Wallet', icon: Wallet },
     { path: '/education', label: 'The Learn Tab', icon: GraduationCap },
-    { path: '/reports', label: 'Reports', icon: FileText },
+
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
 

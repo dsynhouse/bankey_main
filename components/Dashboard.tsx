@@ -5,10 +5,11 @@ import { ArrowUpRight, ArrowDownRight, TrendingUp, DollarSign, GraduationCap, Ar
 import { Link } from 'react-router-dom';
 import CategoryIcon from './CategoryIcon';
 import { Category, Goal } from '../types';
+import BillSplitter from './BillSplitter';
 
 const Dashboard: React.FC = () => {
     const { accounts, transactions, addTransaction, user, currency, userState, goals, addGoal, updateGoal } = useBanky();
-    const [activeTab, setActiveTab] = useState<'overview' | 'dreams'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'dreams' | 'bills'>('overview');
 
     // Goal Form State
     const [isAddingGoal, setIsAddingGoal] = useState(false);
@@ -24,6 +25,10 @@ const Dashboard: React.FC = () => {
     const [quickAmount, setQuickAmount] = useState('');
     const [quickDesc, setQuickDesc] = useState('');
     const [quickCategory, setQuickCategory] = useState<Category>(Category.FOOD);
+
+    // Flash Earn State
+    const [earnAmount, setEarnAmount] = useState('');
+    const [earnDesc, setEarnDesc] = useState('');
 
     const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
@@ -49,7 +54,7 @@ const Dashboard: React.FC = () => {
     const handleAddGoal = (e: React.FormEvent) => {
         e.preventDefault();
         addGoal({
-            id: crypto.randomUUID(),
+            // id: crypto.randomUUID(), // Removed: Context generates ID
             title: newGoalTitle,
             targetAmount: parseFloat(newGoalAmount),
             savedAmount: 0,
@@ -81,9 +86,15 @@ const Dashboard: React.FC = () => {
             return;
         }
 
+        const amount = parseFloat(quickAmount);
+        if (amount <= 0) {
+            alert("Amount must be positive!");
+            return;
+        }
+
         addTransaction({
             date: new Date().toISOString(),
-            amount: parseFloat(quickAmount),
+            amount: amount,
             category: quickCategory,
             description: quickDesc,
             accountId: accounts[0].id, // Default to first account
@@ -93,23 +104,53 @@ const Dashboard: React.FC = () => {
         setQuickAmount('');
         setQuickDesc('');
         setQuickCategory(Category.FOOD);
+        setQuickCategory(Category.FOOD);
+    };
+
+    const handleFlashEarn = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!earnAmount || !earnDesc) return;
+
+        if (accounts.length === 0) {
+            alert("Please create a wallet first in the Wallets tab!");
+            return;
+        }
+
+        const amount = parseFloat(earnAmount);
+        if (amount <= 0) {
+            alert("Amount must be positive!");
+            return;
+        }
+
+        addTransaction({
+            date: new Date().toISOString(),
+            amount: amount,
+            category: Category.INCOME,
+            description: earnDesc,
+            accountId: accounts[0].id,
+            type: 'income'
+        });
+
+        setEarnAmount('');
+        setEarnDesc('');
     };
 
     return (
         <div className="space-y-8 animate-fade-in font-sans">
             {/* Header */}
-            <div className="bg-banky-yellow border-2 border-ink shadow-neo p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
+            <div className="bg-banky-yellow border-2 border-ink shadow-neo p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="text-left flex-1">
                     <h1 className="text-4xl md:text-5xl font-black text-fixed-ink uppercase italic tracking-tighter font-display">Yo, {user?.name || 'Legend'}!</h1>
-                    <p className="text-fixed-ink font-bold mt-2 text-lg">Let's build that wealth.</p>
+                    <p className="text-fixed-ink font-bold mt-1 text-lg">Let's build that wealth.</p>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                    <div className="bg-white border-2 border-ink px-4 py-2 font-mono text-sm font-bold shadow-neo-sm transform rotate-2 text-ink">
+
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                    <div className="bg-white border-2 border-ink px-4 py-2 font-mono text-sm font-bold shadow-neo-sm transform -rotate-1 text-ink whitespace-nowrap">
                         {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                     </div>
 
                     {/* View Toggles */}
-                    <div className="flex bg-white border-2 border-ink p-1 shadow-neo-sm mt-2">
+                    <div className="flex bg-white border-2 border-ink p-1 shadow-neo-sm">
                         <button
                             onClick={() => setActiveTab('overview')}
                             className={`px-4 py-1 text-xs font-black uppercase transition-all font-display ${activeTab === 'overview' ? 'bg-ink text-paper shadow-sm' : 'text-gray-400 hover:text-ink'}`}
@@ -122,65 +163,124 @@ const Dashboard: React.FC = () => {
                         >
                             Dream Board
                         </button>
+                        <button
+                            onClick={() => setActiveTab('bills')}
+                            className={`px-4 py-1 text-xs font-black uppercase transition-all font-display ${activeTab === 'bills' ? 'bg-banky-purple text-white border-2 border-ink shadow-sm' : 'text-gray-400 hover:text-ink border-2 border-transparent'}`}
+                        >
+                            Bill Splitter
+                        </button>
                     </div>
                 </div>
             </div>
 
             {activeTab === 'overview' ? (
                 <>
-                    {/* Quick Spend Card - Moved to Top */}
-                    <div className="bg-white border-2 border-ink shadow-neo p-6 flex flex-col justify-between relative group hover:-translate-y-1 transition-transform">
-                        <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <Zap className="w-24 h-24 rotate-12" />
-                        </div>
+                    {/* Quick Actions Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Flash Spend Card */}
+                        <div className="bg-white border-2 border-ink shadow-neo p-6 flex flex-col justify-between relative group hover:-translate-y-1 transition-transform">
+                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Zap className="w-24 h-24 rotate-12" />
+                            </div>
 
-                        <div>
-                            <h3 className="text-2xl font-black text-ink uppercase font-display mb-4 flex items-center gap-2">
-                                <Zap className="w-6 h-6 text-banky-yellow fill-current stroke-black" />
-                                Flash Spend
-                            </h3>
-                            <form onSubmit={handleQuickAdd} className="space-y-4 relative z-10">
-                                <div>
-                                    <label className="text-xs font-black uppercase text-gray-500 font-display">Amount</label>
-                                    <div className="flex items-center border-b-4 border-ink focus-within:border-banky-pink transition-colors bg-ink p-2">
-                                        <span className="text-xl font-black text-white mr-2">{currency.symbol}</span>
+                            <div>
+                                <h3 className="text-2xl font-black text-ink uppercase font-display mb-4 flex items-center gap-2">
+                                    <Zap className="w-6 h-6 text-banky-yellow fill-current stroke-black" />
+                                    Flash Spend
+                                </h3>
+                                <form onSubmit={handleQuickAdd} className="space-y-4 relative z-10">
+                                    <div>
+                                        <label className="text-xs font-black uppercase text-gray-500 font-display">Amount</label>
+                                        <div className="flex items-center border-b-4 border-ink focus-within:border-banky-pink transition-colors bg-ink p-2">
+                                            <span className="text-xl font-black text-white mr-2">{currency.symbol}</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={quickAmount}
+                                                onChange={e => setQuickAmount(e.target.value)}
+                                                className="w-full text-3xl font-black text-white outline-none bg-transparent placeholder-gray-500 font-display"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-black uppercase text-gray-500 font-display">For What?</label>
                                         <input
-                                            type="number"
-                                            step="0.01"
-                                            value={quickAmount}
-                                            onChange={e => setQuickAmount(e.target.value)}
-                                            className="w-full text-3xl font-black text-white outline-none bg-transparent placeholder-gray-500 font-display"
-                                            placeholder="0"
+                                            type="text"
+                                            value={quickDesc}
+                                            onChange={e => setQuickDesc(e.target.value)}
+                                            className="w-full border-2 border-ink p-2 font-bold outline-none focus:shadow-neo-sm transition-shadow font-sans bg-ink text-white placeholder-gray-500"
+                                            placeholder="Coffee, Uber, etc."
                                         />
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="text-xs font-black uppercase text-gray-500 font-display">For What?</label>
-                                    <input
-                                        type="text"
-                                        value={quickDesc}
-                                        onChange={e => setQuickDesc(e.target.value)}
-                                        className="w-full border-2 border-ink p-2 font-bold outline-none focus:shadow-neo-sm transition-shadow font-sans bg-ink text-white placeholder-gray-500"
-                                        placeholder="Coffee, Uber, etc."
-                                    />
-                                </div>
+                                    <div className="flex gap-2">
+                                        <select
+                                            value={quickCategory}
+                                            onChange={e => setQuickCategory(e.target.value as Category)}
+                                            className="flex-1 border-2 border-ink p-2 font-bold bg-ink text-white outline-none font-sans"
+                                        >
+                                            {Object.values(Category).filter(c => c !== Category.INCOME).map(c => (
+                                                <option key={c} value={c}>{c}</option>
+                                            ))}
+                                        </select>
+                                        <button type="submit" className="bg-banky-yellow border-2 border-ink p-2 shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center w-14">
+                                            <Plus className="w-6 h-6 text-fixed-ink" />
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
 
-                                <div className="flex gap-2">
-                                    <select
-                                        value={quickCategory}
-                                        onChange={e => setQuickCategory(e.target.value as Category)}
-                                        className="flex-1 border-2 border-ink p-2 font-bold bg-ink text-white outline-none font-sans"
-                                    >
-                                        {Object.values(Category).filter(c => c !== Category.INCOME).map(c => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
-                                    <button type="submit" className="bg-banky-yellow border-2 border-ink p-2 shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center w-14">
-                                        <Plus className="w-6 h-6 text-fixed-ink" />
-                                    </button>
-                                </div>
-                            </form>
+                        {/* Flash Earn Card */}
+                        <div className="bg-white border-2 border-ink shadow-neo p-6 flex flex-col justify-between relative group hover:-translate-y-1 transition-transform">
+                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <DollarSign className="w-24 h-24 rotate-12 text-banky-green" />
+                            </div>
+
+                            <div>
+                                <h3 className="text-2xl font-black text-ink uppercase font-display mb-4 flex items-center gap-2">
+                                    <DollarSign className="w-6 h-6 text-banky-green fill-current stroke-black" />
+                                    Flash Earn
+                                </h3>
+                                <form onSubmit={handleFlashEarn} className="space-y-4 relative z-10">
+                                    <div>
+                                        <label className="text-xs font-black uppercase text-gray-500 font-display">Amount</label>
+                                        <div className="flex items-center border-b-4 border-ink focus-within:border-banky-green transition-colors bg-ink p-2">
+                                            <span className="text-xl font-black text-white mr-2">{currency.symbol}</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={earnAmount}
+                                                onChange={e => setEarnAmount(e.target.value)}
+                                                className="w-full text-3xl font-black text-white outline-none bg-transparent placeholder-gray-500 font-display"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-black uppercase text-gray-500 font-display">Source?</label>
+                                        <input
+                                            type="text"
+                                            value={earnDesc}
+                                            onChange={e => setEarnDesc(e.target.value)}
+                                            className="w-full border-2 border-ink p-2 font-bold outline-none focus:shadow-neo-sm transition-shadow font-sans bg-ink text-white placeholder-gray-500"
+                                            placeholder="Salary, Freelance, etc."
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 border-2 border-ink p-2 font-bold bg-ink text-gray-400 outline-none font-sans flex items-center">
+                                            Income
+                                        </div>
+                                        <button type="submit" className="bg-banky-green border-2 border-ink p-2 shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center w-14">
+                                            <Plus className="w-6 h-6 text-fixed-ink" />
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
@@ -309,7 +409,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                 </>
-            ) : (
+            ) : activeTab === 'dreams' ? (
                 /* --- Dream Board Tab --- */
                 <div className="animate-fade-in-up">
                     <div className="flex justify-between items-center mb-6">
@@ -415,6 +515,9 @@ const Dashboard: React.FC = () => {
                         </button>
                     </div>
                 </div>
+            ) : (
+                /* --- Bill Splitter Tab --- */
+                <BillSplitter />
             )}
 
             {/* Version Indicator */}

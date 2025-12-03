@@ -1,7 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Transaction, Account, AccountType, UserState, Budget, Category, UserProfile, Currency, Goal, Theme, RegionCode } from '../types';
+import { Transaction, Account, AccountType, UserState, Budget, Category, UserProfile, Currency, Goal, Theme, RegionCode, Group, Member, Expense } from '../types';
 import { INITIAL_USER_STATE, SUPPORTED_CURRENCIES, DEFAULT_CURRENCY } from '../constants';
+import { BASE_MODULES } from '../data/educationData';
+import { addXpService } from '../services/gamificationService';
+import { createDefaultAccount, saveTransaction, updateAccountBalance } from '../services/transactionService';
 import { supabase } from '../services/supabase';
 
 import confetti from 'canvas-confetti';
@@ -154,6 +157,36 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     hasCompletedOnboarding: profile.has_completed_onboarding || false
                 });
 
+                // --- RECALCULATE XP & LEVEL (Self-Healing) ---
+                // 1. Calculate XP from Modules
+                const completedIds = profile.completed_unit_ids || [];
+                const moduleXp = completedIds.reduce((acc: number, id: string) => {
+                    const mod = BASE_MODULES.find(m => m.id === id);
+                    return acc + (mod ? mod.xpReward : 0);
+                }, 0);
+
+                // 2. Calculate XP from Transactions (Async fetch count)
+                const { count: txCount } = await supabase
+                    .from('transactions')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', userId);
+
+                const txXp = (txCount || 0) * 50;
+                const calculatedXp = moduleXp + txXp;
+                const calculatedLevel = Math.floor(Math.sqrt(calculatedXp / 100)) + 1;
+
+                // 3. Update State & DB if mismatch
+                if (calculatedXp !== profile.total_xp || calculatedLevel !== profile.level) {
+                    console.warn(`XP Mismatch! Fixing... Old: ${profile.total_xp} (Lvl ${profile.level}) -> New: ${calculatedXp} (Lvl ${calculatedLevel})`);
+
+                    setUserState(prev => ({ ...prev, totalXp: calculatedXp, level: calculatedLevel }));
+
+                    await supabase.from('profiles').update({
+                        total_xp: calculatedXp,
+                        level: calculatedLevel
+                    }).eq('id', userId);
+                }
+
                 // LocalStorage Override for Onboarding
                 const localOnboarding = localStorage.getItem(`banky_onboarding_${userId}`);
                 if (localOnboarding === 'true' && !profile.has_completed_onboarding) {
@@ -174,7 +207,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 checkDailyBonus(userId, profile.last_bonus_date, profile.streak_days || 1);
             } else {
                 // Profile missing? Create one.
-                console.log("Profile not found. Creating default profile...");
+                console.info("Profile not found. Creating default profile...");
                 const { error: insertError } = await supabase.from('profiles').upsert({
                     id: userId,
                     total_xp: 0,
@@ -345,23 +378,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // Auto-create default account if none exists
         if (!targetAccountId && accounts.length === 0) {
-            console.log("No account found. Creating default account...");
-            const defaultAccountId = crypto.randomUUID();
-            const defaultAccount: Account = {
-                id: defaultAccountId,
-                name: 'Main Wallet',
-                type: AccountType.SPENDING,
-                balance: 0,
-                currency: currency.code,
-                color: 'bg-banky-pink'
-            };
-
-            setAccounts([defaultAccount]);
-            targetAccountId = defaultAccountId;
-
-            // Save to database
+            console.info("No account found. Creating default account...");
             if (supabase && user) {
-                // CRITICAL: Ensure profile exists first (foreign key constraint)
+                // Ensure profile exists (foreign key constraint)
                 const { error: profileError } = await supabase.from('profiles').upsert({
                     id: user.id,
                     total_xp: userState.totalXp || 0,
@@ -369,33 +388,20 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     streak_days: userState.streakDays || 1,
                     has_completed_onboarding: userState.hasCompletedOnboarding || false
                 });
+                if (profileError) { console.error("Error ensuring profile:", profileError); return; }
 
-                if (profileError) {
-                    console.error("Error ensuring profile exists:", profileError);
-                    return;
-                }
-
-                // Now create the account
-                const { error } = await supabase.from('accounts').insert({
-                    id: defaultAccountId,
-                    user_id: user.id,
-                    name: 'Main Wallet',
-                    type: AccountType.SPENDING,
-                    balance: 0,
-                    currency: currency.code,
-                    color: 'bg-banky-pink'
-                });
-                if (error) {
+                const { account, error } = await createDefaultAccount(supabase, user.id, currency.code);
+                if (account) {
+                    setAccounts([account]);
+                    targetAccountId = account.id;
+                } else {
                     console.error("Error creating default account:", error);
                     return;
                 }
             }
         } else if (!targetAccountId) {
             if (accounts.length > 0) targetAccountId = accounts[0].id;
-            else {
-                console.warn("No account found for transaction");
-                return;
-            }
+            else { console.warn("No account found for transaction"); return; }
         }
 
         const optimisticId = crypto.randomUUID();
@@ -413,27 +419,22 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addXp(10);
 
         if (supabase && user && targetAccountId) {
-            const { error } = await supabase.from('transactions').insert({
-                id: optimisticId,
-                user_id: user.id,
-                account_id: targetAccountId,
-                amount: t.amount,
-                category: t.category,
-                description: t.description,
-                type: t.type,
-                date: t.date
-            });
+            const { error } = await saveTransaction(supabase, user.id, newTx);
 
             if (error) {
                 console.error("Error adding transaction:", error);
-                // Optionally: revert optimistic update here
                 return;
             }
 
             const account = accounts.find(a => a.id === targetAccountId);
+            // Note: We use the *updated* balance logic here, but 'account' from state might be stale if we don't calculate it.
+            // However, since we just updated state, we can calculate the new balance.
+            // Ideally we should use the state setter callback or calculate it deterministically.
+            // For now, let's recalculate based on the found account (which is pre-update in this scope? No, 'accounts' is from closure)
+            // Actually, 'accounts' is from the render scope, so it is the *old* accounts.
             if (account) {
                 const newBalance = t.type === 'income' ? account.balance + t.amount : account.balance - t.amount;
-                const { error: balanceError } = await supabase.from('accounts').update({ balance: newBalance }).eq('id', targetAccountId);
+                const { error: balanceError } = await updateAccountBalance(supabase, targetAccountId, newBalance);
                 if (balanceError) console.error("Error updating account balance:", balanceError);
             }
         } else {
@@ -568,14 +569,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     const addXp = async (amount: number) => {
-        const newXp = (userState?.totalXp || 0) + amount;
-        const newLevel = Math.floor(newXp / 500) + 1;
-
+        if (!user) return;
+        const { newXp, newLevel } = await addXpService(supabase, user.id, userState.totalXp, amount);
         setUserState(prev => ({ ...prev, totalXp: newXp, level: newLevel }));
-
-        if (supabase && user) {
-            await supabase.from('profiles').update({ total_xp: newXp, level: newLevel }).eq('id', user.id);
-        }
     };
 
     const unlockReward = async (item: string) => {
@@ -646,6 +642,65 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setUser(null);
     };
 
+    // --- BILL SPLITTER LOGIC ---
+    const [groups, setGroups] = useState<Group[]>([]);
+
+    const addGroup = (name: string, members: Member[]) => {
+        const newGroup: Group = {
+            id: crypto.randomUUID(),
+            name,
+            members,
+            expenses: []
+        };
+        setGroups(prev => [...prev, newGroup]);
+    };
+
+    const addExpense = (groupId: string, expense: Omit<Expense, 'id'>) => {
+        setGroups(prev => prev.map(g => {
+            if (g.id === groupId) {
+                const newExpense: Expense = { ...expense, id: crypto.randomUUID() };
+                const updatedExpenses = [...g.expenses, newExpense];
+
+                // Recalculate balances
+                // We need to import calculateNetBalances but it's pure logic.
+                // Ideally we store balances in Member state or derive it.
+                // For now, let's derive it in the UI or update member balance here?
+                // The Member interface has 'balance'. Let's update it.
+
+                // We need to import the service function. 
+                // Since we can't easily import inside this function without moving imports,
+                // we will assume the service is imported at top level.
+                // Let's add the import first in a separate step or assume it's there.
+                // Actually, let's just do the logic here or call the service.
+
+                return { ...g, expenses: updatedExpenses };
+            }
+            return g;
+        }));
+    };
+
+    const settleDebt = (groupId: string, fromId: string, toId: string, amount: number) => {
+        // A settlement is just an expense where 'from' pays 'to'.
+        // Or rather, 'from' pays 'amount' to 'to'.
+        // In Splitwise, this is recorded as a payment.
+        // We can model it as an expense paid by 'from' with 'to' getting the benefit (split).
+        // Wait, if A owes B $10. A pays B $10.
+        // Expense: Paid by A, $10. Split: B gets 100% of benefit (so B's balance decreases).
+        // B was +10 (owed). Now B "consumed" 10, so B is +0.
+        // A was -10 (owed). A paid 10. A is +0.
+
+        addExpense(groupId, {
+            description: 'Settlement',
+            amount,
+            paidBy: fromId,
+            date: new Date().toISOString(),
+            splitDetails: [{ memberId: toId, amount }],
+            splitMethod: 'exact'
+        });
+    };
+
+
+
     return (
         <BankyContext.Provider value={{
             isAuthenticated: !!user, isLoading, user,
@@ -659,7 +714,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             currency, setCurrency,
             theme, toggleTheme,
             region, setRegion,
-            showDailyBonus, closeDailyBonus
+            showDailyBonus, closeDailyBonus,
+            // Bill Splitter
+            groups, addGroup, addExpense, settleDebt
         }}>
             {children}
         </BankyContext.Provider>

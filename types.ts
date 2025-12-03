@@ -142,9 +142,10 @@ export interface EducationModule {
   xpReward: number;
   isCompleted: boolean;
   steps: LessonStep[];
-  category: 'Basics' | 'Investing' | 'Taxes' | 'Business' | 'Credit' | 'Assets' | 'Economics' | 'Advanced' | 'Mastery';
+  category: 'Basics' | 'Investing' | 'Taxes' | 'Business' | 'Credit' | 'Assets' | 'Economics' | 'Advanced' | 'Mastery' | 'Adventure';
   estimatedTime: string;
   playbook?: PlaybookContent;
+  isSideQuest?: boolean;
 }
 
 // --- Report Types ---
@@ -209,6 +210,7 @@ export interface BankyContextType {
   isLoading: boolean;
   user: UserProfile | null;
   login: (rememberMe?: boolean) => Promise<void>;
+
   logout: () => Promise<void>;
   updateUserName: (name: string) => Promise<void>;
   completeOnboarding: () => Promise<void>;
@@ -225,7 +227,7 @@ export interface BankyContextType {
   addTransaction: (t: Omit<Transaction, 'id'>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
 
-  createAccount: (acc: Omit<Account, 'id'>) => Promise<void>;
+  createAccount: (acc: Omit<Account, 'id'>, preferredCurrency?: Currency) => Promise<{ error: unknown }>;
   deleteAccount: (id: string) => Promise<void>;
 
   updateBudget: (category: Category, limit: number) => Promise<void>;
@@ -253,4 +255,46 @@ export interface BankyContextType {
   // Theme
   theme: Theme;
   toggleTheme: () => void;
+
+  // Bill Splitter
+  groups: Group[];
+  addGroup: (name: string, members: Member[]) => void;
+  addExpense: (groupId: string, expense: Omit<Expense, 'id'>) => void;
+  settleDebt: (groupId: string, fromId: string, toId: string, amount: number) => void;
+}
+
+// --- Bill Splitter Types ---
+export interface Member {
+  id: string;
+  name: string;
+  balance: number; // Net balance within the group
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  members: Member[];
+  expenses: Expense[];
+}
+
+export interface SplitDetail {
+  memberId: string;
+  amount: number;
+  percentage?: number; // For percentage splits
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  paidBy: string; // Member ID
+  date: string;
+  splitDetails: SplitDetail[];
+  splitMethod: 'equal' | 'percentage' | 'exact';
+}
+
+export interface Debt {
+  from: string; // Member ID
+  to: string; // Member ID
+  amount: number;
 }

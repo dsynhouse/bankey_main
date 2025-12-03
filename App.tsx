@@ -16,10 +16,13 @@ const Education = React.lazy(() => import('./components/Education'));
 const Advisor = React.lazy(() => import('./components/Advisor'));
 const Accounts = React.lazy(() => import('./components/Accounts'));
 const BudgetPlanner = React.lazy(() => import('./components/BudgetPlanner'));
-const Reports = React.lazy(() => import('./components/Reports'));
+
 const Login = React.lazy(() => import('./components/Login'));
 const Register = React.lazy(() => import('./components/Register'));
 const Settings = React.lazy(() => import('./components/Settings'));
+const KnowledgeBank = React.lazy(() => import('./components/knowledge-bank/KnowledgeBank'));
+const ModuleView = React.lazy(() => import('./components/knowledge-bank/ModuleView'));
+const LessonView = React.lazy(() => import('./components/knowledge-bank/LessonView'));
 
 // Protected Route Wrapper
 const RequireAuth = ({ children }: { children?: React.ReactNode }) => {
@@ -115,7 +118,10 @@ const App: React.FC = () => {
                 <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
                 <Route path="/tracker" element={<RequireAuth><Tracker /></RequireAuth>} />
                 <Route path="/budget" element={<RequireAuth><BudgetPlanner /></RequireAuth>} />
-                <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
+                {/* <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} /> */}
+                <Route path="/knowledge-bank" element={<RequireAuth><KnowledgeBank /></RequireAuth>} />
+                <Route path="/knowledge-bank/module/:moduleId" element={<RequireAuth><ModuleView /></RequireAuth>} />
+                <Route path="/knowledge-bank/lesson/:lessonId" element={<RequireAuth><LessonView /></RequireAuth>} />
                 <Route path="/education" element={<RequireAuth><Education /></RequireAuth>} />
                 <Route path="/advisor" element={<RequireAuth><Advisor /></RequireAuth>} />
                 <Route path="/accounts" element={<RequireAuth><Accounts /></RequireAuth>} />
