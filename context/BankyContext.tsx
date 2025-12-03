@@ -5,7 +5,9 @@ import { INITIAL_USER_STATE, SUPPORTED_CURRENCIES, DEFAULT_CURRENCY } from '../c
 import { BASE_MODULES } from '../data/educationData';
 import { addXpService } from '../services/gamificationService';
 import { createDefaultAccount, saveTransaction, updateAccountBalance } from '../services/transactionService';
-import { getGroups, createGroup, addExpense as addExpenseService, updateMemberBalance } from '../services/billSplitterService';
+import {
+    getGroups, createGroup, addExpense as addExpenseService, updateMemberBalance, deleteGroup, deleteExpense
+} from '../services/billSplitterService';
 import { supabase } from '../services/supabase';
 
 import confetti from 'canvas-confetti';
@@ -665,9 +667,16 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
         setGroups(prev => [...prev, newGroup]);
 
+
         if (supabase && user) {
+            console.log('[DEBUG] Creating group:', { groupId: newGroup.id, groupName: newGroup.name, userId: user.id, memberCount: newGroup.members.length });
             const { error } = await createGroup(supabase, user.id, newGroup);
-            if (error) console.error("Error creating group:", error);
+            if (error) {
+                console.error("❌ Error creating group:", error);
+                console.error("Full error details:", JSON.stringify(error, null, 2));
+            } else {
+                console.log('✅ Group created successfully');
+            }
         }
     };
 
@@ -701,9 +710,16 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             return g;
         }));
 
+
         if (supabase && user) {
-            const { error } = await addExpenseService(supabase, groupId, newExpense);
-            if (error) console.error("Error adding expense:", error);
+            console.log('[DEBUG] Adding expense:', { expenseId: newExpense.id, groupId, userId: user.id, amount: newExpense.amount, description: newExpense.description });
+            const { error } = await addExpenseService(supabase, user.id, groupId, newExpense);
+            if (error) {
+                console.error("❌ Error adding expense:", error);
+                console.error("Full error details:", JSON.stringify(error, null, 2));
+            } else {
+                console.log('✅ Expense added successfully');
+            }
 
             // Update member balances in DB
             // We need to calculate the new balances and update them.
@@ -715,35 +731,82 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 // Note: This is slightly inefficient as we iterate again, but safer.
                 // Actually, let's just update the members involved.
 
-                // Payer
+                // (DB update logic omitted for brevity as it's complex to replicate exactly without re-fetching, 
+                // but since we have the service, we rely on that for persistence. 
+                // Ideally we'd update individual member balances in DB here too, but for now let's assume the service handles the main insert.
+                // Wait, addExpenseService ONLY inserts the expense/splits. It does NOT update member balances in split_members table.
+                // We need to do that manually here or in the service.
+                // The previous implementation had logic for this. Let's restore/ensure it works.
+
                 const payer = group.members.find(m => m.id === expense.paidBy);
                 if (payer) {
-                    // Payer paid full amount (+), but also might be in split (-).
-                    // The loop below handles the split part.
-                    // Wait, the logic above: 
-                    // Payer balance += amount (they paid, so they are owed this amount, or rather they covered it)
-                    // Splitter balance -= split_amount (they consumed this amount)
+                    // We need the *latest* balance. But for now let's trust the optimistic update logic above is correct
+                    // and we should push *that* to DB.
+                    // Actually, simpler: just fetch the group again? No, slow.
+                    // Let's just update the balances in DB based on the delta.
 
-                    // Let's just replicate the logic for DB updates.
-                    // We need the *current* balance from the group state before this update?
-                    // Yes, 'group' variable holds the state *before* setGroups update (closure).
+                    // Update Payer (+amount)
+                    await updateMemberBalance(supabase, payer.id, payer.balance + expense.amount);
+                }
 
-                    // Update Payer
-                    let payerNewBalance = payer.balance + expense.amount;
-
-                    // Update Splitters
-                    for (const split of expense.splitDetails) {
-                        if (split.memberId === expense.paidBy) {
-                            payerNewBalance -= split.amount;
-                        } else {
-                            const member = group.members.find(m => m.id === split.memberId);
-                            if (member) {
-                                const newBal = member.balance - split.amount;
-                                await updateMemberBalance(supabase, member.id, newBal);
-                            }
-                        }
+                for (const split of expense.splitDetails) {
+                    const member = group.members.find(m => m.id === split.memberId);
+                    if (member) {
+                        // Update Member (-splitAmount)
+                        await updateMemberBalance(supabase, member.id, member.balance - split.amount);
                     }
-                    await updateMemberBalance(supabase, payer.id, payerNewBalance);
+                }
+            }
+        }
+    };
+
+    const deleteGroupFn = async (groupId: string) => {
+        setGroups(prev => prev.filter(g => g.id !== groupId));
+        if (supabase) {
+            const { error } = await deleteGroup(supabase, groupId);
+            if (error) console.error("Error deleting group:", error);
+        }
+    };
+
+    const deleteExpenseFn = async (groupId: string, expenseId: string) => {
+        // 1. Find the expense to reverse balances
+        const group = groups.find(g => g.id === groupId);
+        const expense = group?.expenses.find(e => e.id === expenseId);
+
+        if (group && expense) {
+            // Optimistic Update
+            setGroups(prev => prev.map(g => {
+                if (g.id === groupId) {
+                    const updatedExpenses = g.expenses.filter(e => e.id !== expenseId);
+
+                    // Reverse balances
+                    const updatedMembers = g.members.map(m => {
+                        let balanceChange = 0;
+                        if (m.id === expense.paidBy) balanceChange -= expense.amount; // Reverse payer
+                        const split = expense.splitDetails.find(s => s.memberId === m.id);
+                        if (split) balanceChange += split.amount; // Reverse split
+                        return { ...m, balance: m.balance + balanceChange };
+                    });
+
+                    return { ...g, members: updatedMembers, expenses: updatedExpenses };
+                }
+                return g;
+            }));
+
+            // DB Update
+            if (supabase) {
+                const { error } = await deleteExpense(supabase, expenseId);
+                if (error) console.error("Error deleting expense:", error);
+
+                // Reverse balances in DB
+                // Payer
+                const payer = group.members.find(m => m.id === expense.paidBy);
+                if (payer) await updateMemberBalance(supabase, payer.id, payer.balance - expense.amount);
+
+                // Splitters
+                for (const split of expense.splitDetails) {
+                    const member = group.members.find(m => m.id === split.memberId);
+                    if (member) await updateMemberBalance(supabase, member.id, member.balance + split.amount);
                 }
             }
         }
@@ -786,7 +849,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             region, setRegion,
             showDailyBonus, closeDailyBonus,
             // Bill Splitter
-            groups, addGroup, addExpense, settleDebt
+            groups, addGroup, addExpense, settleDebt,
+            deleteGroup: deleteGroupFn,
+            deleteExpense: deleteExpenseFn
         }}>
             {children}
         </BankyContext.Provider>

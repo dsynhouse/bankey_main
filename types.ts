@@ -261,6 +261,8 @@ export interface BankyContextType {
   addGroup: (name: string, members: Member[]) => void;
   addExpense: (groupId: string, expense: Omit<Expense, 'id'>) => void;
   settleDebt: (groupId: string, fromId: string, toId: string, amount: number) => void;
+  deleteGroup: (groupId: string) => Promise<void>;
+  deleteExpense: (groupId: string, expenseId: string) => Promise<void>;
 }
 
 // --- Bill Splitter Types ---

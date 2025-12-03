@@ -3,13 +3,32 @@ import { useBanky } from '../context/useBanky';
 import { calculateNetBalances, simplifyDebts } from '../services/billSplitterService';
 import { notifyMember, generateSettlementNotification } from '../services/notificationService';
 import AddExpenseModal from './AddExpenseModal';
-import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus } from 'lucide-react';
+import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus, Trash2 } from 'lucide-react';
 import { Member } from '../types';
 
 const BillSplitter: React.FC = () => {
-    const { groups, addGroup, addExpense, settleDebt, currency, user } = useBanky();
+    const { groups, addGroup, addExpense, settleDebt, deleteGroup, deleteExpense, currency, user } = useBanky();
     const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
     const [showAddExpense, setShowAddExpense] = useState(false);
+
+    // ... (state)
+
+    // ... (handlers)
+
+    const handleDeleteGroup = async () => {
+        if (!activeGroup) return;
+        if (confirm(`Are you sure you want to delete the group "${activeGroup.name}"? This cannot be undone.`)) {
+            await deleteGroup(activeGroup.id);
+            setActiveGroupId(null); // Reset selection
+        }
+    };
+
+    const handleDeleteExpense = async (expenseId: string) => {
+        if (!activeGroup) return;
+        if (confirm("Are you sure you want to delete this expense?")) {
+            await deleteExpense(activeGroup.id, expenseId);
+        }
+    };
 
     // Group Creation State
     const [newGroupName, setNewGroupName] = useState('');
@@ -48,9 +67,9 @@ const BillSplitter: React.FC = () => {
         ];
 
         // Add custom members
-        customMembers.forEach((m, idx) => {
+        customMembers.forEach((m) => {
             members.push({
-                id: `member-${Date.now()}-${idx}`,
+                id: crypto.randomUUID(),
                 name: m.name,
                 email: m.email,
                 phone: m.phone,
@@ -60,8 +79,8 @@ const BillSplitter: React.FC = () => {
 
         // Fallback if no custom members added (for quick testing)
         if (customMembers.length === 0) {
-            members.push({ id: 'friend1', name: 'Alice', balance: 0 });
-            members.push({ id: 'friend2', name: 'Bob', balance: 0 });
+            members.push({ id: crypto.randomUUID(), name: 'Alice', balance: 0 });
+            members.push({ id: crypto.randomUUID(), name: 'Bob', balance: 0 });
         }
 
         addGroup(newGroupName, members);
@@ -207,6 +226,15 @@ const BillSplitter: React.FC = () => {
                     </select>
                 </div>
                 <div className="flex gap-2">
+                    {activeGroup && (
+                        <button
+                            onClick={handleDeleteGroup}
+                            className="bg-white border-2 border-red-500 text-red-500 px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-xs flex items-center justify-center"
+                            title="Delete Group"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    )}
                     <button
                         onClick={() => setIsCreatingGroup(true)}
                         className="bg-white border-2 border-ink px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-xs"
@@ -306,7 +334,16 @@ const BillSplitter: React.FC = () => {
                                     <p className="text-xs text-gray-500">Paid by {activeGroup.members.find(m => m.id === exp.paidBy)?.name}</p>
                                 </div>
                             </div>
-                            <span className="font-mono font-bold text-ink">{currency.symbol}{exp.amount.toFixed(2)}</span>
+                            <div className="flex items-center gap-3">
+                                <span className="font-mono font-bold text-ink">{currency.symbol}{exp.amount.toFixed(2)}</span>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteExpense(exp.id); }}
+                                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                    title="Delete Expense"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
                     ))}
                     {activeGroup?.expenses.length === 0 && (

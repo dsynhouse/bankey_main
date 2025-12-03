@@ -97,32 +97,46 @@ export const createGroup = async (
     userId: string,
     group: Group
 ): Promise<{ error: PostgrestError | null }> => {
+    console.log('[SERVICE] createGroup called:', { groupId: group.id, userId, memberCount: group.members.length });
+
     // 1. Insert Group
     const { error: groupError } = await supabase.from('split_groups').insert({
         id: group.id,
         user_id: userId,
         name: group.name
     });
-    if (groupError) return { error: groupError };
+    if (groupError) {
+        console.error('[SERVICE] ❌ Failed to insert group:', groupError);
+        return { error: groupError };
+    }
+    console.log('[SERVICE] ✅ Group inserted');
 
     // 2. Insert Members
     const dbMembers = group.members.map(m => ({
         id: m.id,
         group_id: group.id,
+        user_id: userId, // Added user_id
         name: m.name,
         email: m.email,
         phone: m.phone,
         balance: m.balance
     }));
 
+    console.log('[SERVICE] Inserting members:', dbMembers.length, 'members');
     const { error: membersError } = await supabase.from('split_members').insert(dbMembers);
-    if (membersError) return { error: membersError };
+    if (membersError) {
+        console.error('[SERVICE] ❌ Failed to insert members:', membersError);
+        console.error('[SERVICE] Member data:', JSON.stringify(dbMembers, null, 2));
+        return { error: membersError };
+    }
+    console.log('[SERVICE] ✅ Members inserted');
 
     return { error: null };
 };
 
 export const addExpense = async (
     supabase: SupabaseClient,
+    userId: string, // Added userId param
     groupId: string,
     expense: Expense
 ): Promise<{ error: PostgrestError | null }> => {
@@ -130,6 +144,7 @@ export const addExpense = async (
     const { error: expError } = await supabase.from('split_expenses').insert({
         id: expense.id,
         group_id: groupId,
+        user_id: userId, // Added user_id
         description: expense.description,
         amount: expense.amount,
         paid_by: expense.paidBy,
@@ -141,6 +156,7 @@ export const addExpense = async (
     // 2. Insert Split Details
     const dbSplits = expense.splitDetails.map(s => ({
         expense_id: expense.id,
+        user_id: userId, // Added user_id
         member_id: s.memberId,
         amount: s.amount,
         percentage: s.percentage
@@ -161,13 +177,44 @@ export const updateMemberBalance = async (
     return { error };
 };
 
+export const deleteExpense = async (
+    supabase: SupabaseClient,
+    expenseId: string
+): Promise<{ error: PostgrestError | null }> => {
+    // 1. Delete Split Details
+    const { error: splitsError } = await supabase.from('split_details').delete().eq('expense_id', expenseId);
+    if (splitsError) return { error: splitsError };
+
+    // 2. Delete Expense
+    const { error: expError } = await supabase.from('split_expenses').delete().eq('id', expenseId);
+    return { error: expError };
+};
+
 export const deleteGroup = async (
     supabase: SupabaseClient,
     groupId: string
 ): Promise<{ error: PostgrestError | null }> => {
-    // Cascading delete should handle members, expenses, splits
-    const { error } = await supabase.from('split_groups').delete().eq('id', groupId);
-    return { error };
+    // Robust delete: Manually clean up dependencies to avoid FK violations if cascades aren't set.
+
+    // 1. Get all expenses to delete their details
+    const { data: expenses } = await supabase.from('split_expenses').select('id').eq('group_id', groupId);
+
+    if (expenses && expenses.length > 0) {
+        const expenseIds = expenses.map(e => e.id);
+        const { error: splitsError } = await supabase.from('split_details').delete().in('expense_id', expenseIds);
+        if (splitsError) return { error: splitsError };
+
+        const { error: expError } = await supabase.from('split_expenses').delete().eq('group_id', groupId);
+        if (expError) return { error: expError };
+    }
+
+    // 2. Delete Members
+    const { error: membersError } = await supabase.from('split_members').delete().eq('group_id', groupId);
+    if (membersError) return { error: membersError };
+
+    // 3. Delete Group
+    const { error: groupError } = await supabase.from('split_groups').delete().eq('id', groupId);
+    return { error: groupError };
 };
 
 // --- Utility Functions (Restored) ---
