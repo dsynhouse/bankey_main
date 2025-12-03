@@ -1,80 +1,237 @@
-import { Member, Expense, Debt, SplitDetail } from '../types';
 
-/**
- * Calculates the net balance for each member in a group based on expenses.
- * Positive balance = Owed money (Receiver)
- * Negative balance = Owes money (Giver)
- */
-export const calculateNetBalances = (members: Member[], expenses: Expense[]): Record<string, number> => {
-    const balances: Record<string, number> = {};
+import { SupabaseClient, PostgrestError } from '@supabase/supabase-js';
+import { Group, Member, Expense, SplitDetail, Debt } from '../types';
 
-    // Initialize balances
-    members.forEach(m => {
-        balances[m.id] = 0;
+// --- Types for DB Insert/Update ---
+// We need to map between app types (camelCase) and DB types (snake_case)
+// (Interfaces removed as they were unused and causing lints)
+
+// --- Service Functions ---
+
+export const getGroups = async (supabase: SupabaseClient, userId: string): Promise<{ groups: Group[], error: PostgrestError | null }> => {
+    // Fetch all groups for the user
+    const { data: dbGroups, error: groupsError } = await supabase
+        .from('split_groups')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+
+    if (groupsError) return { groups: [], error: groupsError };
+    if (!dbGroups) return { groups: [], error: null };
+
+    const groups: Group[] = [];
+
+    for (const dbGroup of dbGroups) {
+        // Fetch members
+        const { data: dbMembers, error: membersError } = await supabase
+            .from('split_members')
+            .select('*')
+            .eq('group_id', dbGroup.id);
+
+        if (membersError) {
+            console.error(`Error fetching members for group ${dbGroup.id}:`, membersError);
+            continue;
+        }
+
+        // Fetch expenses
+        const { data: dbExpenses, error: expensesError } = await supabase
+            .from('split_expenses')
+            .select('*')
+            .eq('group_id', dbGroup.id)
+            .order('date', { ascending: true });
+
+        if (expensesError) {
+            console.error(`Error fetching expenses for group ${dbGroup.id}:`, expensesError);
+            continue;
+        }
+
+        const members: Member[] = dbMembers.map((m: { id: string; name: string; email?: string; phone?: string; balance: string }) => ({
+            id: m.id,
+            name: m.name,
+            email: m.email,
+            phone: m.phone,
+            balance: parseFloat(m.balance)
+        }));
+
+        const expenses: Expense[] = [];
+        for (const dbExp of dbExpenses) {
+            // Fetch split details for each expense
+            const { data: dbSplits, error: splitsError } = await supabase
+                .from('split_details')
+                .select('*')
+                .eq('expense_id', dbExp.id);
+
+            if (splitsError) {
+                console.error(`Error fetching splits for expense ${dbExp.id}:`, splitsError);
+                continue;
+            }
+
+            expenses.push({
+                id: dbExp.id,
+                description: dbExp.description,
+                amount: parseFloat(dbExp.amount),
+                paidBy: dbExp.paid_by,
+                date: dbExp.date,
+                splitMethod: dbExp.split_method as 'equal' | 'percentage' | 'exact',
+                splitDetails: dbSplits.map((s: { member_id: string; amount: string; percentage?: string }) => ({
+                    memberId: s.member_id,
+                    amount: parseFloat(s.amount),
+                    percentage: s.percentage ? parseFloat(s.percentage) : undefined
+                }))
+            });
+        }
+
+        groups.push({
+            id: dbGroup.id,
+            name: dbGroup.name,
+            members,
+            expenses
+        });
+    }
+
+    return { groups, error: null };
+};
+
+export const createGroup = async (
+    supabase: SupabaseClient,
+    userId: string,
+    group: Group
+): Promise<{ error: PostgrestError | null }> => {
+    // 1. Insert Group
+    const { error: groupError } = await supabase.from('split_groups').insert({
+        id: group.id,
+        user_id: userId,
+        name: group.name
     });
+    if (groupError) return { error: groupError };
+
+    // 2. Insert Members
+    const dbMembers = group.members.map(m => ({
+        id: m.id,
+        group_id: group.id,
+        name: m.name,
+        email: m.email,
+        phone: m.phone,
+        balance: m.balance
+    }));
+
+    const { error: membersError } = await supabase.from('split_members').insert(dbMembers);
+    if (membersError) return { error: membersError };
+
+    return { error: null };
+};
+
+export const addExpense = async (
+    supabase: SupabaseClient,
+    groupId: string,
+    expense: Expense
+): Promise<{ error: PostgrestError | null }> => {
+    // 1. Insert Expense
+    const { error: expError } = await supabase.from('split_expenses').insert({
+        id: expense.id,
+        group_id: groupId,
+        description: expense.description,
+        amount: expense.amount,
+        paid_by: expense.paidBy,
+        date: expense.date,
+        split_method: expense.splitMethod
+    });
+    if (expError) return { error: expError };
+
+    // 2. Insert Split Details
+    const dbSplits = expense.splitDetails.map(s => ({
+        expense_id: expense.id,
+        member_id: s.memberId,
+        amount: s.amount,
+        percentage: s.percentage
+    }));
+
+    const { error: splitsError } = await supabase.from('split_details').insert(dbSplits);
+    if (splitsError) return { error: splitsError };
+
+    return { error: null };
+};
+
+export const updateMemberBalance = async (
+    supabase: SupabaseClient,
+    memberId: string,
+    newBalance: number
+): Promise<{ error: PostgrestError | null }> => {
+    const { error } = await supabase.from('split_members').update({ balance: newBalance }).eq('id', memberId);
+    return { error };
+};
+
+export const deleteGroup = async (
+    supabase: SupabaseClient,
+    groupId: string
+): Promise<{ error: PostgrestError | null }> => {
+    // Cascading delete should handle members, expenses, splits
+    const { error } = await supabase.from('split_groups').delete().eq('id', groupId);
+    return { error };
+};
+
+// --- Utility Functions (Restored) ---
+
+export const calculateNetBalances = (members: Member[], expenses: Expense[]): { [key: string]: number } => {
+    const balances: { [key: string]: number } = {};
+    members.forEach(m => balances[m.id] = 0);
 
     expenses.forEach(expense => {
         const payerId = expense.paidBy;
         const amount = expense.amount;
 
-        // Payer +Amount (they paid, so they are owed this amount initially)
-        balances[payerId] = (balances[payerId] || 0) + amount;
+        // Payer gets positive balance (they are owed money)
+        // BUT: We need to subtract their share if they are part of the split.
+        // The splitDetails logic handles who "consumed" the value.
+        // Net Balance = (Amount Paid) - (Amount Consumed)
 
-        // Subtract each person's share (they owe this amount)
+        if (balances[payerId] === undefined) balances[payerId] = 0;
+        balances[payerId] += amount;
+
         expense.splitDetails.forEach(split => {
-            balances[split.memberId] = (balances[split.memberId] || 0) - split.amount;
+            if (balances[split.memberId] === undefined) balances[split.memberId] = 0;
+            balances[split.memberId] -= split.amount;
         });
     });
 
     return balances;
 };
 
-/**
- * Simplifies debts using a greedy algorithm to minimize transactions.
- * Matches the biggest debtor with the biggest creditor.
- */
-export const simplifyDebts = (netBalances: Record<string, number>): Debt[] => {
+export const simplifyDebts = (netBalances: { [key: string]: number }): Debt[] => {
     const debtors: { id: string, amount: number }[] = [];
     const creditors: { id: string, amount: number }[] = [];
 
     Object.entries(netBalances).forEach(([id, amount]) => {
-        // Round to 2 decimals to avoid floating point errors
-        const rounded = Math.round(amount * 100) / 100;
-        if (rounded < -0.01) debtors.push({ id, amount: rounded }); // Negative balance = Debtor
-        else if (rounded > 0.01) creditors.push({ id, amount: rounded }); // Positive balance = Creditor
+        if (amount < -0.01) debtors.push({ id, amount }); // Negative balance = owes money
+        else if (amount > 0.01) creditors.push({ id, amount }); // Positive balance = is owed money
     });
 
-    // Sort by magnitude (descending)
-    debtors.sort((a, b) => a.amount - b.amount); // Most negative first (e.g. -100, -50)
-    creditors.sort((a, b) => b.amount - a.amount); // Most positive first (e.g. 100, 50)
+    // Sort by magnitude to optimize (optional, but good for stability)
+    debtors.sort((a, b) => a.amount - b.amount);
+    creditors.sort((a, b) => b.amount - a.amount);
 
     const debts: Debt[] = [];
-    let i = 0; // Debtor index
-    let j = 0; // Creditor index
+    let i = 0; // debtor index
+    let j = 0; // creditor index
 
     while (i < debtors.length && j < creditors.length) {
         const debtor = debtors[i];
         const creditor = creditors[j];
 
-        // The amount to settle is the minimum of what the debtor owes and what the creditor is owed
+        // The amount to settle is the minimum of what debtor owes and creditor is owed
         const amount = Math.min(Math.abs(debtor.amount), creditor.amount);
 
-        // Round amount to 2 decimals
-        const roundedAmount = Math.round(amount * 100) / 100;
+        debts.push({
+            from: debtor.id,
+            to: creditor.id,
+            amount: parseFloat(amount.toFixed(2))
+        });
 
-        if (roundedAmount > 0) {
-            debts.push({
-                from: debtor.id,
-                to: creditor.id,
-                amount: roundedAmount
-            });
-        }
+        // Update remaining amounts
+        debtor.amount += amount;
+        creditor.amount -= amount;
 
-        // Adjust remaining balances
-        debtor.amount += roundedAmount;
-        creditor.amount -= roundedAmount;
-
-        // If settled (close to 0), move to next
+        // Move indices if settled (within rounding error)
         if (Math.abs(debtor.amount) < 0.01) i++;
         if (creditor.amount < 0.01) j++;
     }
@@ -82,52 +239,50 @@ export const simplifyDebts = (netBalances: Record<string, number>): Debt[] => {
     return debts;
 };
 
-/**
- * Helper to calculate split details based on method
- */
 export const calculateSplits = (
     amount: number,
     memberIds: string[],
     method: 'equal' | 'percentage',
-    customPercentages?: { [memberId: string]: number }
+    percentages?: { [id: string]: number }
 ): SplitDetail[] => {
-    if (method === 'percentage' && customPercentages) {
-        let distributed = 0;
-        return memberIds.map((id, index) => {
-            const pct = customPercentages[id] || 0;
-            let share = Math.floor((amount * (pct / 100)) * 100) / 100;
+    const splits: SplitDetail[] = [];
 
+    if (method === 'equal') {
+        const splitAmount = parseFloat((amount / memberIds.length).toFixed(2));
+        let totalSplit = 0;
+
+        memberIds.forEach((id, index) => {
+            let myAmount = splitAmount;
+            // Handle rounding difference on last person
             if (index === memberIds.length - 1) {
-                // Adjust last person to ensure total matches exactly (handling rounding errors)
-                share = Math.round((amount - distributed) * 100) / 100;
+                myAmount = parseFloat((amount - totalSplit).toFixed(2));
             }
-            distributed += share;
-
-            return {
-                memberId: id,
-                amount: share,
-                percentage: pct
-            };
+            splits.push({ memberId: id, amount: myAmount });
+            totalSplit += myAmount;
         });
+    } else if (method === 'percentage' && percentages) {
+        let totalSplit = 0;
+        memberIds.forEach((id) => {
+            const pct = percentages[id] || 0;
+            const myAmount = parseFloat((amount * (pct / 100)).toFixed(2));
+
+            // Handle rounding difference on last person (if close to total)
+            // Or just trust the calculation? Better to ensure sum = amount.
+            // But with percentages, it's tricky if they don't sum to 100 exactly.
+            // Assuming validation happens before calling this.
+
+            splits.push({ memberId: id, amount: myAmount, percentage: pct });
+            totalSplit += myAmount;
+        });
+
+        // Fix rounding on the largest share or last person?
+        // Let's fix on the last person for simplicity, ensuring total matches exactly.
+        const diff = amount - totalSplit;
+        if (Math.abs(diff) > 0.001 && splits.length > 0) {
+            splits[splits.length - 1].amount += diff;
+            splits[splits.length - 1].amount = parseFloat(splits[splits.length - 1].amount.toFixed(2));
+        }
     }
 
-    // Default: Equal Split
-    const count = memberIds.length;
-    if (count === 0) return [];
-    const splitAmount = amount / count;
-
-    let distributed = 0;
-    return memberIds.map((id, index) => {
-        let share = Math.floor(splitAmount * 100) / 100;
-        if (index === memberIds.length - 1) {
-            // Last person gets the remainder to ensure exact sum
-            share = Math.round((amount - distributed) * 100) / 100;
-        }
-        distributed += share;
-
-        return {
-            memberId: id,
-            amount: share
-        };
-    });
+    return splits;
 };

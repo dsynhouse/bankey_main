@@ -5,6 +5,7 @@ import { INITIAL_USER_STATE, SUPPORTED_CURRENCIES, DEFAULT_CURRENCY } from '../c
 import { BASE_MODULES } from '../data/educationData';
 import { addXpService } from '../services/gamificationService';
 import { createDefaultAccount, saveTransaction, updateAccountBalance } from '../services/transactionService';
+import { getGroups, createGroup, addExpense as addExpenseService, updateMemberBalance } from '../services/billSplitterService';
 import { supabase } from '../services/supabase';
 
 import confetti from 'canvas-confetti';
@@ -23,6 +24,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [goals, setGoals] = useState<Goal[]>([]);
+    const [groups, setGroups] = useState<Group[]>([]);
 
     const [userState, setUserState] = useState<UserState>(INITIAL_USER_STATE);
     const [currency, setCurrencyState] = useState<Currency>(DEFAULT_CURRENCY);
@@ -281,6 +283,13 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 })));
             }
 
+            // 6. Bill Splitter Groups
+            const { groups: loadedGroups, error: groupsError } = await getGroups(supabase, userId);
+            if (loadedGroups) {
+                setGroups(loadedGroups);
+            }
+            if (groupsError) console.error("Error loading groups:", groupsError);
+
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
@@ -351,7 +360,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 setTransactions([]);
                 setAccounts([]);
                 setBudgets([]);
+                setBudgets([]);
                 setGoals([]);
+                setGroups([]);
                 setUserState(INITIAL_USER_STATE);
             }
         });
@@ -643,9 +654,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     // --- BILL SPLITTER LOGIC ---
-    const [groups, setGroups] = useState<Group[]>([]);
+    // groups state moved to top
 
-    const addGroup = (name: string, members: Member[]) => {
+    const addGroup = async (name: string, members: Member[]) => {
         const newGroup: Group = {
             id: crypto.randomUUID(),
             name,
@@ -653,30 +664,89 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             expenses: []
         };
         setGroups(prev => [...prev, newGroup]);
+
+        if (supabase && user) {
+            const { error } = await createGroup(supabase, user.id, newGroup);
+            if (error) console.error("Error creating group:", error);
+        }
     };
 
-    const addExpense = (groupId: string, expense: Omit<Expense, 'id'>) => {
+    const addExpense = async (groupId: string, expense: Omit<Expense, 'id'>) => {
+        const newExpense: Expense = { ...expense, id: crypto.randomUUID() };
+
         setGroups(prev => prev.map(g => {
             if (g.id === groupId) {
-                const newExpense: Expense = { ...expense, id: crypto.randomUUID() };
                 const updatedExpenses = [...g.expenses, newExpense];
 
-                // Recalculate balances
-                // We need to import calculateNetBalances but it's pure logic.
-                // Ideally we store balances in Member state or derive it.
-                // For now, let's derive it in the UI or update member balance here?
-                // The Member interface has 'balance'. Let's update it.
+                // Update member balances in state (optimistic)
+                const updatedMembers = g.members.map(m => {
+                    let balanceChange = 0;
 
-                // We need to import the service function. 
-                // Since we can't easily import inside this function without moving imports,
-                // we will assume the service is imported at top level.
-                // Let's add the import first in a separate step or assume it's there.
-                // Actually, let's just do the logic here or call the service.
+                    // If member paid, they get positive balance change
+                    if (m.id === expense.paidBy) {
+                        balanceChange += expense.amount;
+                    }
 
-                return { ...g, expenses: updatedExpenses };
+                    // If member is part of split, they get negative balance change (owe money)
+                    const split = expense.splitDetails.find(s => s.memberId === m.id);
+                    if (split) {
+                        balanceChange -= split.amount;
+                    }
+
+                    return { ...m, balance: m.balance + balanceChange };
+                });
+
+                return { ...g, members: updatedMembers, expenses: updatedExpenses };
             }
             return g;
         }));
+
+        if (supabase && user) {
+            const { error } = await addExpenseService(supabase, groupId, newExpense);
+            if (error) console.error("Error adding expense:", error);
+
+            // Update member balances in DB
+            // We need to calculate the new balances and update them.
+            // Since we did it optimistically, we can just grab the updated group from state? 
+            // No, state update is async. We should calculate here.
+            const group = groups.find(g => g.id === groupId);
+            if (group) {
+                // Re-calculate logic for DB update
+                // Note: This is slightly inefficient as we iterate again, but safer.
+                // Actually, let's just update the members involved.
+
+                // Payer
+                const payer = group.members.find(m => m.id === expense.paidBy);
+                if (payer) {
+                    // Payer paid full amount (+), but also might be in split (-).
+                    // The loop below handles the split part.
+                    // Wait, the logic above: 
+                    // Payer balance += amount (they paid, so they are owed this amount, or rather they covered it)
+                    // Splitter balance -= split_amount (they consumed this amount)
+
+                    // Let's just replicate the logic for DB updates.
+                    // We need the *current* balance from the group state before this update?
+                    // Yes, 'group' variable holds the state *before* setGroups update (closure).
+
+                    // Update Payer
+                    let payerNewBalance = payer.balance + expense.amount;
+
+                    // Update Splitters
+                    for (const split of expense.splitDetails) {
+                        if (split.memberId === expense.paidBy) {
+                            payerNewBalance -= split.amount;
+                        } else {
+                            const member = group.members.find(m => m.id === split.memberId);
+                            if (member) {
+                                const newBal = member.balance - split.amount;
+                                await updateMemberBalance(supabase, member.id, newBal);
+                            }
+                        }
+                    }
+                    await updateMemberBalance(supabase, payer.id, payerNewBalance);
+                }
+            }
+        }
     };
 
     const settleDebt = (groupId: string, fromId: string, toId: string, amount: number) => {
