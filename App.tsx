@@ -28,7 +28,17 @@ const KnowledgeBank = React.lazy(() => import('./components/knowledge-bank/Knowl
 const ModuleView = React.lazy(() => import('./components/knowledge-bank/ModuleView'));
 const LessonView = React.lazy(() => import('./components/knowledge-bank/LessonView'));
 
-// Protected Route Wrapper
+const PrivacyPolicy = React.lazy(() => import('./components/legal/PrivacyPolicy'));
+const TermsOfService = React.lazy(() => import('./components/legal/TermsOfService'));
+const DataProtection = React.lazy(() => import('./components/legal/DataProtection'));
+const CancellationPolicy = React.lazy(() => import('./components/legal/CancellationPolicy'));
+const Disclaimers = React.lazy(() => import('./components/legal/Disclaimers'));
+
+// ... imports ...
+
+
+
+{/* Protected Routes */ }
 const RequireAuth = ({ children }: { children?: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useBanky();
   const location = useLocation();
@@ -135,7 +145,12 @@ const App: React.FC = () => {
                       <Route path="/login" element={<PublicRouteWrapper><Login /></PublicRouteWrapper>} />
                       <Route path="/register" element={<PublicRouteWrapper><Register /></PublicRouteWrapper>} />
 
-                      {/* Protected Routes */}
+
+                      <Route path="/privacy" element={<PrivacyPolicy />} />
+                      <Route path="/terms" element={<TermsOfService />} />
+                      <Route path="/data-protection" element={<DataProtection />} />
+                      <Route path="/cancellation" element={<CancellationPolicy />} />
+                      <Route path="/disclaimers" element={<Disclaimers />} />
                       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
                       <Route path="/tracker" element={<RequireAuth><Tracker /></RequireAuth>} />
                       <Route path="/budget" element={<RequireAuth><BudgetPlanner /></RequireAuth>} />
