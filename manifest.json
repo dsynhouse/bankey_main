@@ -1,0 +1,24 @@
+{
+    "name": "Bankey - Level Up Your Finances",
+    "short_name": "Bankey",
+    "description": "Your personal finance companion to track spending, set goals, and level up your money game.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#F2F0E9",
+    "theme_color": "#D4FF00",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/favicon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
