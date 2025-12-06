@@ -16,7 +16,7 @@ Sentry.init({
 });
 
 // Expose Sentry to window for console testing
-(window as any).Sentry = Sentry;
+(window as unknown as { Sentry: typeof Sentry }).Sentry = Sentry;
 
 // Send a test message to verify connection
 Sentry.captureMessage('Bankey app initialized', 'info');
