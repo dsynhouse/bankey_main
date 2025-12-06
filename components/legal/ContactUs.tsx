@@ -1,7 +1,6 @@
-
 import React from 'react';
 import LegalLayout from './LegalLayout';
-import { LEGAL_ENTITY, SUPPORT_EMAIL, WEBSITE_URL, GOVERNING_LAW_JURISDICTION, APP_NAME } from './LegalData';
+import { LEGAL_ENTITY, SUPPORT_EMAIL, WEBSITE_URL, OFFICE_ADDRESS, APP_NAME } from './LegalData';
 import { Mail, MapPin, Globe, Clock, MessageCircle } from 'lucide-react';
 
 const ContactUs: React.FC = () => {
@@ -48,10 +47,10 @@ const ContactUs: React.FC = () => {
                             <MapPin className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <p className="font-bold text-ink uppercase text-sm tracking-wider">Registered Address</p>
+                            <p className="font-bold text-ink uppercase text-sm tracking-wider">Registered Office</p>
                             <p className="text-gray-600">
-                                {LEGAL_ENTITY}<br />
-                                {GOVERNING_LAW_JURISDICTION}
+                                <strong>{LEGAL_ENTITY}</strong><br />
+                                {OFFICE_ADDRESS}
                             </p>
                         </div>
                     </div>
