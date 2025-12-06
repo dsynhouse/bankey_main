@@ -13,6 +13,8 @@ interface ReceiptScannerProps {
     defaultAccountId?: string;
 }
 
+import PermissionModal from './PermissionModal';
+
 const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccountId }) => {
     const { addTransaction, accounts, currency } = useBanky();
     const { isPremium } = usePremium();
@@ -124,8 +126,47 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
         onClose();
     };
 
+    const [showPermissionModal, setShowPermissionModal] = useState(false);
+
+    const checkPermissionAndOpen = async () => {
+        try {
+            // Check if permission is already granted
+            // @ts-ignore - navigator.permissions might vary
+            if (navigator.permissions && navigator.permissions.query) {
+                // @ts-ignore
+                const result = await navigator.permissions.query({ name: 'camera' });
+                if (result.state === 'granted') {
+                    cameraInputRef.current?.click();
+                    return;
+                }
+            }
+            setShowPermissionModal(true);
+        } catch (e) {
+            setShowPermissionModal(true);
+        }
+    };
+
+    const handleGrantPermission = async (): Promise<boolean> => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop());
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+            <PermissionModal
+                type="camera"
+                isOpen={showPermissionModal}
+                onClose={() => setShowPermissionModal(false)}
+                onGrant={handleGrantPermission}
+                onSuccess={() => {
+                    cameraInputRef.current?.click();
+                }}
+            />
             <div className="bg-white border-4 border-ink shadow-neo max-w-md w-full relative overflow-hidden max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="bg-ink text-white px-6 py-4 flex items-center justify-between sticky top-0">
@@ -166,7 +207,7 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
                         <div className="grid grid-cols-2 gap-4">
                             {/* Camera Button */}
                             <button
-                                onClick={() => cameraInputRef.current?.click()}
+                                onClick={checkPermissionAndOpen}
                                 className="bg-banky-green border-4 border-ink p-6 shadow-neo flex flex-col items-center gap-3 hover:-translate-y-1 transition-transform"
                             >
                                 <Camera className="w-10 h-10 text-ink" />
