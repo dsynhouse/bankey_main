@@ -46,7 +46,7 @@ const PREMIUM_FEATURES: PremiumFeature[] = [
         name: 'Premium Advisor AI',
         description: 'Unlimited deep financial analysis and personalized strategies',
         icon: <Bot className="w-8 h-8 text-purple-600" />,
-        available: false
+        available: true
     }
 ];
 
