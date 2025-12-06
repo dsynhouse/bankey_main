@@ -562,6 +562,8 @@ const LandingPage: React.FC = () => {
                                 <Link to="/privacy" className="font-bold hover:text-banky-pink transition-colors">Privacy Policy</Link>
                                 <Link to="/terms" className="font-bold hover:text-banky-pink transition-colors">Terms of Service</Link>
                                 <Link to="/cancellation" className="font-bold hover:text-banky-pink transition-colors">Refund Policy</Link>
+                                <Link to="/shipping" className="font-bold hover:text-banky-pink transition-colors">Shipping Policy</Link>
+                                <Link to="/contact" className="font-bold hover:text-banky-pink transition-colors">Contact Us</Link>
                             </div>
                         </div>
                     </div>

@@ -33,6 +33,8 @@ const TermsOfService = React.lazy(() => import('./components/legal/TermsOfServic
 const DataProtection = React.lazy(() => import('./components/legal/DataProtection'));
 const CancellationPolicy = React.lazy(() => import('./components/legal/CancellationPolicy'));
 const Disclaimers = React.lazy(() => import('./components/legal/Disclaimers'));
+const ContactUs = React.lazy(() => import('./components/legal/ContactUs'));
+const ShippingPolicy = React.lazy(() => import('./components/legal/ShippingPolicy'));
 
 
 // Protected Route Wrapper
@@ -148,6 +150,8 @@ const App: React.FC = () => {
                       <Route path="/data-protection" element={<DataProtection />} />
                       <Route path="/cancellation" element={<CancellationPolicy />} />
                       <Route path="/disclaimers" element={<Disclaimers />} />
+                      <Route path="/contact" element={<ContactUs />} />
+                      <Route path="/shipping" element={<ShippingPolicy />} />
                       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
                       <Route path="/tracker" element={<RequireAuth><Tracker /></RequireAuth>} />
                       <Route path="/budget" element={<RequireAuth><BudgetPlanner /></RequireAuth>} />

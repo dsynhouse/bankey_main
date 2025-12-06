@@ -55,6 +55,8 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({ title, children }) => {
                         <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
                         <Link to="/data-protection" className="hover:text-white transition-colors">Data Protection</Link>
                         <Link to="/cancellation" className="hover:text-white transition-colors">Cancellation Policy</Link>
+                        <Link to="/shipping" className="hover:text-white transition-colors">Shipping Policy</Link>
+                        <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>
                         <Link to="/disclaimers" className="hover:text-white transition-colors">Disclaimers</Link>
                     </div>
                 </div>
