@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Mic, MicOff, Loader2, X, Check, AlertCircle } from 'lucide-react';
-import PermissionModal from './PermissionModal';
 import { useBanky } from '../context/useBanky';
 import { usePremium } from '../context/usePremium';
 import { Link } from 'react-router-dom';
@@ -99,39 +98,6 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
     }, [state, handleStopRecording]);
 
 
-    const [showPermissionModal, setShowPermissionModal] = useState(false);
-
-    const checkPermissionAndStart = async () => {
-        try {
-            // Check if permission is already granted
-            // @ts-ignore - navigator.permissions might vary
-            if (navigator.permissions && navigator.permissions.query) {
-                // @ts-ignore
-                const result = await navigator.permissions.query({ name: 'microphone' });
-                if (result.state === 'granted') {
-                    handleStartRecording();
-                    return;
-                }
-            }
-            // If not granted or unknown, show modal (Permission Priming)
-            setShowPermissionModal(true);
-        } catch (e) {
-            // Fallback for browsers not supporting query
-            setShowPermissionModal(true);
-        }
-    };
-
-    const handleGrantPermission = async (): Promise<boolean> => {
-        // This function is called by the Modal when user clicks "Allow"
-        // It triggers the probing getUserMedia
-        try {
-            const { requestMicrophonePermission } = await import('../services/voiceService');
-            return await requestMicrophonePermission();
-        } catch {
-            return false;
-        }
-    };
-
     const handleStartRecording = async () => {
         try {
             setError('');
@@ -221,7 +187,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
                         <p className="text-gray-500 mb-6">Tap the mic and speak your transaction</p>
                         <p className="text-sm text-gray-400 italic mb-8">"Spent 450 on groceries" or "Got 5000 from freelance"</p>
                         <button
-                            onClick={checkPermissionAndStart}
+                            onClick={handleStartRecording}
                             className="w-24 h-24 bg-banky-green border-4 border-ink shadow-neo rounded-full flex items-center justify-center mx-auto hover:-translate-y-1 transition-transform"
                         >
                             <Mic className="w-12 h-12 text-ink" />
