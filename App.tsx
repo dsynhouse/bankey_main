@@ -34,11 +34,8 @@ const DataProtection = React.lazy(() => import('./components/legal/DataProtectio
 const CancellationPolicy = React.lazy(() => import('./components/legal/CancellationPolicy'));
 const Disclaimers = React.lazy(() => import('./components/legal/Disclaimers'));
 
-// ... imports ...
 
-
-
-{/* Protected Routes */ }
+// Protected Route Wrapper
 const RequireAuth = ({ children }: { children?: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useBanky();
   const location = useLocation();

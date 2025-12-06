@@ -13,7 +13,7 @@ interface ReceiptScannerProps {
     defaultAccountId?: string;
 }
 
-import PermissionModal from './PermissionModal';
+
 
 const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccountId }) => {
     const { addTransaction, accounts, currency } = useBanky();
