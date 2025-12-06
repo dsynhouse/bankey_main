@@ -556,8 +556,17 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     const deleteAccount = async (id: string) => {
+        // 1. Remove Account
         setAccounts(prev => prev.filter(a => a.id !== id));
-        if (supabase) await supabase.from('accounts').delete().eq('id', id);
+
+        // 2. Cascade Delete Transactions (Prevent Orphans)
+        setTransactions(prev => prev.filter(t => t.accountId !== id));
+
+        if (supabase) {
+            // Setup DB deletion (Foreign keys should handle cascade, but explicit is safer if not set)
+            await supabase.from('transactions').delete().eq('account_id', id);
+            await supabase.from('accounts').delete().eq('id', id);
+        }
     };
 
     const updateBudget = async (category: Category, limit: number) => {
