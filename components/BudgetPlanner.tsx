@@ -5,6 +5,7 @@ import { Category } from '../types';
 import { Edit2, TrendingUp, AlertTriangle, Check, X } from 'lucide-react';
 import Mascot from './Mascot';
 import CategoryIcon from './CategoryIcon';
+import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
 
 const BudgetPlanner: React.FC = () => {
   const { transactions, budgets, updateBudget, currency } = useBanky();
@@ -155,6 +156,9 @@ const BudgetPlanner: React.FC = () => {
             );
           })}
       </div>
+
+      {/* Premium Upgrade CTA */}
+      <PremiumUpgradeCTA variant="card" context="tracker" className="mt-8" />
     </div>
   );
 };

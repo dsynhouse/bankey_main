@@ -8,6 +8,7 @@ import { getRealTimeLearnContext } from '../services/geminiService';
 import { Map as MapIcon, Book, ArrowRight, Lock, RotateCcw, Split, Briefcase, Check, Package, X, Globe, MousePointerClick, ExternalLink, Loader2, ThumbsUp, ThumbsDown, Heart, ArrowLeft, AlertTriangle, BookOpen, Star } from 'lucide-react';
 import Mascot from './Mascot';
 import confetti from 'canvas-confetti';
+import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
 
 // --- 1. DICTIONARY FOR REGIONAL TERMS ---
 const LOCALIZATION_MAP: Record<RegionCode, Record<string, string>> = {
@@ -958,6 +959,11 @@ const Education: React.FC = () => {
                         </button>
                     ))}
                 </div>
+            </div>
+
+            {/* Premium Upgrade Card */}
+            <div className="max-w-5xl mx-auto px-4 mb-16">
+                <PremiumUpgradeCTA variant="card" context="education" />
             </div>
 
             {/* SIDE QUESTS */}

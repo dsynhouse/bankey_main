@@ -97,7 +97,7 @@ export const createGroup = async (
     userId: string,
     group: Group
 ): Promise<{ error: PostgrestError | null }> => {
-    console.log('[SERVICE] createGroup called:', { groupId: group.id, userId, memberCount: group.members.length });
+
 
     // 1. Insert Group
     const { error: groupError } = await supabase.from('split_groups').insert({
@@ -109,7 +109,7 @@ export const createGroup = async (
         console.error('[SERVICE] ❌ Failed to insert group:', groupError);
         return { error: groupError };
     }
-    console.log('[SERVICE] ✅ Group inserted');
+
 
     // 2. Insert Members
     const dbMembers = group.members.map(m => ({
@@ -122,14 +122,13 @@ export const createGroup = async (
         balance: m.balance
     }));
 
-    console.log('[SERVICE] Inserting members:', dbMembers.length, 'members');
+
     const { error: membersError } = await supabase.from('split_members').insert(dbMembers);
     if (membersError) {
         console.error('[SERVICE] ❌ Failed to insert members:', membersError);
-        console.error('[SERVICE] Member data:', JSON.stringify(dbMembers, null, 2));
         return { error: membersError };
     }
-    console.log('[SERVICE] ✅ Members inserted');
+
 
     return { error: null };
 };

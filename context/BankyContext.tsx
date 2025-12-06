@@ -207,6 +207,13 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     setUser(prev => prev ? { ...prev, name: profile.name } : prev);
                 }
 
+                // Sync premium status from profile
+                setUser(prev => prev ? {
+                    ...prev,
+                    isPremium: profile.is_premium || false,
+                    premiumExpiresAt: profile.premium_expires_at || undefined
+                } : prev);
+
                 // Check Daily Bonus using DB date and streak
                 checkDailyBonus(userId, profile.last_bonus_date, profile.streak_days || 1);
             } else {
@@ -338,22 +345,40 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!supabase) { setIsLoading(false); return; }
 
         // Check "Stay Signed In" preference from session storage
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
             // Check if user explicitly opted out of persistence in previous session
             // If 'banky_no_persist' is set, we might want to sign out, but Supabase handles session persistence by default.
             // The 'rememberMe' logic here is primarily for *future* sessions or explicit sign-outs on window close.
 
             if (session?.user) {
-                setUser({ id: session.user.id, email: session.user.email || 'User', name: session.user.user_metadata?.name || 'User' });
+                // Get profile to load premium status
+                const { data: profile } = await supabase.from('profiles').select('is_premium, premium_expires_at, name').eq('id', session.user.id).maybeSingle();
+
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email || 'User',
+                    name: profile?.name || session.user.user_metadata?.name || 'User',
+                    isPremium: profile?.is_premium || false,
+                    premiumExpiresAt: profile?.premium_expires_at || undefined
+                });
                 fetchData(session.user.id);
             } else {
                 setIsLoading(false);
             }
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
-                setUser({ id: session.user.id, email: session.user.email || 'User', name: session.user.user_metadata?.name || 'User' });
+                // Get profile to load premium status
+                const { data: profile } = await supabase.from('profiles').select('is_premium, premium_expires_at, name').eq('id', session.user.id).maybeSingle();
+
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email || 'User',
+                    name: profile?.name || session.user.user_metadata?.name || 'User',
+                    isPremium: profile?.is_premium || false,
+                    premiumExpiresAt: profile?.premium_expires_at || undefined
+                });
                 if (event === 'SIGNED_IN') fetchData(session.user.id);
             } else if (event === 'SIGNED_OUT') {
                 setUser(null);
@@ -669,13 +694,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 
         if (supabase && user) {
-            console.log('[DEBUG] Creating group:', { groupId: newGroup.id, groupName: newGroup.name, userId: user.id, memberCount: newGroup.members.length });
             const { error } = await createGroup(supabase, user.id, newGroup);
             if (error) {
                 console.error("❌ Error creating group:", error);
-                console.error("Full error details:", JSON.stringify(error, null, 2));
-            } else {
-                console.log('✅ Group created successfully');
             }
         }
     };
@@ -712,13 +733,10 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 
         if (supabase && user) {
-            console.log('[DEBUG] Adding expense:', { expenseId: newExpense.id, groupId, userId: user.id, amount: newExpense.amount, description: newExpense.description });
             const { error } = await addExpenseService(supabase, user.id, groupId, newExpense);
             if (error) {
                 console.error("❌ Error adding expense:", error);
                 console.error("Full error details:", JSON.stringify(error, null, 2));
-            } else {
-                console.log('✅ Expense added successfully');
             }
 
             // Update member balances in DB

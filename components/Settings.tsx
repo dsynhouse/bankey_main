@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useBanky } from '../context/useBanky';
+import { useSettings } from '../context/SettingsContext';
 import { Currency, ChatMessage } from '../types';
 import { getSupportAdvice } from '../services/geminiService';
+import { PremiumSettings } from './PremiumSettings';
 import {
     User,
     ShieldCheck,
@@ -19,7 +22,8 @@ import {
     Moon,
     Sun,
     Check,
-    LogOut
+    LogOut,
+    Sparkles
 } from 'lucide-react';
 
 const CURRENCIES: Currency[] = [
@@ -33,8 +37,19 @@ const CURRENCIES: Currency[] = [
 ];
 
 const Settings: React.FC = () => {
-    const { user, currency, setCurrency, logout, updateUserName, transactions, accounts, theme, toggleTheme } = useBanky();
-    const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'security' | 'support'>('preferences');
+    const [searchParams] = useSearchParams();
+    // Use domain context for settings (theme, currency)
+    const { theme, toggleTheme, currency } = useSettings();
+    // Use main context for user and data operations
+    const { user, setCurrency, logout, updateUserName, transactions, accounts } = useBanky();
+
+    // Read tab from URL query param (e.g., /settings?tab=premium)
+    const urlTab = searchParams.get('tab') as 'profile' | 'preferences' | 'premium' | 'security' | 'support' | null;
+    const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'premium' | 'security' | 'support'>(
+        urlTab && ['profile', 'preferences', 'premium', 'security', 'support'].includes(urlTab)
+            ? urlTab
+            : 'preferences'
+    );
 
     // Profile State
     const [isEditingName, setIsEditingName] = useState(false);
@@ -187,6 +202,7 @@ const Settings: React.FC = () => {
                     {[
                         { id: 'profile', label: 'Profile & Login', icon: User },
                         { id: 'preferences', label: 'Preferences', icon: Globe },
+                        { id: 'premium', label: 'Premium', icon: Sparkles },
                         { id: 'security', label: 'Security & Data', icon: ShieldCheck },
                         { id: 'support', label: 'Support & Help', icon: HelpCircle },
                     ].map((item) => {
@@ -195,7 +211,7 @@ const Settings: React.FC = () => {
                         return (
                             <button
                                 key={item.id}
-                                onClick={() => setActiveTab(item.id as 'profile' | 'preferences' | 'security' | 'support')}
+                                onClick={() => setActiveTab(item.id as typeof activeTab)}
                                 className={`text-left px-4 py-4 border-2 border-ink font-bold flex items-center gap-3 transition-all ${isActive
                                     ? 'bg-banky-yellow shadow-neo translate-x-1 -translate-y-1'
                                     : 'bg-white hover:bg-gray-50'
@@ -417,6 +433,13 @@ const Settings: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* PREMIUM TAB */}
+                    {activeTab === 'premium' && (
+                        <div className="animate-fade-in">
+                            <PremiumSettings />
                         </div>
                     )}
 

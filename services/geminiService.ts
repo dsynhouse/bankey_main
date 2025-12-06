@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Category, ReportData, ReportAnalysis } from "../types";
+import { Category, ReportData, ReportAnalysis, Transaction } from "../types";
 
 // Safe API Key Retrieval for different build environments (Vite vs Webpack/CRA)
 const getApiKey = () => {
@@ -15,9 +15,7 @@ const getApiKey = () => {
 
   try {
     // Check Vite import.meta.env
-    // @ts-expect-error - Vite types might not be loaded in all environments
     if (import.meta && import.meta.env && import.meta.env.VITE_API_KEY) {
-      // @ts-expect-error - Vite types might not be loaded in all environments
       return import.meta.env.VITE_API_KEY;
     }
   } catch {
@@ -127,7 +125,7 @@ export const parseTransactionInput = async (input: string): Promise<{
 
 // Helper for the financial advisor chat
 // Uses gemini-2.5-flash with Search Grounding for real-time accuracy
-export const getFinancialAdvice = async (history: { role: string, parts: { text: string }[] }[], newMessage: string) => {
+export const getFinancialAdvice = async (history: { role: string, parts: { text: string }[] }[], newMessage: string, currencyCode: string = 'USD') => {
   if (!apiKey || !ai) return { text: "I'm currently offline (No API Key). Check your connection or Settings.", sources: [] };
 
   try {
@@ -136,11 +134,24 @@ export const getFinancialAdvice = async (history: { role: string, parts: { text:
       history: history,
       config: {
         tools: [{ googleSearch: {} }], // Enable Search Grounding
-        systemInstruction: `You are Bankey, a cool, knowledgeable, and fun financial assistant for Gen Z and Millennials. 
-        Keep answers concise, use emojis occasionally, and avoid overly complex jargon without explaining it simply.
-        Your goal is to educate about financial literacy, investments, and saving habits.
-        When asked about current events or market data, use the search tool to get the latest info.
-        Do not give specific legal or tax advice, but general guidelines are okay.`
+        systemInstruction: `You are Bankey, a smart, concise, and value-focused financial assistant.
+        
+        **Your Identity:**
+        - Tone: Professional but engaging (like a savvy financial mentor).
+        - Format: Use **bold** for key numbers, terms, and action items. Use standard Markdown.
+        - Structure: Use bullet points or short paragraphs. Avoid walls of text.
+        - Emojis: Use sparingly (max 1-2 per response) to maintain professionalism while keeping it friendly.
+        - Currency: Always use ${currencyCode} for monetary examples unless specified otherwise.
+        
+        **Your Goal:**
+        - Provide high-value, specific financial insights.
+        - Avoid generic fluff. Get straight to the point.
+        - If asked about markets, use Search to get real-time data.
+        - Explain complex topics simply.
+        
+        **Constraints:**
+        - Do not give specific legal/tax advice.
+        - Stay focused on the user's question.`
       }
     });
 
@@ -159,6 +170,55 @@ export const getFinancialAdvice = async (history: { role: string, parts: { text:
     return { text: "My brain froze. Try asking that again later.", sources: [] };
   }
 };
+
+export const getPersonalizedAnalysis = async (transactions: Transaction[], currencyCode: string = 'USD') => {
+  if (!apiKey || !ai) return { text: "AI is offline. Check settings.", sources: [] };
+
+  try {
+    const txSummary = transactions.slice(0, 50).map(t =>
+      `- ${t.date.split('T')[0]}: ${t.description} (${t.amount}) [${t.category}]`
+    ).join('\n');
+
+    const prompt = `
+      Analyze these recent transactions for a user. Currency: ${currencyCode}.
+      
+      TRANSACTIONS:
+      ${txSummary}
+
+      **TASK:**
+      Provide a concise, high-impact financial analysis in the following professional format:
+
+      ### 1. 📊 Spending Overview
+      (One professional summary sentence of their current spending behavior. **Bold** the key trend.)
+
+      ### 2. 📉 Top Expense Category
+      (Identify the highest spending category. **Bold** the category and total amount.)
+
+      ### 3. 💡 Strategic Recommendation
+      (One specific, actionable strategy to optimize budget based on data. **Bold** the action.)
+
+      ### 4. ⚖️ Financial Assessment
+      (A direct, professional assessment of non-essential spending patterns. Provide constructive feedback.)
+
+      **GUIDELINES:**
+      - Use standard Markdown.
+      - Use **bold** for emphasis on numbers and key terms.
+      - Keep it short, professional, and direct.
+      - Use minimal emojis (as shown in headers only).
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt
+    });
+
+    return { text: response.text, sources: [] };
+  } catch (error) {
+    console.error("Analysis Error:", error);
+    return { text: "Couldn't analyze data right now.", sources: [] };
+  }
+};
+
 
 // New: Support Chatbot using gemini-3-pro-preview for complex reasoning
 export const getSupportAdvice = async (history: { role: string, parts: { text: string }[] }[], newMessage: string) => {
@@ -325,6 +385,216 @@ export const parseFinancialDocument = async (base64Data: string, mimeType: strin
 
   } catch (error) {
     console.error("Gemini PDF Parse Error:", error);
+    return null;
+  }
+};
+
+// Voice Transaction Parsing
+export interface ParsedVoiceTransaction {
+  amount: number;
+  category: string;
+  description: string;
+  type: 'expense' | 'income';
+  confidence: number;
+  transcription?: string;
+}
+
+/**
+ * Parse voice audio to extract transaction details
+ * Uses Gemini 2.5 Flash for audio transcription and structured extraction
+ * Supports English and Hindi
+ * 
+ * @param audioBase64 - Base64 encoded audio data
+ * @param mimeType - Audio MIME type (e.g., 'audio/webm')
+ * @returns Parsed transaction or null
+ */
+export const parseVoiceTransaction = async (
+  audioBase64: string,
+  mimeType: string
+): Promise<ParsedVoiceTransaction | null> => {
+  if (!apiKey || !ai) {
+    console.warn("parseVoiceTransaction: Missing API Key or AI instance.");
+    return null;
+  }
+
+  try {
+    const prompt = `You are a financial transaction parser. Listen to this audio and extract transaction details.
+
+RULES:
+1. Transcribe the audio first (support English and Hindi)
+2. Extract the transaction amount (in any currency, assume INR if not specified)
+3. Determine if it's an expense or income based on context
+4. Categorize into: Food, Transport, Leisure, Shopping, Bills, Investment, Business, Income, Other
+5. Create a short description
+
+EXAMPLES:
+- "Spent 450 on groceries" → amount: 450, type: expense, category: Food, description: Groceries
+- "Got 5000 from freelancing" → amount: 5000, type: income, category: Income, description: Freelancing
+- "Maine 200 rupaye chai pe kharch kiye" → amount: 200, type: expense, category: Food, description: Chai
+
+Return JSON with: amount (number), category (string), description (string), type (expense or income), confidence (0-1), transcription (what you heard).`;
+
+    // Use correct content structure for Google GenAI SDK
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: mimeType.split(';')[0], // Use base MIME type without codecs
+              data: audioBase64
+            }
+          }
+        ]
+      }],
+      config: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            amount: { type: Type.NUMBER },
+            category: { type: Type.STRING },
+            description: { type: Type.STRING },
+            type: { type: Type.STRING, enum: ['expense', 'income'] },
+            confidence: { type: Type.NUMBER },
+            transcription: { type: Type.STRING }
+          },
+          required: ["amount", "category", "description", "type", "confidence"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) {
+      console.warn("Voice Parse: Empty response from Gemini");
+      return null;
+    }
+
+    const parsed = JSON.parse(text);
+
+    // Validate the response
+    if (typeof parsed.amount !== 'number' || parsed.amount <= 0) {
+      console.warn("Invalid amount in voice transaction:", parsed);
+      return null;
+    }
+
+    return parsed as ParsedVoiceTransaction;
+
+  } catch (error) {
+    console.error("Gemini Voice Parse Error:", error);
+    return null;
+  }
+};
+
+// Receipt/Bill OCR Parsing
+export interface ParsedReceipt {
+  amount: number;
+  merchant: string;
+  category: string;
+  description: string;
+  date?: string;
+  items?: Array<{ name: string; price: number }>;
+  confidence: number;
+}
+
+/**
+ * Parse receipt/bill image to extract transaction details
+ * Uses Gemini Vision for OCR and structured extraction
+ * 
+ * @param imageBase64 - Base64 encoded image data
+ * @param mimeType - Image MIME type (e.g., 'image/jpeg')
+ * @returns Parsed receipt or null
+ */
+export const parseReceiptImage = async (
+  imageBase64: string,
+  mimeType: string
+): Promise<ParsedReceipt | null> => {
+  if (!apiKey || !ai) {
+    console.warn("parseReceiptImage: Missing API Key or AI instance.");
+    return null;
+  }
+
+  try {
+    const prompt = `You are an expert receipt/bill parser. Analyze this image and extract transaction details.
+
+INSTRUCTIONS:
+1. Find the TOTAL amount on the receipt (not individual items unless no total)
+2. Identify the merchant/store name
+3. Categorize into: Food, Transport, Leisure, Shopping, Bills, Investment, Business, Other
+4. Extract the date if visible
+5. List major items if readable
+
+EXAMPLES:
+- Grocery store receipt for ₹450 → {amount: 450, merchant: "Store Name", category: "Food"}
+- Restaurant bill for ₹800 → {amount: 800, merchant: "Restaurant Name", category: "Food"}
+- Uber ride ₹150 → {amount: 150, merchant: "Uber", category: "Transport"}
+
+Return a confidence score (0-1) based on image clarity and text readability.
+If you cannot read the receipt clearly, set confidence below 0.5.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: mimeType,
+              data: imageBase64
+            }
+          }
+        ]
+      }],
+      config: {
+        temperature: 0.1,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            amount: { type: Type.NUMBER },
+            merchant: { type: Type.STRING },
+            category: { type: Type.STRING },
+            description: { type: Type.STRING },
+            date: { type: Type.STRING },
+            items: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  price: { type: Type.NUMBER }
+                }
+              }
+            },
+            confidence: { type: Type.NUMBER }
+          },
+          required: ["amount", "merchant", "category", "description", "confidence"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) {
+      console.warn("Receipt Parse: Empty response from Gemini");
+      return null;
+    }
+
+    const parsed = JSON.parse(text);
+
+    // Validate the response
+    if (typeof parsed.amount !== 'number' || parsed.amount <= 0) {
+      console.warn("Invalid amount in receipt:", parsed);
+      return null;
+    }
+
+    return parsed as ParsedReceipt;
+
+  } catch (error) {
+    console.error("Gemini Receipt Parse Error:", error);
     return null;
   }
 };

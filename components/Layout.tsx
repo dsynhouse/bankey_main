@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PieChart, GraduationCap, Wallet, Calculator, LogOut, Settings, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, PieChart, GraduationCap, Wallet, Calculator, LogOut, Settings, Moon, Sun, Sparkles } from 'lucide-react';
 import { useBanky } from '../context/useBanky';
+import { useSettings } from '../context/SettingsContext';
 import Mascot from './Mascot';
 import DsynLabsLogo from './DsynLabsLogo';
 import DailyBonusModal from './DailyBonusModal';
@@ -13,7 +14,10 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const { user, userState, logout, theme, toggleTheme, showDailyBonus, closeDailyBonus } = useBanky();
+  // Use domain context for theme settings
+  const { theme, toggleTheme } = useSettings();
+  // Use main context for user and session operations
+  const { user, userState, logout, showDailyBonus, closeDailyBonus } = useBanky();
 
   // Hide Sidebar on Public pages
   const isPublicPage = ['/', '/login', '/register'].includes(location.pathname);
@@ -51,6 +55,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/budget', label: 'The Limit', icon: Calculator },
     { path: '/accounts', label: 'The Wallet', icon: Wallet },
     { path: '/education', label: 'The Learn Tab', icon: GraduationCap },
+    { path: '/advisor', label: 'Hype Man', icon: Sparkles },
 
     { path: '/settings', label: 'Settings', icon: Settings },
   ];

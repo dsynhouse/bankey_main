@@ -1,13 +1,18 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { getFinancialAdvice } from '../services/geminiService';
+import ReactMarkdown from 'react-markdown';
+import { getFinancialAdvice, getPersonalizedAnalysis } from '../services/geminiService';
 import { ChatMessage } from '../types';
-import { Send, Bot, User, Sparkles, ExternalLink, Globe } from 'lucide-react';
+import { Send, Bot, User, Sparkles, ExternalLink, Globe, BarChart3 } from 'lucide-react';
+import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
+import { useBanky } from '../context/useBanky';
+import { usePremium } from '../context/usePremium';
 
 const Advisor: React.FC = () => {
-  // const { user } = useBanky(); // Access context if needed
+  const { transactions, currency } = useBanky();
+  const { isPremium } = usePremium();
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    { id: '1', role: 'model', text: 'Yo! I\'m Bankey AI. 🤖 I\'m your new financial hype man. Ask me anything about money, stocks, or how to stop being broke.', timestamp: Date.now() }
+    { id: '1', role: 'model', text: 'Hello! I\'m Bankey AI. I\'m here to help you optimize your finances. Ask me anything about budgeting, investments, or analyzing your spending habits.', timestamp: Date.now() }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -37,7 +42,7 @@ const Advisor: React.FC = () => {
       parts: [{ text: m.text }]
     }));
 
-    const response = await getFinancialAdvice(history, userMsg.text);
+    const response = await getFinancialAdvice(history, userMsg.text, currency.code);
 
     const botMsg: ChatMessage = {
       id: crypto.randomUUID(),
@@ -51,6 +56,38 @@ const Advisor: React.FC = () => {
     setIsTyping(false);
   };
 
+  const handleAnalysis = async () => {
+    if (!isPremium) {
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'model',
+        text: "🔒 **Deep Analysis is a Premium Feature!**\n\nUpgrade to get personalized insights on your spending habits.",
+        timestamp: Date.now()
+      }]);
+      return;
+    }
+
+    setIsTyping(true);
+    // User triggered analysis
+    const userMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      text: "Analyze my spending patterns!",
+      timestamp: Date.now()
+    };
+    setMessages(prev => [...prev, userMsg]);
+
+    const result = await getPersonalizedAnalysis(transactions, currency.code);
+
+    setMessages(prev => [...prev, {
+      id: crypto.randomUUID(),
+      role: 'model',
+      text: result.text || "Analysis failed.",
+      timestamp: Date.now()
+    }]);
+    setIsTyping(false);
+  };
+
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col pb-4 font-sans">
       <div className="mb-6 border-b-4 border-ink pb-4 flex items-center justify-between">
@@ -58,10 +95,22 @@ const Advisor: React.FC = () => {
           <h1 className="text-5xl font-black text-ink uppercase italic tracking-tighter font-display">Hype Man</h1>
           <p className="text-gray-500 font-bold">Real-time stats. Real-time facts.</p>
         </div>
-        <div className="bg-banky-yellow border-2 border-ink p-2 shadow-neo hidden md:block rotate-6">
-          <Sparkles className="w-8 h-8 text-ink" />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleAnalysis}
+            disabled={isTyping}
+            className="bg-banky-purple text-white border-2 border-ink py-2 px-4 shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all font-black uppercase text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <BarChart3 className="w-4 h-4" /> Quick Analysis
+          </button>
+          <div className="bg-banky-yellow border-2 border-ink p-2 shadow-neo hidden md:block rotate-6">
+            <Sparkles className="w-8 h-8 text-ink" />
+          </div>
         </div>
       </div>
+
+      {/* Premium Upgrade Banner */}
+      <PremiumUpgradeCTA variant="banner" context="advisor" className="mb-4 border-2 border-ink" />
 
       <div className="flex-1 bg-white border-2 border-ink shadow-neo overflow-hidden flex flex-col relative">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
@@ -85,7 +134,20 @@ const Advisor: React.FC = () => {
                   : '-right-2 bg-ink border-l-0 border-b-0'
                   }`}></div>
 
-                <p className="font-bold text-lg leading-snug whitespace-pre-wrap font-sans">{msg.text}</p>
+                <div className="text-lg leading-snug font-sans markdown-content">
+                  <ReactMarkdown
+                    components={{
+                      strong: ({ node: _node, ...props }) => <span className="font-black text-current" {...props} />,
+                      ul: ({ node: _node, ...props }) => <ul className="list-disc pl-4 my-2" {...props} />,
+                      li: ({ node: _node, ...props }) => <li className="mb-1" {...props} />,
+                      h1: ({ node: _node, ...props }) => <h1 className="text-xl font-black uppercase my-2" {...props} />,
+                      h2: ({ node: _node, ...props }) => <h2 className="text-lg font-black uppercase my-2" {...props} />,
+                      h3: ({ node: _node, ...props }) => <h3 className="text-base font-black uppercase my-1" {...props} />,
+                    }}
+                  >
+                    {msg.text}
+                  </ReactMarkdown>
+                </div>
 
                 {/* Sources Display */}
                 {msg.sources && msg.sources.length > 0 && (

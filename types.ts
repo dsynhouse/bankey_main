@@ -182,6 +182,8 @@ export interface UserProfile {
   name: string;
   email: string;
   avatar?: string;
+  isPremium: boolean;
+  premiumExpiresAt?: string; // ISO timestamp
 }
 
 export interface UserState {
@@ -301,4 +303,40 @@ export interface Debt {
   from: string; // Member ID
   to: string; // Member ID
   amount: number;
+}
+
+// --- Premium/Subscription Types ---
+export interface Subscription {
+  id: string;
+  userId: string;
+  razorpaySubscriptionId: string;
+  razorpayCustomerId?: string;
+  planId: string;
+  status: 'created' | 'active' | 'paused' | 'cancelled' | 'expired';
+  currentPeriodStart?: string;
+  currentPeriodEnd?: string;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Payment {
+  id: string;
+  userId: string;
+  subscriptionId?: string;
+  razorpayPaymentId: string;
+  razorpayOrderId?: string;
+  amount: number;
+  currency: string;
+  status: 'captured' | 'failed' | 'refunded' | 'pending';
+  createdAt: string;
+}
+
+export interface PremiumFeature {
+  id: string;
+  name: string;
+  description: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  available: boolean; // Whether feature is implemented yet
 }

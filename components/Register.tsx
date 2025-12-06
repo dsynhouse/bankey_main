@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { requestOtp, verifyOtp } from '../services/authService';
 import Mascot from './Mascot';
 import DsynLabsLogo from './DsynLabsLogo';
-import { ArrowRight, Sparkles, Mail, User, Loader2, ArrowLeft } from 'lucide-react';
+import { ArrowRight, Sparkles, Mail, User, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 const Register: React.FC = () => {
     const [step, setStep] = useState<'details' | 'otp'>('details');
@@ -86,7 +86,7 @@ const Register: React.FC = () => {
 
                     {error && (
                         <div className="mb-4 p-3 bg-red-100 border-2 border-red-500 text-red-600 font-bold text-sm flex items-center gap-2 animate-shake">
-                            <span>💀</span> {error}
+                            <AlertTriangle className="w-5 h-5 flex-shrink-0" /> {error}
                         </div>
                     )}
 

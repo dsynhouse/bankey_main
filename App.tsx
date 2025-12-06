@@ -2,9 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
 import { BankyProvider } from './context/BankyContext';
 import { useBanky } from './context/useBanky';
 import { FeatureFlagProvider } from './context/FeatureFlagContext';
+import { SettingsProvider } from './context/SettingsContext';
+import { GamificationProvider } from './context/GamificationContext';
+import { BillSplitterProvider } from './context/BillSplitterContext';
 import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabase';
 
@@ -58,6 +62,22 @@ const PublicRouteWrapper = ({ children }: { children?: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Wrapper to provide domain contexts with user ID from BankyContext
+const DomainContextsWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useBanky();
+  const userId = user?.id || null;
+
+  return (
+    <SettingsProvider userId={userId}>
+      <GamificationProvider userId={userId}>
+        <BillSplitterProvider userId={userId}>
+          {children}
+        </BillSplitterProvider>
+      </GamificationProvider>
+    </SettingsProvider>
+  );
+};
+
 const App: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
 
@@ -68,13 +88,11 @@ const App: React.FC = () => {
       const isSupabaseRedirect = hash && (hash.includes('access_token') || hash.includes('type=recovery') || hash.includes('type=signup'));
 
       if (isSupabaseRedirect) {
-        console.log("Supabase Redirect detected. intercepting...");
-
         // Let Supabase SDK process the hash implicitly
         const { data, error } = await supabase?.auth.getSession() || { data: {}, error: null };
 
         if (!error && data.session) {
-          console.log("Session established via link.");
+          // Session established via redirect link
         }
 
         // CRITICAL: WIPE THE HASH before the Router sees it.
@@ -99,41 +117,47 @@ const App: React.FC = () => {
   }
 
   return (
-    <BankyProvider>
-      <FeatureFlagProvider>
-        <Router>
-          <Layout>
-            <React.Suspense fallback={
-              <div className="h-screen w-full flex items-center justify-center bg-paper">
-                <Loader2 className="w-10 h-10 animate-spin text-banky-blue" />
-              </div>
-            }>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<PublicRouteWrapper><LandingPage /></PublicRouteWrapper>} />
-                <Route path="/login" element={<PublicRouteWrapper><Login /></PublicRouteWrapper>} />
-                <Route path="/register" element={<PublicRouteWrapper><Register /></PublicRouteWrapper>} />
+    <ErrorBoundary>
+      <BankyProvider>
+        <FeatureFlagProvider>
+          <DomainContextsWrapper>
+            <Router>
+              <Layout>
+                <React.Suspense fallback={
+                  <div className="h-screen w-full flex items-center justify-center bg-paper">
+                    <Loader2 className="w-10 h-10 animate-spin text-banky-blue" />
+                  </div>
+                }>
+                  <ErrorBoundary>
+                    <Routes>
+                      {/* Public Routes */}
+                      <Route path="/" element={<PublicRouteWrapper><LandingPage /></PublicRouteWrapper>} />
+                      <Route path="/login" element={<PublicRouteWrapper><Login /></PublicRouteWrapper>} />
+                      <Route path="/register" element={<PublicRouteWrapper><Register /></PublicRouteWrapper>} />
 
-                {/* Protected Routes */}
-                <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
-                <Route path="/tracker" element={<RequireAuth><Tracker /></RequireAuth>} />
-                <Route path="/budget" element={<RequireAuth><BudgetPlanner /></RequireAuth>} />
-                {/* <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} /> */}
-                <Route path="/knowledge-bank" element={<RequireAuth><KnowledgeBank /></RequireAuth>} />
-                <Route path="/knowledge-bank/module/:moduleId" element={<RequireAuth><ModuleView /></RequireAuth>} />
-                <Route path="/knowledge-bank/lesson/:lessonId" element={<RequireAuth><LessonView /></RequireAuth>} />
-                <Route path="/education" element={<RequireAuth><Education /></RequireAuth>} />
-                <Route path="/advisor" element={<RequireAuth><Advisor /></RequireAuth>} />
-                <Route path="/accounts" element={<RequireAuth><Accounts /></RequireAuth>} />
-                <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+                      {/* Protected Routes */}
+                      <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+                      <Route path="/tracker" element={<RequireAuth><Tracker /></RequireAuth>} />
+                      <Route path="/budget" element={<RequireAuth><BudgetPlanner /></RequireAuth>} />
+                      {/* <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} /> */}
+                      <Route path="/knowledge-bank" element={<RequireAuth><KnowledgeBank /></RequireAuth>} />
+                      <Route path="/knowledge-bank/module/:moduleId" element={<RequireAuth><ModuleView /></RequireAuth>} />
+                      <Route path="/knowledge-bank/lesson/:lessonId" element={<RequireAuth><LessonView /></RequireAuth>} />
+                      <Route path="/education" element={<RequireAuth><Education /></RequireAuth>} />
+                      <Route path="/advisor" element={<RequireAuth><Advisor /></RequireAuth>} />
+                      <Route path="/accounts" element={<RequireAuth><Accounts /></RequireAuth>} />
+                      <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
 
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </React.Suspense>
-          </Layout>
-        </Router>
-      </FeatureFlagProvider>
-    </BankyProvider>
+                      <Route path="*" element={<Navigate to="/" />} />
+                    </Routes>
+                  </ErrorBoundary>
+                </React.Suspense>
+              </Layout>
+            </Router>
+          </DomainContextsWrapper>
+        </FeatureFlagProvider>
+      </BankyProvider>
+    </ErrorBoundary>
   );
 };
 

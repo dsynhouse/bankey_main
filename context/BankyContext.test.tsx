@@ -17,8 +17,8 @@ vi.mock('../services/supabase', () => ({
         from: vi.fn(() => ({
             select: vi.fn(() => ({
                 eq: vi.fn(() => ({
-                    single: vi.fn(),
-                    maybeSingle: vi.fn(),
+                    single: vi.fn().mockResolvedValue({ data: null }),
+                    maybeSingle: vi.fn().mockResolvedValue({ data: null }),
                     order: vi.fn(() => ({
                         limit: vi.fn().mockResolvedValue({ data: [] })
                     })),
@@ -86,7 +86,8 @@ describe('BankyContext Logic', () => {
                 return {
                     select: vi.fn().mockReturnValue({
                         eq: vi.fn().mockReturnValue({
-                            single: vi.fn().mockResolvedValue({ data: { has_completed_onboarding: false } })
+                            single: vi.fn().mockResolvedValue({ data: { has_completed_onboarding: false } }),
+                            maybeSingle: vi.fn().mockResolvedValue({ data: { is_premium: false, premium_expires_at: null, name: 'Test User' } })
                         })
                     }),
                     update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({}) }),
@@ -146,7 +147,8 @@ describe('BankyContext Logic', () => {
                                     streak_days: 1,
                                     total_xp: 100
                                 }
-                            })
+                            }),
+                            maybeSingle: vi.fn().mockResolvedValue({ data: { is_premium: false, premium_expires_at: null, name: 'Test User' } })
                         })
                     }),
                     update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({}) }),

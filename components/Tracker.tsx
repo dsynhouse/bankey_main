@@ -4,8 +4,11 @@ import { useBanky } from '../context/useBanky';
 import { parseTransactionInput } from '../services/geminiService';
 import { Category, Transaction } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Plus, Loader2, Sparkles, Filter, ArrowUpRight, ArrowDownRight, RotateCcw, Wallet, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Trash2, ArrowUpDown } from 'lucide-react';
+import { Plus, Loader2, Sparkles, Filter, ArrowUpRight, ArrowDownRight, RotateCcw, Wallet, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Trash2, ArrowUpDown, Mic, Camera } from 'lucide-react';
 import CategoryIcon from './CategoryIcon';
+import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
+import VoiceInput from './VoiceInput';
+import ReceiptScanner from './ReceiptScanner';
 
 
 const Tracker: React.FC = () => {
@@ -18,6 +21,8 @@ const Tracker: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const [showManualForm, setShowManualForm] = useState(false);
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const [showReceiptScanner, setShowReceiptScanner] = useState(false);
 
   // New State for Filters
   const [listFilter, setListFilter] = useState<'all' | 'expense' | 'income'>('all');
@@ -290,6 +295,22 @@ const Tracker: React.FC = () => {
                 className="px-6 py-3 bg-banky-yellow border-2 border-ink text-ink font-black hover:shadow-neo-sm hover:-translate-y-1 active:translate-y-0 active:shadow-none transition-all flex items-center justify-center gap-2 font-display"
               >
                 {isAiLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'ADD'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowVoiceInput(true)}
+                className="px-4 py-3 bg-gradient-to-br from-banky-purple to-banky-pink text-white border-2 border-ink font-black hover:shadow-neo-sm hover:-translate-y-1 active:translate-y-0 active:shadow-none transition-all flex items-center justify-center"
+                title="Voice Input"
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReceiptScanner(true)}
+                className="px-4 py-3 bg-gradient-to-br from-banky-green to-banky-blue text-ink border-2 border-ink font-black hover:shadow-neo-sm hover:-translate-y-1 active:translate-y-0 active:shadow-none transition-all flex items-center justify-center"
+                title="Scan Receipt"
+              >
+                <Camera className="w-5 h-5" />
               </button>
             </form>
           </div>
@@ -615,6 +636,25 @@ const Tracker: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Floating Premium CTA */}
+      <PremiumUpgradeCTA variant="floating" context="tracker" />
+
+      {/* Voice Input Modal (for inline button) */}
+      {showVoiceInput && (
+        <VoiceInput
+          onClose={() => setShowVoiceInput(false)}
+          defaultAccountId={aiAccountId || accounts[0]?.id}
+        />
+      )}
+
+      {/* Receipt Scanner Modal (for inline button) */}
+      {showReceiptScanner && (
+        <ReceiptScanner
+          onClose={() => setShowReceiptScanner(false)}
+          defaultAccountId={aiAccountId || accounts[0]?.id}
+        />
       )}
     </div>
   );
