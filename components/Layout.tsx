@@ -23,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isPublicPage = ['/', '/login', '/register'].includes(location.pathname);
 
   // Independent Legal Pages (No Theme Toggle, No Sidebar)
-  const isLegalPage = ['/privacy', '/terms', '/data-protection', '/cancellation', '/disclaimers'].includes(location.pathname);
+  const isLegalPage = ['/privacy', '/terms', '/data-protection', '/cancellation', '/disclaimers', '/contact', '/shipping'].includes(location.pathname);
 
   if (isLegalPage) {
     return <>{children}</>;
