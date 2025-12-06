@@ -25,6 +25,8 @@ const getApiKey = () => {
   return '';
 };
 
+// NOTE: In Vercel, ensure 'VITE_API_KEY' is set in Environment Variables for this to work.
+
 const apiKey = getApiKey();
 let ai: GoogleGenAI | null = null;
 
