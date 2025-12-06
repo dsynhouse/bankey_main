@@ -11,6 +11,12 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.1,
   });
+
+  // Expose Sentry to window for console testing
+  (window as any).Sentry = Sentry;
+
+  // Send a test message to verify connection
+  Sentry.captureMessage('Sentry initialized successfully', 'info');
 }
 
 const rootElement = document.getElementById('root');
