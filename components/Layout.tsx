@@ -22,6 +22,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Hide Sidebar on Public pages
   const isPublicPage = ['/', '/login', '/register'].includes(location.pathname);
 
+  // Independent Legal Pages (No Theme Toggle, No Sidebar)
+  const isLegalPage = ['/privacy', '/terms', '/data-protection', '/cancellation', '/disclaimers'].includes(location.pathname);
+
+  if (isLegalPage) {
+    return <>{children}</>;
+  }
+
   // Render Public Layout (simpler)
   if (isPublicPage) {
     return (
