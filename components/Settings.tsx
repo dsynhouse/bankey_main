@@ -178,7 +178,6 @@ const Settings: React.FC = () => {
     const submitFeedback = (e: React.FormEvent) => {
         e.preventDefault();
         // Simulate API call to admin
-        // console.log("Feedback sent to admin:", feedbackText);
         setFeedbackText('');
         setFeedbackSent(true);
         setTimeout(() => setFeedbackSent(false), 3000);
