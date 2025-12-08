@@ -127,7 +127,7 @@ export const parseTransactionInput = async (input: string): Promise<{
 
 // Helper for the financial advisor chat
 // Uses gemini-2.5-flash with Search Grounding for real-time accuracy
-export const getFinancialAdvice = async (history: { role: string, parts: { text: string }[] }[], newMessage: string, currencyCode: string = 'USD') => {
+export const getFinancialAdvice = async (history: { role: string, parts: { text: string }[] }[], newMessage: string, currencyCode: string = 'INR') => {
   if (!apiKey || !ai) return { text: "I'm currently offline (No API Key). Check your connection or Settings.", sources: [] };
 
   try {
@@ -173,7 +173,7 @@ export const getFinancialAdvice = async (history: { role: string, parts: { text:
   }
 };
 
-export const getPersonalizedAnalysis = async (transactions: Transaction[], currencyCode: string = 'USD') => {
+export const getPersonalizedAnalysis = async (transactions: Transaction[], currencyCode: string = 'INR') => {
   if (!apiKey || !ai) return { text: "AI is offline. Check settings.", sources: [] };
 
   try {

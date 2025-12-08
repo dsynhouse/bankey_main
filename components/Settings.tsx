@@ -26,14 +26,9 @@ import {
     Sparkles
 } from 'lucide-react';
 
+// INR only for now - other currencies can be added back later
 const CURRENCIES: Currency[] = [
-    { code: 'USD', symbol: '$', name: 'United States Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-    { code: 'GBP', symbol: '£', name: 'British Pound' },
-    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
     { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
-    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
-    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
 ];
 
 const Settings: React.FC = () => {
@@ -321,31 +316,22 @@ const Settings: React.FC = () => {
                             <div>
                                 <h2 className="text-2xl font-black uppercase font-display mb-6 border-b-2 border-gray-200 pb-2">Regional Settings</h2>
 
+                                {/* Currency selection hidden - INR only for now */}
                                 <div className="mb-6">
                                     <label className="block text-sm font-black uppercase text-ink mb-3 font-display">Currency</label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {CURRENCIES.map((c) => (
-                                            <button
-                                                key={c.code}
-                                                onClick={() => setPendingCurrency(c)}
-                                                className={`flex items-center justify-between p-4 border-2 border-ink transition-all ${pendingCurrency.code === c.code
-                                                    ? 'bg-banky-green shadow-neo-sm -translate-y-1'
-                                                    : 'bg-white hover:bg-gray-50'
-                                                    } `}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <span className="w-8 h-8 flex items-center justify-center bg-ink text-white font-mono font-bold rounded-full">
-                                                        {c.symbol}
-                                                    </span>
-                                                    <div className="text-left">
-                                                        <p className="font-black font-display">{c.code}</p>
-                                                        <p className="text-xs font-bold text-gray-500">{c.name}</p>
-                                                    </div>
-                                                </div>
-                                                {pendingCurrency.code === c.code && <Check className="w-6 h-6" />}
-                                            </button>
-                                        ))}
+                                    <div className="flex items-center justify-between p-4 border-2 border-ink bg-banky-green shadow-neo-sm -translate-y-1">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-8 h-8 flex items-center justify-center bg-ink text-white font-mono font-bold rounded-full">
+                                                ₹
+                                            </span>
+                                            <div className="text-left">
+                                                <p className="font-black font-display">INR</p>
+                                                <p className="text-xs font-bold text-gray-600">Indian Rupee</p>
+                                            </div>
+                                        </div>
+                                        <Check className="w-6 h-6" />
                                     </div>
+                                    <p className="text-xs text-gray-500 mt-2 font-medium">More currencies coming soon!</p>
                                 </div>
                             </div>
 

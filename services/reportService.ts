@@ -74,12 +74,12 @@ const parseCSV = async (file: File): Promise<ReportData['data']> => {
     }
 };
 
-export const processStatement = async (file: File, userCurrencyCode: string = 'USD'): Promise<ReportData> => {
+export const processStatement = async (file: File, userCurrencyCode: string = 'INR'): Promise<ReportData> => {
     // Simulate processing delay
     await new Promise(r => setTimeout(r, 1500));
 
     let data = STATIC_REPORT;
-    let detectedCurrency = 'USD'; // Default fallback
+    let detectedCurrency = 'INR'; // Default fallback
 
     if (file.name.endsWith('.csv')) {
         data = await parseCSV(file);

@@ -66,7 +66,7 @@ describe('OnboardingModal', () => {
             userState: { hasCompletedOnboarding: false },
             createAccount: mockCreateAccount,
             completeOnboarding: mockCompleteOnboarding,
-            currency: { code: 'USD', symbol: '$' },
+            currency: { code: 'INR', symbol: '₹' },
             isLoading: false,
         });
 
@@ -75,11 +75,7 @@ describe('OnboardingModal', () => {
         // Step 1: Welcome -> Click "Let's Set Up"
         fireEvent.click(screen.getByText("Let's Set Up"));
 
-        // Step 2: Currency -> Click "Continue" (assuming default currency is selected)
-        await waitFor(() => screen.getByText('Pick Your Currency'));
-        fireEvent.click(screen.getByText('Continue'));
-
-        // Step 3: Wallet -> Fill form and Click "Create & Continue"
+        // Step 2: Wallet (currency selection removed) -> Fill form and Click "Create & Continue"
         await waitFor(() => screen.getByText('Setup Wallet'));
 
         const balanceInput = screen.getByPlaceholderText('0.00');
@@ -87,7 +83,7 @@ describe('OnboardingModal', () => {
 
         fireEvent.click(screen.getByText('Create & Continue'));
 
-        // Step 4: Ready -> Click "Enter Dashboard"
+        // Step 3: Ready -> Click "Enter Dashboard"
         await waitFor(() => screen.getByText('You are Set!'));
         fireEvent.click(screen.getByText('Enter Dashboard'));
 

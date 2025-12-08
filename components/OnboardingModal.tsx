@@ -2,25 +2,19 @@
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
 import { AccountType, Currency } from '../types';
-import { ArrowRight, Wallet, Check, ShieldCheck, Sparkles, Globe } from 'lucide-react';
+import { ArrowRight, Wallet, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import Mascot from './Mascot';
 
-const SUPPORTED_CURRENCIES: Currency[] = [
-    { code: 'USD', symbol: '$', name: 'United States Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-    { code: 'GBP', symbol: '£', name: 'British Pound' },
-    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-    { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
-    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
-    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
-];
+// INR only for now - other currencies can be added back later
+const DEFAULT_INR_CURRENCY: Currency = { code: 'INR', symbol: '₹', name: 'Indian Rupee' };
 
 const OnboardingModal: React.FC = () => {
-    const { userState, createAccount, completeOnboarding, currency: defaultCurrency, isLoading } = useBanky();
+    const { userState, createAccount, completeOnboarding, isLoading } = useBanky();
     const [step, setStep] = useState(1);
     const [walletName, setWalletName] = useState('Main Stash');
     const [startingBalance, setStartingBalance] = useState('');
-    const [selectedCurrency, setSelectedCurrency] = useState<Currency>(defaultCurrency);
+    // Currency is now fixed to INR
+    const selectedCurrency = DEFAULT_INR_CURRENCY;
 
     // 1. If app is loading data, do not show modal (prevents flash)
     if (isLoading) return null;
@@ -45,7 +39,7 @@ const OnboardingModal: React.FC = () => {
             return;
         }
 
-        setStep(4);
+        setStep(3); // Skip to final step (was step 4)
     };
 
     const handleFinish = async () => {
@@ -56,9 +50,9 @@ const OnboardingModal: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ink/95 backdrop-blur-sm animate-fade-in">
             <div className="bg-white border-4 border-ink shadow-neo-xl max-w-md w-full relative overflow-hidden p-8">
 
-                {/* Progress Bar */}
+                {/* Progress Bar - Now 3 steps instead of 4 */}
                 <div className="absolute top-0 left-0 right-0 h-2 bg-gray-100">
-                    <div className="h-full bg-banky-green transition-all duration-500" style={{ width: `${(step / 4) * 100}%` }}></div>
+                    <div className="h-full bg-banky-green transition-all duration-500" style={{ width: `${(step / 3) * 100}%` }}></div>
                 </div>
 
                 {/* STEP 1: WELCOME */}
@@ -78,46 +72,8 @@ const OnboardingModal: React.FC = () => {
                     </div>
                 )}
 
-                {/* STEP 2: CURRENCY SELECTION */}
+                {/* STEP 2: CREATE WALLET (was Step 3) */}
                 {step === 2 && (
-                    <div className="animate-fade-in-right">
-                        <div className="flex items-center gap-2 mb-6 text-banky-purple">
-                            <Globe className="w-8 h-8" />
-                            <h2 className="text-2xl font-black uppercase font-display text-ink">Pick Your Currency</h2>
-                        </div>
-
-                        <p className="text-sm font-bold text-gray-500 mb-6">
-                            Select the primary currency for your dashboard.
-                        </p>
-
-                        <div className="grid grid-cols-2 gap-3 mb-8 max-h-[300px] overflow-y-auto pr-2">
-                            {SUPPORTED_CURRENCIES.map((c) => (
-                                <button
-                                    key={c.code}
-                                    onClick={() => setSelectedCurrency(c)}
-                                    className={`p-3 border-2 flex flex-col items-center text-center transition-all ${selectedCurrency.code === c.code
-                                            ? 'bg-banky-yellow border-ink shadow-neo-sm'
-                                            : 'bg-white border-gray-200 hover:border-ink'
-                                        }`}
-                                >
-                                    <span className="text-2xl font-black mb-1">{c.symbol}</span>
-                                    <span className="text-xs font-black uppercase">{c.code}</span>
-                                    <span className="text-[10px] text-gray-500 font-bold truncate w-full">{c.name}</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            onClick={() => setStep(3)}
-                            className="w-full py-4 bg-ink text-white font-black uppercase tracking-widest shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-                        >
-                            Continue
-                        </button>
-                    </div>
-                )}
-
-                {/* STEP 3: CREATE WALLET */}
-                {step === 3 && (
                     <form onSubmit={handleCreateWallet} className="animate-fade-in-right">
                         <div className="flex items-center gap-2 mb-6 text-banky-blue">
                             <Wallet className="w-8 h-8" />
@@ -167,8 +123,9 @@ const OnboardingModal: React.FC = () => {
                     </form>
                 )}
 
-                {/* STEP 4: READY */}
-                {step === 4 && (
+
+                {/* STEP 3: READY (was Step 4) */}
+                {step === 3 && (
                     <div className="text-center animate-fade-in-right">
                         <div className="w-24 h-24 bg-banky-green rounded-full border-4 border-ink flex items-center justify-center mx-auto mb-6 shadow-neo animate-bounce">
                             <Check className="w-12 h-12 text-ink" strokeWidth={4} />
