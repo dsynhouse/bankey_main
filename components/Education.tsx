@@ -523,6 +523,24 @@ const Education: React.FC = () => {
 
     const closeVictory = () => { setShowVictory(false); setActiveModule(null); setLessonStatus('idle'); };
 
+    // Get the next module in sequence
+    const getNextModule = () => {
+        if (!activeModule) return null;
+        const currentIndex = modules.findIndex(m => m.id === activeModule.id);
+        if (currentIndex === -1 || currentIndex >= modules.length - 1) return null;
+        return modules[currentIndex + 1];
+    };
+
+    // Handle starting the next module directly from victory screen
+    const handleNextModule = () => {
+        const nextModule = getNextModule();
+        if (nextModule) {
+            setShowVictory(false);
+            setEarnedLoot(null);
+            handleStartModule(nextModule);
+        }
+    };
+
     // --- RENDERERS ---
 
     if (viewMode === 'lesson' && activeModule) {
@@ -1214,7 +1232,25 @@ const Education: React.FC = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/90 backdrop-blur-md animate-fade-in">
                     <div className="bg-white border-4 border-ink shadow-neo-xl max-w-sm w-full p-8 text-center relative overflow-hidden">
                         <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,#D4FF00_0deg,#fff_60deg,#D4FF00_120deg,#fff_180deg,#D4FF00_240deg,#fff_300deg,#D4FF00_360deg)] opacity-20 animate-spin-slow"></div>
-                        <div className="relative z-10"><div className="inline-block bg-banky-green text-ink border-2 border-ink px-3 py-1 font-black uppercase rotate-[-2deg] mb-6 shadow-sm">Module Complete!</div><div className="w-32 h-32 mx-auto bg-white border-4 border-ink rounded-full flex items-center justify-center text-6xl shadow-neo mb-6 animate-bounce">{earnedLoot.emoji}</div><h2 className="text-2xl font-black uppercase font-display mb-1">{earnedLoot.name}</h2><p className="font-bold text-gray-500 uppercase text-xs tracking-widest mb-6">{earnedLoot.rarity} Item Found</p><div className="flex gap-4 justify-center font-bold font-mono text-sm mb-8"><div className="flex items-center gap-1 bg-gray-100 px-2 py-1 border border-gray-300"><Star className="w-4 h-4 text-banky-yellow fill-current" />+{activeModule?.xpReward} XP</div></div><button onClick={closeVictory} className="w-full bg-ink text-white py-4 font-black uppercase tracking-widest border-2 border-transparent hover:bg-banky-pink hover:text-ink hover:border-ink hover:shadow-neo transition-all">Claim Reward</button></div>
+                        <div className="relative z-10">
+                            <div className="inline-block bg-banky-green text-ink border-2 border-ink px-3 py-1 font-black uppercase rotate-[-2deg] mb-6 shadow-sm">Module Complete!</div>
+                            <div className="w-32 h-32 mx-auto bg-white border-4 border-ink rounded-full flex items-center justify-center text-6xl shadow-neo mb-6 animate-bounce">{earnedLoot.emoji}</div>
+                            <h2 className="text-2xl font-black uppercase font-display mb-1">{earnedLoot.name}</h2>
+                            <p className="font-bold text-gray-500 uppercase text-xs tracking-widest mb-6">{earnedLoot.rarity} Item Found</p>
+                            <div className="flex gap-4 justify-center font-bold font-mono text-sm mb-8">
+                                <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 border border-gray-300"><Star className="w-4 h-4 text-banky-yellow fill-current" />+{activeModule?.xpReward} XP</div>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                {getNextModule() && (
+                                    <button onClick={handleNextModule} className="w-full bg-banky-yellow text-ink py-4 font-black uppercase tracking-widest border-2 border-ink shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2">
+                                        Next Module <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                )}
+                                <button onClick={closeVictory} className="w-full bg-ink text-white py-4 font-black uppercase tracking-widest border-2 border-transparent hover:bg-banky-pink hover:text-ink hover:border-ink hover:shadow-neo transition-all">
+                                    {getNextModule() ? 'Back to Map' : 'Claim Reward'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
