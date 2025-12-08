@@ -12,6 +12,7 @@ import { BillSplitterProvider } from './context/BillSplitterContext';
 import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabase';
 import { HelmetProvider } from 'react-helmet-async';
+import { initOneSignal } from './services/notificationService';
 
 // Lazy Load Pages
 const LandingPage = React.lazy(() => import('./components/LandingPage'));
@@ -28,6 +29,7 @@ const Settings = React.lazy(() => import('./components/Settings'));
 const KnowledgeBank = React.lazy(() => import('./components/knowledge-bank/KnowledgeBank'));
 const ModuleView = React.lazy(() => import('./components/knowledge-bank/ModuleView'));
 const LessonView = React.lazy(() => import('./components/knowledge-bank/LessonView'));
+const AdminNotifications = React.lazy(() => import('./components/AdminNotifications'));
 
 const PrivacyPolicy = React.lazy(() => import('./components/legal/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./components/legal/TermsOfService'));
@@ -92,6 +94,11 @@ const DomainContextsWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
 const App: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
 
+  // Initialize OneSignal
+  useEffect(() => {
+    initOneSignal();
+  }, []);
+
   useEffect(() => {
     const handleInitialSession = async () => {
       // 1. Check if we are coming back from a Supabase Email Link
@@ -147,6 +154,7 @@ const App: React.FC = () => {
                         <Route path="/login" element={<PublicRouteWrapper><Login /></PublicRouteWrapper>} />
                         <Route path="/register" element={<PublicRouteWrapper><Register /></PublicRouteWrapper>} />
                         <Route path="/health" element={<HealthCheck />} />
+                        <Route path="/admin/notifications" element={<AdminNotifications />} />
 
 
                         <Route path="/privacy" element={<PrivacyPolicy />} />

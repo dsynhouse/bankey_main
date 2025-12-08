@@ -1,4 +1,83 @@
+import OneSignal from 'react-onesignal';
 import { Member, Expense } from '../types';
+
+// --- NEW ONESIGNAL NOTIFICATIONS (ADMIN) ---
+const ONESIGNAL_APP_ID = '3e6289ef-e608-4935-bac6-41ef435f9e4e';
+const ONESIGNAL_REST_API_KEY = 'os_v2_app_hzrit37gbbetlowgihxugx46jzwhezbbgkdu4m5ov475xnupjqp4hckcpmmnmbsy2itaef4k7tb6ofqfodxmqke2upd7kknlod7ryfi';
+
+export const initOneSignal = async () => {
+    try {
+        await OneSignal.init({
+            appId: ONESIGNAL_APP_ID,
+            allowLocalhostAsSecureOrigin: true, // Helpful for dev
+            notifyButton: {
+                enable: true,
+                prenotify: true,
+                showCredit: false,
+                text: {
+                    'tip.state.unsubscribed': 'Subscribe to notifications',
+                    'tip.state.subscribed': "You are subscribed to notifications",
+                    'tip.state.blocked': "You have blocked notifications",
+                    'message.prenotify': 'Click to subscribe to notifications',
+                    'message.action.subscribed': "Thanks for subscribing!",
+                    'message.action.resubscribed': "You're subscribed to notifications",
+                    'message.action.subscribing': "Subscribing...",
+                    'message.action.unsubscribed': "You won't receive notifications again",
+                    'dialog.main.title': 'Manage Notifications',
+                    'dialog.main.button.subscribe': 'SUBSCRIBE',
+                    'dialog.main.button.unsubscribe': 'UNSUBSCRIBE',
+                    'dialog.blocked.title': 'Unblock Notifications',
+                    'dialog.blocked.message': "Follow these instructions to allow notifications:"
+                }
+            },
+        });
+        console.log('OneSignal Initialized');
+    } catch (error) {
+        console.error('OneSignal Init Error:', error);
+    }
+};
+
+export const requestNotificationPermission = async () => {
+    try {
+        await OneSignal.Slidedown.promptPush();
+    } catch (error) {
+        console.error('Permission Request Error:', error);
+    }
+};
+
+export const sendNotification = async (title: string, message: string, segment: string = 'All') => {
+    console.log(`[SENDING] Title: ${title}, Msg: ${message}, Segment: ${segment}`);
+
+    const options = {
+        method: 'POST',
+        headers: {
+            accept: 'application/json',
+            'content-type': 'application/json',
+            Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
+        },
+        body: JSON.stringify({
+            app_id: ONESIGNAL_APP_ID,
+            included_segments: [segment === 'Active Users' ? 'Active Users' : 'Subscribed Users'], // OneSignal default segments
+            headings: { en: title },
+            contents: { en: message },
+            target_channel: 'push', // Explicitly target push
+        }),
+    };
+
+    // Determine segment mapping (OneSignal defaults: "Subscribed Users", "Active Users", "Inactive Users")
+    // For "All", we usually target "Subscribed Users"
+
+    return fetch('https://onesignal.com/api/v1/notifications', options)
+        .then(response => response.json())
+        .then(data => {
+            console.log('OneSignal Response:', data);
+            if (data.errors) throw new Error(JSON.stringify(data.errors));
+            return { success: true, message: 'Notification Sent!' };
+        });
+};
+
+
+// --- LEGACY BILL SPLITTER NOTIFICATIONS ---
 
 /**
  * Simulates sending a notification to a member.
