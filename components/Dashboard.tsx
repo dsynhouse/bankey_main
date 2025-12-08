@@ -36,10 +36,10 @@ const Dashboard: React.FC = () => {
                     </div>
 
                     {/* Tab Navigation */}
-                    <div className="bg-white border-2 border-ink p-1 shadow-neo-sm flex">
+                    <div className="bg-white border-2 border-ink p-1 shadow-neo-sm flex overflow-x-auto">
                         <button
                             onClick={() => setActiveTab('overview')}
-                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'overview'
+                            className={`px-2 sm:px-4 py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'overview'
                                 ? 'bg-ink text-white shadow-sm'
                                 : 'bg-transparent text-gray-400 hover:text-ink'
                                 }`}
@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab('dreamboard')}
-                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'dreamboard'
+                            className={`px-2 sm:px-4 py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'dreamboard'
                                 ? 'bg-banky-pink text-ink shadow-sm'
                                 : 'bg-transparent text-gray-400 hover:text-ink'
                                 }`}
@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab('bills')}
-                            className={`px-4 py-2 font-black uppercase tracking-wider text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'bills'
+                            className={`px-2 sm:px-4 py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'bills'
                                 ? 'bg-banky-purple text-white shadow-sm'
                                 : 'bg-transparent text-gray-400 hover:text-ink'
                                 }`}
