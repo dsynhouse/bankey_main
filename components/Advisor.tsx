@@ -90,18 +90,18 @@ const Advisor: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col pb-4 font-sans">
-      <div className="mb-6 border-b-4 border-ink pb-4 flex items-center justify-between">
+      <div className="mb-6 border-b-4 border-ink pb-4 flex flex-wrap gap-4 items-center justify-between">
         <div>
-          <h1 className="text-5xl font-black text-ink uppercase italic tracking-tighter font-display">Hype Man</h1>
+          <h1 className="text-4xl sm:text-5xl font-black text-ink uppercase italic tracking-tighter font-display">Hype Man</h1>
           <p className="text-gray-500 font-bold">Real-time stats. Real-time facts.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={handleAnalysis}
             disabled={isTyping}
-            className="bg-banky-purple text-white border-2 border-ink py-2 px-4 shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all font-black uppercase text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-banky-purple text-white border-2 border-ink py-2 px-3 sm:px-4 shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all font-black uppercase text-xs sm:text-sm flex items-center gap-1 sm:gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           >
-            <BarChart3 className="w-4 h-4" /> Quick Analysis
+            <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Quick</span> Analysis
           </button>
           <div className="bg-banky-yellow border-2 border-ink p-2 shadow-neo hidden md:block rotate-6">
             <Sparkles className="w-8 h-8 text-ink" />
