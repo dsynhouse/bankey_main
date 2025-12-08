@@ -25,7 +25,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ members, onClose, onA
         setPercentages(prev => ({ ...prev, [memberId]: num }));
     };
 
-    const totalPercentage = Object.values(percentages).reduce((sum, val) => sum + val, 0);
+    const totalPercentage: number = Object.values(percentages).reduce<number>((sum, val) => sum + (val as number), 0);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

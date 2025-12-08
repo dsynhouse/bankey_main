@@ -1,9 +1,10 @@
-import React, { Component, ReactNode } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 interface Props {
-    children: ReactNode;
-    fallback?: ReactNode;
+    children: React.ReactNode;
+    fallback?: React.ReactNode;
 }
 
 interface State {
@@ -21,11 +22,12 @@ interface State {
  *   <YourComponent />
  * </ErrorBoundary>
  */
-class ErrorBoundary extends Component<Props, State> {
-    constructor(props: Props) {
-        super(props);
-        this.state = { hasError: false, error: null, errorInfo: null };
-    }
+class ErrorBoundary extends React.Component<Props, State> {
+    public state: State = {
+        hasError: false,
+        error: null,
+        errorInfo: null
+    };
 
     static getDerivedStateFromError(error: Error): Partial<State> {
         // Update state so the next render will show the fallback UI
@@ -35,14 +37,14 @@ class ErrorBoundary extends Component<Props, State> {
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
         // Log error to console (could send to error tracking service)
         console.error('ErrorBoundary caught an error:', error, errorInfo);
-        this.setState({ errorInfo });
+        (this as any).setState({ errorInfo });
 
         // TODO: Send to error tracking service (e.g., Sentry)
         // logErrorToService(error, errorInfo);
     }
 
     handleRetry = () => {
-        this.setState({ hasError: false, error: null, errorInfo: null });
+        (this as any).setState({ hasError: false, error: null, errorInfo: null });
     };
 
     handleGoHome = () => {
@@ -52,8 +54,8 @@ class ErrorBoundary extends Component<Props, State> {
     render() {
         if (this.state.hasError) {
             // Custom fallback UI if provided
-            if (this.props.fallback) {
-                return this.props.fallback;
+            if ((this as any).props.fallback) {
+                return (this as any).props.fallback;
             }
 
             // Default fallback UI
@@ -106,7 +108,7 @@ class ErrorBoundary extends Component<Props, State> {
             );
         }
 
-        return this.props.children;
+        return (this as any).props.children;
     }
 }
 

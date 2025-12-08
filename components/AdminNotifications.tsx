@@ -93,7 +93,7 @@ const AdminNotifications: React.FC = () => {
                         </h1>
                         <p className="font-bold text-gray-500">Push notifications to all devices (Web & Mobile).</p>
                         <div className="bg-green-100 text-green-800 text-xs font-mono py-1 px-2 mt-2 inline-block rounded border border-green-300">
-                            v2.3 LIVE • Edge Function Active
+                            v2.5 AUTO-PUSH WORKAROUND
                         </div>
                     </div>
                 </div>

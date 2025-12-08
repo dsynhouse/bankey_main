@@ -3,7 +3,7 @@
  * These patterns help avoid unnecessary re-renders and improve app performance.
  */
 
-import { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 
 /**
  * Hook that returns a stable callback reference.
