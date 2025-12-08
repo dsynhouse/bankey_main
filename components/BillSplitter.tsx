@@ -214,22 +214,22 @@ const BillSplitter: React.FC = () => {
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header / Group Selector */}
-            <div className="flex justify-between items-center bg-white border-2 border-ink p-4 shadow-neo">
-                <div className="flex items-center gap-2">
-                    <Users className="w-6 h-6 text-banky-purple" />
+            <div className="flex flex-wrap gap-3 justify-between items-center bg-white border-2 border-ink p-3 sm:p-4 shadow-neo">
+                <div className="flex items-center gap-2 min-w-0">
+                    <Users className="w-5 h-5 sm:w-6 sm:h-6 text-banky-purple flex-shrink-0" />
                     <select
                         value={effectiveActiveGroupId || ''}
                         onChange={e => setActiveGroupId(e.target.value)}
-                        className="font-black uppercase text-xl bg-transparent outline-none cursor-pointer font-display"
+                        className="font-black uppercase text-base sm:text-xl bg-transparent outline-none cursor-pointer font-display truncate max-w-[120px] sm:max-w-none"
                     >
                         {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                     </select>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     {activeGroup && (
                         <button
                             onClick={handleDeleteGroup}
-                            className="bg-white border-2 border-red-500 text-red-500 px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-xs flex items-center justify-center"
+                            className="bg-white border-2 border-red-500 text-red-500 px-2 sm:px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-xs flex items-center justify-center"
                             title="Delete Group"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -237,15 +237,15 @@ const BillSplitter: React.FC = () => {
                     )}
                     <button
                         onClick={() => setIsCreatingGroup(true)}
-                        className="bg-white border-2 border-ink px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-xs"
+                        className="bg-white border-2 border-ink px-2 sm:px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-[10px] sm:text-xs whitespace-nowrap"
                     >
                         New Group
                     </button>
                     <button
                         onClick={() => setShowAddExpense(true)}
-                        className="bg-banky-yellow border-2 border-ink px-4 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 text-sm"
+                        className="bg-banky-yellow border-2 border-ink px-2 sm:px-4 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm whitespace-nowrap"
                     >
-                        <Plus className="w-4 h-4" /> Add Expense
+                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" /> Add Expense
                     </button>
                 </div>
             </div>
