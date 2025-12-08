@@ -19,8 +19,7 @@ import {
     Send,
     Bot,
     Smartphone,
-    Moon,
-    Sun,
+
     Check,
     LogOut,
     Sparkles
@@ -34,7 +33,7 @@ const CURRENCIES: Currency[] = [
 const Settings: React.FC = () => {
     const [searchParams] = useSearchParams();
     // Use domain context for settings (theme, currency)
-    const { theme, toggleTheme, currency } = useSettings();
+    const { currency } = useSettings();
     // Use main context for user and data operations
     const { user, setCurrency, logout, updateUserName, transactions, accounts } = useBanky();
 
@@ -128,7 +127,7 @@ const Settings: React.FC = () => {
             settings: {
                 currency,
                 notifications: pendingNotifications,
-                theme
+                theme: 'light'
             }
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -291,27 +290,8 @@ const Settings: React.FC = () => {
                                 </button>
                             </div>
 
-                            {/* Theme Settings */}
-                            <div>
-                                <h2 className="text-2xl font-black uppercase font-display mb-6 border-b-2 border-gray-200 pb-2">Appearance</h2>
-                                <div className="flex items-center justify-between p-4 border-2 border-ink bg-gray-50">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-white p-2 border-2 border-ink rounded-lg">
-                                            {theme === 'dark' ? <Moon className="w-6 h-6 text-ink" /> : <Sun className="w-6 h-6 text-ink" />}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-ink">Dark Mode</p>
-                                            <p className="text-xs text-gray-500">Switch between light and dark themes.</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={toggleTheme}
-                                        className={`w-14 h-8 rounded-full border-2 border-ink flex items-center p-1 cursor-pointer transition-colors ${theme === 'dark' ? 'bg-banky-purple' : 'bg-gray-300'} `}
-                                    >
-                                        <div className={`w-5 h-5 bg-white border-2 border-ink rounded-full transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'} `}></div>
-                                    </button>
-                                </div>
-                            </div>
+                            {/* Theme Settings - Dark mode disabled for now */}
+                            {/* Dark mode toggle removed - see SettingsContext.tsx */}
 
                             <div>
                                 <h2 className="text-2xl font-black uppercase font-display mb-6 border-b-2 border-gray-200 pb-2">Regional Settings</h2>

@@ -29,13 +29,8 @@ interface SettingsProviderProps {
  * or globally for anonymous users.
  */
 export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children, userId }) => {
-    // Initialize theme from localStorage
-    const [theme, setTheme] = useState<Theme>(() => {
-        if (userId) {
-            return (localStorage.getItem(`banky_theme_${userId}`) as Theme) || 'light';
-        }
-        return (localStorage.getItem('banky_theme_pref') as Theme) || 'light';
-    });
+    // Initialize theme - FORCED LIGHT MODE (dark mode disabled for now)
+    const [theme] = useState<Theme>('light');
 
     // Initialize currency from localStorage
     const [currency, setCurrencyState] = useState<Currency>(() => {
@@ -57,23 +52,14 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children, us
         return 'Global';
     });
 
-    // Apply theme to document body
+    // Apply theme to document body (always light)
     useEffect(() => {
-        if (theme === 'dark') {
-            document.body.classList.add('dark-mode');
-        } else {
-            document.body.classList.remove('dark-mode');
-        }
+        document.body.classList.remove('dark-mode');
+    }, []);
 
-        // Persist theme
-        if (userId) {
-            localStorage.setItem(`banky_theme_${userId}`, theme);
-        }
-        localStorage.setItem('banky_theme_pref', theme);
-    }, [theme, userId]);
-
+    // Disabled toggle - no-op for now
     const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+        // Dark mode is disabled - this is intentionally a no-op
     };
 
     const setCurrency = (code: string) => {
