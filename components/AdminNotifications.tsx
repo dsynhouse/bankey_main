@@ -38,8 +38,9 @@ const AdminNotifications: React.FC = () => {
             // content reset
             setTitle('');
             setMessage('');
-        } catch {
-            setResult({ success: false, msg: 'Failed to dispatch notification.' });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            setResult({ success: false, msg: err.message || 'Failed to dispatch notification.' });
         } finally {
             setIsSending(false);
         }
