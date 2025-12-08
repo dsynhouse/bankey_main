@@ -229,11 +229,14 @@ export const cancelSubscription = async (subscriptionId: string): Promise<void> 
  */
 export const getUserSubscription = async (userId: string) => {
     try {
+        // Query for subscriptions that are either 'active' or 'created' (payment in progress)
         const { data, error } = await supabase
             .from('subscriptions')
             .select('*')
             .eq('user_id', userId)
-            .eq('status', 'active')
+            .in('status', ['active', 'created'])
+            .order('created_at', { ascending: false })
+            .limit(1)
             .single();
 
         if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned

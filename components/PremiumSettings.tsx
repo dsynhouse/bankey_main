@@ -95,7 +95,12 @@ export const PremiumSettings: React.FC = () => {
     };
 
     const handleCancel = async () => {
-        if (!subscription) return;
+        // Access snake_case field from Supabase (database returns snake_case, not camelCase)
+        const subscriptionId = (subscription as any)?.razorpay_subscription_id || subscription?.razorpaySubscriptionId;
+        if (!subscriptionId) {
+            alert('No active subscription found to cancel.');
+            return;
+        }
 
         const confirmed = window.confirm(
             'Are you sure you want to cancel? You\'ll retain premium access until the end of your billing period.'
@@ -105,7 +110,7 @@ export const PremiumSettings: React.FC = () => {
 
         setLoading(true);
         try {
-            await cancelSubscription(subscription.razorpaySubscriptionId);
+            await cancelSubscription(subscriptionId);
         } catch (error) {
             console.error('Cancellation error:', error);
             alert('Failed to cancel subscription. Please contact support.');
@@ -142,7 +147,7 @@ export const PremiumSettings: React.FC = () => {
                         </div>
                     </div>
 
-                    {subscription?.cancelAtPeriodEnd && (
+                    {((subscription as any)?.cancel_at_period_end || subscription?.cancelAtPeriodEnd) && (
                         <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-lg flex items-start gap-3">
                             <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
                             <div>
@@ -181,7 +186,7 @@ export const PremiumSettings: React.FC = () => {
                         {showPayments ? 'Hide' : 'View'} Payment History
                     </button>
 
-                    {!subscription?.cancelAtPeriodEnd && (
+                    {!((subscription as any)?.cancel_at_period_end || subscription?.cancelAtPeriodEnd) && (
                         <button
                             onClick={handleCancel}
                             disabled={loading}
