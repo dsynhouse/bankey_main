@@ -7,4 +7,4 @@ Disallow: /settings
 Disallow: /advisor
 Disallow: /accounts
 
-Sitemap: https://www.bankey.app/sitemap.xml
+Sitemap: https://www.bankey.club/sitemap.xml

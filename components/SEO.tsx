@@ -15,7 +15,7 @@ export const SEO: React.FC<SEOProps> = ({
     description = "Bankey is the gamified financial literacy platform for Gen Z. Level up your money skills, track expenses, and earn real rewards.",
     name = "Bankey",
     type = "website",
-    image = "https://your-domain.com/og-image.png", // TODO: meaningful default image
+    image = "https://www.bankey.club/og-image.png", // TODO: meaningful default image
     url = window.location.href
 }) => {
     return (
