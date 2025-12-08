@@ -42,6 +42,17 @@
       };
     })();
   </script>
+  <script>
+    // HashRouter Compatibility: Redirect /path to /#/path
+    // This fixes the issue where visiting /admin/notifications results in /admin/notifications#/dashboard
+    (function () {
+      if (window.location.pathname.length > 1 && !window.location.hash) {
+        var path = window.location.pathname;
+        if (path.endsWith('/')) path = path.slice(0, -1); // Remove trailing slash
+        window.location.replace('/#' + path + window.location.search);
+      }
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
