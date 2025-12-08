@@ -1,9 +1,9 @@
 import OneSignal from 'react-onesignal';
 import { Member, Expense } from '../types';
+import { supabase } from './supabase';
 
 // --- NEW ONESIGNAL NOTIFICATIONS (ADMIN) ---
 const ONESIGNAL_APP_ID = '3e6289ef-e608-4935-bac6-41ef435f9e4e';
-const ONESIGNAL_REST_API_KEY = 'os_v2_app_hzrit37gbbetlowgihxugx46jzwhezbbgkdu4m5ov475xnupjqp4hckcpmmnmbsy2itaef4k7tb6ofqfodxmqke2upd7kknlod7ryfi';
 
 export const initOneSignal = async () => {
     try {
@@ -48,32 +48,20 @@ export const requestNotificationPermission = async () => {
 export const sendNotification = async (title: string, message: string, segment: string = 'All') => {
     console.log(`[SENDING] Title: ${title}, Msg: ${message}, Segment: ${segment}`);
 
-    const options = {
-        method: 'POST',
-        headers: {
-            accept: 'application/json',
-            'content-type': 'application/json',
-            Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
-        },
-        body: JSON.stringify({
-            app_id: ONESIGNAL_APP_ID,
-            included_segments: [segment === 'Active Users' ? 'Active Users' : 'Subscribed Users'], // OneSignal default segments
-            headings: { en: title },
-            contents: { en: message },
-            target_channel: 'push', // Explicitly target push
-        }),
-    };
+    // Call Supabase Edge Function to bypass CORS and hide API Key
+    const { data, error } = await supabase.functions.invoke('send-push', {
+        body: { title, message, segment }
+    });
 
-    // Determine segment mapping (OneSignal defaults: "Subscribed Users", "Active Users", "Inactive Users")
-    // For "All", we usually target "Subscribed Users"
+    if (error) {
+        throw new Error(error.message || 'Failed to trigger Edge Function');
+    }
 
-    return fetch('https://onesignal.com/api/v1/notifications', options)
-        .then(response => response.json())
-        .then(data => {
-            console.log('OneSignal Response:', data);
-            if (data.errors) throw new Error(JSON.stringify(data.errors));
-            return { success: true, message: 'Notification Sent!' };
-        });
+    if (data && data.errors) {
+        throw new Error(JSON.stringify(data.errors));
+    }
+
+    return { success: true, message: 'Notification Sent!' };
 };
 
 
