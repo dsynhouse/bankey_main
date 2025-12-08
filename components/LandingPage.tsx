@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Star, TrendingUp, Wallet, Brain, Target, Crown, BookOpen, Compass, BarChart3, Layout, ShieldCheck, Twitter, Instagram, Linkedin, Calculator, CreditCard, Send, Plus, Coins } from 'lucide-react';
 import Mascot from './Mascot';
 import DsynLabsLogo from './DsynLabsLogo';
+import { SEO } from './SEO';
 
 const LandingPage: React.FC = () => {
     const [savingsInput, setSavingsInput] = useState(50);
@@ -34,6 +35,11 @@ const LandingPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-paper overflow-x-hidden selection:bg-banky-pink selection:text-ink font-sans">
+            <SEO
+                title="Level Up Your Finances"
+                description="Gamified financial literacy for Gen Z. Join the clan, master your money, and earn real rewards."
+            />
+
             <style>{`
         @keyframes coinDrop {
           0% { transform: translateY(-60px) rotateY(0deg); opacity: 0; }
@@ -592,7 +598,7 @@ const LandingPage: React.FC = () => {
                     </div>
                 </div>
             </footer>
-        </div>
+        </div >
     );
 };
 

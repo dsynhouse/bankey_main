@@ -9,6 +9,7 @@ import { Map as MapIcon, Book, ArrowRight, Lock, RotateCcw, Split, Briefcase, Ch
 import Mascot from './Mascot';
 import confetti from 'canvas-confetti';
 import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
+import { SEO } from './SEO';
 
 // --- 1. DICTIONARY FOR REGIONAL TERMS ---
 const LOCALIZATION_MAP: Record<RegionCode, Record<string, string>> = {
@@ -849,6 +850,7 @@ const Education: React.FC = () => {
 
     return (
         <div className="max-w-5xl mx-auto min-h-screen font-sans">
+            <SEO title="Learn & Earn" description="Master financial modules and earn XP." />
 
             {/* REGION SWITCH WARNING MODAL */}
             {pendingRegion && (

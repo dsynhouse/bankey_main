@@ -24,6 +24,7 @@ import {
     LogOut,
     Sparkles
 } from 'lucide-react';
+import { SEO } from './SEO';
 
 
 
@@ -176,6 +177,7 @@ const Settings: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in font-sans pb-20">
+            <SEO title="Settings" />
 
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-end border-b-4 border-ink pb-4 gap-4">

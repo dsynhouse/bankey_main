@@ -6,6 +6,7 @@ import { requestOtp, verifyOtp } from '../services/authService';
 import Mascot from './Mascot';
 import DsynLabsLogo from './DsynLabsLogo';
 import { ArrowRight, Mail, KeyRound, Loader2, ArrowLeft, Check, AlertTriangle } from 'lucide-react';
+import { SEO } from './SEO';
 
 const Login: React.FC = () => {
   const [step, setStep] = useState<'email' | 'otp'>('email');
@@ -63,6 +64,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center p-4 relative overflow-hidden font-sans">
+      <SEO title="Login" description="Login to your Bankey account." />
       <div className="absolute top-0 left-0 w-64 h-64 bg-banky-yellow rounded-full filter blur-3xl opacity-30 -translate-x-1/2 -translate-y-1/2"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-banky-pink rounded-full filter blur-3xl opacity-20 translate-x-1/3 translate-y-1/3"></div>
 

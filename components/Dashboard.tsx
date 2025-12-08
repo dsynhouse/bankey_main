@@ -3,6 +3,7 @@ import { useBanky } from '../context/useBanky';
 import BillSplitter from './BillSplitter';
 import DreamBoard from './DreamBoard.tsx';
 import { FlashCards, RecentMoves, QuickStats } from './dashboard/index';
+import { SEO } from './SEO';
 
 /**
  * Dashboard - Main dashboard component with tabbed navigation.
@@ -16,6 +17,7 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in pb-20 md:pb-0">
+            <SEO title="Dashboard" />
             {/* Header / Welcome */}
             <div className="bg-banky-yellow border-4 border-ink p-6 shadow-neo transform hover:-translate-y-1 transition-transform duration-300 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4 overflow-hidden">
                 {/* Left Side: Text */}

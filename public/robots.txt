@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /tracker
+Disallow: /budget
+Disallow: /settings
+Disallow: /advisor
+Disallow: /accounts
+
+Sitemap: https://www.bankey.app/sitemap.xml
