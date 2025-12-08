@@ -1,6 +1,30 @@
 import { supabase } from './supabase';
 
-// Razorpay SDK will be loaded from CDN in index.html
+// Razorpay SDK loaded lazily when needed
+let razorpayLoadPromise: Promise<void> | null = null;
+
+/**
+ * Lazy load Razorpay SDK on demand (not blocking initial page load)
+ */
+const loadRazorpaySDK = (): Promise<void> => {
+    if (window.Razorpay) {
+        return Promise.resolve();
+    }
+
+    if (!razorpayLoadPromise) {
+        razorpayLoadPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+            document.body.appendChild(script);
+        });
+    }
+
+    return razorpayLoadPromise;
+};
+
 interface RazorpayInstance {
     open: () => void;
     close: () => void;
@@ -111,7 +135,9 @@ export const initiateSubscription = async (
             }
         };
 
-        // Check if Razorpay SDK is loaded
+        // Ensure Razorpay SDK is loaded (lazy load on first use)
+        await loadRazorpaySDK();
+
         if (!window.Razorpay) {
             alert('Error: Razorpay SDK failed to load. Please check your internet connection and refresh.');
             throw new Error('Razorpay SDK not loaded. Please refresh the page.');

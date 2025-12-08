@@ -17,8 +17,18 @@
 
   <title>Bankey - Level Up Your Finances</title>
 
-  <!-- Razorpay SDK for Payment Processing -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <!-- Font preloading for faster text rendering -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload"
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&display=swap"
+    as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&display=swap">
+  </noscript>
+
+  <!-- Razorpay SDK loaded lazily when user clicks upgrade (see razorpayService.ts) -->
 
   <!-- Suppress Tailwind CDN production warning (styling works fine, just a console noise) -->
   <script>
@@ -33,11 +43,6 @@
     })();
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&display=swap"
-    rel="stylesheet">
   <style>
     :root {
       --color-paper: #F2F0E9;
