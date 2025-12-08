@@ -96,7 +96,7 @@ export const PremiumSettings: React.FC = () => {
 
     const handleCancel = async () => {
         // Access snake_case field from Supabase (database returns snake_case, not camelCase)
-        const subscriptionId = (subscription as any)?.razorpay_subscription_id || subscription?.razorpaySubscriptionId;
+        const subscriptionId = (subscription as unknown as Record<string, unknown>)?.razorpay_subscription_id as string || subscription?.razorpaySubscriptionId;
         if (!subscriptionId) {
             alert('No active subscription found to cancel.');
             return;
@@ -147,7 +147,7 @@ export const PremiumSettings: React.FC = () => {
                         </div>
                     </div>
 
-                    {((subscription as any)?.cancel_at_period_end || subscription?.cancelAtPeriodEnd) && (
+                    {((subscription as unknown as Record<string, unknown>)?.cancel_at_period_end || subscription?.cancelAtPeriodEnd) && (
                         <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-lg flex items-start gap-3">
                             <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
                             <div>
@@ -186,7 +186,7 @@ export const PremiumSettings: React.FC = () => {
                         {showPayments ? 'Hide' : 'View'} Payment History
                     </button>
 
-                    {!((subscription as any)?.cancel_at_period_end || subscription?.cancelAtPeriodEnd) && (
+                    {!((subscription as unknown as Record<string, unknown>)?.cancel_at_period_end || subscription?.cancelAtPeriodEnd) && (
                         <button
                             onClick={handleCancel}
                             disabled={loading}

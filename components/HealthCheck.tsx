@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../services/supabase';
 import { Activity, CheckCircle, XCircle, AlertTriangle, Lock, Unlock } from 'lucide-react';
 
@@ -22,11 +22,7 @@ const HealthCheck: React.FC = () => {
         { name: 'Edge Functions Config', status: 'pending' }
     ]);
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            runDiagnostics();
-        }
-    }, [isAuthenticated]);
+
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,23 +38,20 @@ const HealthCheck: React.FC = () => {
         setChecks(prev => prev.map(c => c.name === name ? { ...c, status, message, details } : c));
     };
 
-    const runDiagnostics = async () => {
+    const runDiagnostics = useCallback(async () => {
         // 1. Environment Config
         try {
             const envUrl = import.meta.env.VITE_SUPABASE_URL;
             const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-            // Check if using hardcoded config from services/supabase.ts
-            // We can't read the file directly here, but we can verify if supabase client works
             if (envUrl && envKey) {
                 updateCheck('Environment Configuration', 'success', 'Env Variables Loaded', `URL: ${envUrl.substring(0, 15)}...`);
             } else {
-                // If Env Vars are missing but we are here, supabase.ts might be using hardcoded keys.
-                // We'll mark this as Warning instead of Error.
                 updateCheck('Environment Configuration', 'warning', 'Using Hardcoded Config', 'VITE_ variables missing, falling back to supabase.ts consts.');
             }
-        } catch (e: any) {
-            updateCheck('Environment Configuration', 'error', 'Error reading env', e.message);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Unknown error';
+            updateCheck('Environment Configuration', 'error', 'Error reading env', message);
         }
 
         // 2. Supabase Connection (Network) & 3. Auth Service
@@ -71,37 +64,46 @@ const HealthCheck: React.FC = () => {
                 updateCheck('Authentication Service', 'success', 'Auth Service Reachable', data.session ? 'User Logged In' : 'No Active Session');
                 updateCheck('Supabase Connection', 'success', 'Connected to Supabase');
             }
-        } catch (e: any) {
-            updateCheck('Supabase Connection', 'error', 'Connection Failed', e.message);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Unknown error';
+            updateCheck('Supabase Connection', 'error', 'Connection Failed', message);
             updateCheck('Authentication Service', 'error', 'Unreachable');
         }
 
         // 4. Database Access
         try {
-            // Try to count profiles (low cost query)
             const { count, error } = await supabase
                 .from('profiles')
                 .select('*', { count: 'exact', head: true });
 
             if (error) {
-                // If table doesn't exist or RLS blocks it
                 updateCheck('Database Access (Profiles)', 'error', 'Query Failed', error.message);
             } else {
                 updateCheck('Database Access (Profiles)', 'success', 'Table Accessible', `Row count: ${count}`);
             }
-        } catch (e: any) {
-            updateCheck('Database Access (Profiles)', 'error', 'Query Exception', e.message);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Unknown error';
+            updateCheck('Database Access (Profiles)', 'error', 'Query Exception', message);
         }
 
         // 5. Edge Functions check (Static inference)
-        const sbUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ruvjgktheazdfhwptelp.supabase.co'; // Fallback to hardcoded ID seen in service
+        const sbUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ruvjgktheazdfhwptelp.supabase.co';
         if (sbUrl) {
             const functionsUrl = sbUrl.replace('.co', '.co/functions/v1');
             updateCheck('Edge Functions Config', 'success', 'URL Inferred', functionsUrl);
         } else {
             updateCheck('Edge Functions Config', 'warning', 'Cannot infer URL');
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            runDiagnostics();
+        }
+    }, [isAuthenticated, runDiagnostics]);
+
+
 
     if (!isAuthenticated) {
         return (

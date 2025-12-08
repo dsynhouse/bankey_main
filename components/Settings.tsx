@@ -25,10 +25,7 @@ import {
     Sparkles
 } from 'lucide-react';
 
-// INR only for now - other currencies can be added back later
-const CURRENCIES: Currency[] = [
-    { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
-];
+
 
 const Settings: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -51,7 +48,7 @@ const Settings: React.FC = () => {
     const [isSavingName, setIsSavingName] = useState(false);
 
     // Preferences State - Pending Changes
-    const [pendingCurrency, setPendingCurrency] = useState<Currency>(currency);
+    const [pendingCurrency] = useState<Currency>(currency);
     const [pendingNotifications, setPendingNotifications] = useState(() => {
         const saved = localStorage.getItem('banky_notifs');
         return saved ? JSON.parse(saved) : { budget: true, tips: false, news: true };
