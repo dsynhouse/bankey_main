@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Login from './Login';
 import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import * as authService from '../services/authService';
 
 // Mock dependencies
@@ -33,9 +34,11 @@ describe('Login Component', () => {
 
     it('renders email input initially', () => {
         render(
-            <BrowserRouter>
-                <Login />
-            </BrowserRouter>
+            <HelmetProvider>
+                <BrowserRouter>
+                    <Login />
+                </BrowserRouter>
+            </HelmetProvider>
         );
         expect(screen.getByText('Welcome Back')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('name@domain.com')).toBeInTheDocument();
@@ -45,9 +48,11 @@ describe('Login Component', () => {
         (authService.requestOtp as unknown as Mock).mockResolvedValue({ success: true });
 
         render(
-            <BrowserRouter>
-                <Login />
-            </BrowserRouter>
+            <HelmetProvider>
+                <BrowserRouter>
+                    <Login />
+                </BrowserRouter>
+            </HelmetProvider>
         );
 
         const emailInput = screen.getByPlaceholderText('name@domain.com');
@@ -72,9 +77,11 @@ describe('Login Component', () => {
         (authService.verifyOtp as unknown as Mock).mockResolvedValue({ success: true, user: { id: '123' } });
 
         render(
-            <BrowserRouter>
-                <Login />
-            </BrowserRouter>
+            <HelmetProvider>
+                <BrowserRouter>
+                    <Login />
+                </BrowserRouter>
+            </HelmetProvider>
         );
 
         // Step 1: Email
@@ -107,9 +114,11 @@ describe('Login Component', () => {
         (authService.requestOtp as unknown as Mock).mockResolvedValue({ success: false, message: 'Invalid email' });
 
         render(
-            <BrowserRouter>
-                <Login />
-            </BrowserRouter>
+            <HelmetProvider>
+                <BrowserRouter>
+                    <Login />
+                </BrowserRouter>
+            </HelmetProvider>
         );
 
         fireEvent.change(screen.getByPlaceholderText('name@domain.com'), { target: { value: 'bad@email' } });
