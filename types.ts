@@ -216,6 +216,7 @@ export interface BankyContextType {
   logout: () => Promise<void>;
   updateUserName: (name: string) => Promise<void>;
   completeOnboarding: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 
   // Data Read
   transactions: Transaction[];

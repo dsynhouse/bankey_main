@@ -879,6 +879,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             isAuthenticated: !!user, isLoading, user,
             login: login,
             logout, updateUserName, completeOnboarding,
+            refreshProfile: () => user ? fetchData(user.id) : Promise.resolve(),
             transactions, addTransaction, deleteTransaction,
             accounts, createAccount, deleteAccount,
             userState, addXp, unlockReward, markUnitComplete,
