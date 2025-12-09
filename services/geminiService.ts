@@ -470,6 +470,8 @@ export const parseVoiceTransaction = async (
     return null;
   }
 
+  console.log("Voice Parse: Using gemini-2.5-flash");
+
   try {
     const prompt = `You are a financial transaction parser. Listen to this audio and extract transaction details.
 

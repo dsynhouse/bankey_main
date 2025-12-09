@@ -83,10 +83,10 @@ export const checkGeminiStatus = async (forceRefresh = false): Promise<StatusRes
     try {
         const ai = new GoogleGenAI({ apiKey });
 
-        // Minimal test call with very short content
+        // Use gemini-2.5-flash which is verified to work
         await ai.models.generateContent({
-            model: "gemini-2.0-flash-lite",
-            contents: "1"
+            model: "gemini-2.5-flash",
+            contents: [{ role: 'user', parts: [{ text: 'Ping' }] }]
         });
 
         cachedStatus = {
