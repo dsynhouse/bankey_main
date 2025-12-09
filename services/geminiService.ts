@@ -273,13 +273,13 @@ export const getPersonalizedAnalysis = async (transactions: Transaction[], curre
 };
 
 
-// New: Support Chatbot using gemini-3-pro-preview for complex reasoning
+// New: Support Chatbot using gemini-2.5-flash for complex reasoning
 export const getSupportAdvice = async (history: { role: string, parts: { text: string }[] }[], newMessage: string) => {
   if (!apiKey || !ai) return "Support bot is offline.";
 
   try {
     const chat = ai.chats.create({
-      model: "gemini-3-pro-preview",
+      model: "gemini-2.5-flash",
       history: history,
       config: {
         systemInstruction: `You are the Bankey Support Bot. Your job is to help users troubleshoot issues with the Bankey app.
