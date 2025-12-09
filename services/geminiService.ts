@@ -41,34 +41,46 @@ try {
   console.warn("GenAI init failed:", e);
 }
 
-// Retry utility with exponential backoff
+// Retry utility with exponential backoff and Jitter
 const retryWithBackoff = async <T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
   baseDelay: number = 1000
 ): Promise<T> => {
   let lastError: Error | undefined;
+  let delay = baseDelay;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error: unknown) {
+    } catch (error: any) {
       lastError = error instanceof Error ? error : new Error(String(error));
       const errMsg = lastError.message;
+      const status = error.status || error.statusCode; // GoogleGenAI might provide status
 
-      // Don't retry quota/billing errors - they won't resolve with retries
-      if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') ||
-        errMsg.includes('quota') || errMsg.includes('billing')) {
-        // Update monitor cache so other calls know API is limited
+      // Handle 429 (Resource Exhausted) specifically
+      if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || status === 429) {
+        console.warn(`Gemini Request: Rate limit exceeded. Retrying in ${delay / 1000}s...`);
+
+        // Log status to monitor without forcing refresh (passive)
         checkGeminiStatus(false);
+
+        // Wait with delay + random jitter (0-1000ms)
+        await new Promise(resolve => setTimeout(resolve, delay + (Math.random() * 1000)));
+
+        // Increase delay for next attempt (Exponential Backoff)
+        delay = delay * 2;
+        continue;
+      }
+
+      // Don't retry other fatal errors (like Billing or Invalid Argument)
+      if (errMsg.includes('billing') || errMsg.includes('INVALID_ARGUMENT')) {
         throw lastError;
       }
 
-      // Wait with exponential backoff before retry
-      if (attempt < maxRetries - 1) {
-        const delay = baseDelay * Math.pow(2, attempt);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
+      // For other transient errors, wait and retry
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = delay * 1.5;
     }
   }
 
