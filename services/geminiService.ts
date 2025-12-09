@@ -60,7 +60,7 @@ const retryWithBackoff = async <T>(
       if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') ||
         errMsg.includes('quota') || errMsg.includes('billing')) {
         // Update monitor cache so other calls know API is limited
-        checkGeminiStatus(true);
+        checkGeminiStatus(false);
         throw lastError;
       }
 
