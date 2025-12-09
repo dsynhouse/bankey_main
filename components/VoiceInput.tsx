@@ -72,7 +72,12 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
             }
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to process audio. Please try again.';
-            setError(message);
+            // Show quota-specific message if it's a quota error
+            if (message.includes('quota') || message.includes('rate limit')) {
+                setError('AI quota limit reached. Voice input will resume at midnight PT. You can manually add transactions in the meantime.');
+            } else {
+                setError(message);
+            }
             setState('error');
         }
     }, []);

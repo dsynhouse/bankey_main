@@ -96,7 +96,12 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
             }
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to process image. Please try again.';
-            setError(message);
+            // Show quota-specific message if it's a quota error
+            if (message.includes('quota') || message.includes('rate limit')) {
+                setError('AI quota limit reached. Receipt scanner will resume at midnight PT. You can manually add the transaction.');
+            } else {
+                setError(message);
+            }
             setState('error');
         }
     };
