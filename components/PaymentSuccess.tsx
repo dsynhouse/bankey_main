@@ -53,7 +53,7 @@ const PaymentSuccess: React.FC = () => {
                     }
                 } else {
                     // Not active yet, retry
-                    if (retryCount < 6) { // Try for ~12 seconds
+                    if (retryCount < 15) { // Try for ~30 seconds (15 retries x 2s)
                         timeout = setTimeout(() => {
                             if (isMounted) setRetryCount(prev => prev + 1);
                         }, 2000);
@@ -87,7 +87,8 @@ const PaymentSuccess: React.FC = () => {
                     <div className="animate-pulse">
                         <Mascot className="w-24 h-24 mx-auto mb-6 opacity-80" mood="cool" isStatic />
                         <h2 className="text-2xl font-black uppercase font-display mb-2">Verifying...</h2>
-                        <p className="text-gray-500 font-medium mb-6">Hold tight, we're securing your spot in the clan.</p>
+                        <p className="text-gray-500 font-medium mb-2">Hold tight, we're securing your spot in the clan.</p>
+                        <p className="text-xs text-gray-400 mb-6">Check {retryCount + 1}/15</p>
                         <Loader2 className="w-8 h-8 mx-auto animate-spin text-banky-blue" />
                     </div>
                 )}
@@ -115,14 +116,25 @@ const PaymentSuccess: React.FC = () => {
                     <div className="animate-in fade-in">
                         <AlertCircle className="w-20 h-20 mx-auto mb-6 text-banky-yellow" />
                         <h2 className="text-2xl font-black uppercase font-display mb-2">Payment Received</h2>
-                        <p className="text-gray-600 font-medium mb-6 text-sm">
-                            We got your payment, but our servers are taking a moment to sync. Your premium status will update shortly.
+                        <p className="text-gray-600 font-medium mb-4 text-sm">
+                            We got your payment! Our servers are taking a bit longer than usual to sync.
                         </p>
+                        <div className="bg-blue-50 border-2 border-ink p-4 rounded-lg mb-6 text-left text-sm">
+                            <p className="font-bold mb-2">✓ Your payment was successful</p>
+                            <p className="text-gray-600 mb-1">Your premium should activate within 2-3 minutes.</p>
+                            <p className="text-gray-600">Try refreshing the page or check your dashboard.</p>
+                        </div>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="w-full py-3 mb-3 bg-ink text-white font-black uppercase tracking-wider rounded-xl shadow-neo-sm hover:translate-y-1 hover:shadow-none transition-all"
+                        >
+                            Refresh Page
+                        </button>
                         <button
                             onClick={() => navigate('/dashboard')}
                             className="w-full py-3 bg-white border-2 border-ink text-ink font-black uppercase tracking-wider rounded-xl shadow-neo-sm hover:translate-y-1 hover:shadow-none transition-all"
                         >
-                            Check Dashboard
+                            Go to Dashboard
                         </button>
                     </div>
                 )}
