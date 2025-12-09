@@ -104,6 +104,15 @@ const LandingPage: React.FC = () => {
                         </Link>
                     </div>
 
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <Link to="/ios-install" className="px-6 py-3 bg-white border-2 border-ink text-sm font-black uppercase tracking-wide shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2 font-display">
+                            <span className="text-xl"></span> Download for iOS
+                        </Link>
+                        <a href="https://median.co/share/qdddama#apk" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white border-2 border-ink text-sm font-black uppercase tracking-wide shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2 font-display">
+                            <span className="text-xl">🤖</span> Download for Android
+                        </a>
+                    </div>
+
                     <div className="flex items-center gap-4 text-sm font-bold text-gray-500 pt-2 font-sans">
                         <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 fill-ink text-ink" />

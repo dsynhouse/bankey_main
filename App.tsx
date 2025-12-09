@@ -37,6 +37,7 @@ const Disclaimers = React.lazy(() => import('./components/legal/Disclaimers'));
 const ContactUs = React.lazy(() => import('./components/legal/ContactUs'));
 const ShippingPolicy = React.lazy(() => import('./components/legal/ShippingPolicy'));
 const HealthCheck = React.lazy(() => import('./components/HealthCheck'));
+const IOSInstallInstructions = React.lazy(() => import('./components/IOSInstallInstructions'));
 
 
 // Protected Route Wrapper
@@ -147,6 +148,7 @@ const App: React.FC = () => {
                         <Route path="/login" element={<PublicRouteWrapper><Login /></PublicRouteWrapper>} />
                         <Route path="/register" element={<PublicRouteWrapper><Register /></PublicRouteWrapper>} />
                         <Route path="/health" element={<HealthCheck />} />
+                        <Route path="/ios-install" element={<IOSInstallInstructions />} />
 
 
                         <Route path="/privacy" element={<PrivacyPolicy />} />
