@@ -2,6 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Category, ReportData, ReportAnalysis, Transaction } from "../types";
 import { isApiLikelyAvailable, checkGeminiStatus } from "./geminiMonitor";
+import { geminiUsage } from "./geminiUsage";
 
 // Safe API Key Retrieval for different build environments (Vite vs Webpack/CRA)
 const getApiKey = () => {
@@ -148,9 +149,10 @@ export const parseTransactionInput = async (input: string): Promise<{
 
   // 2. Try AI with retry logic
   if (apiKey && ai) {
+    const startTime = Date.now();
     try {
       const result = await retryWithBackoff(async () => {
-        const model = "gemini-2.5-flash-lite"; // High speed, low latency
+        const model = "gemini-2.5-flash"; // Standardized to approved model
         const response = await ai!.models.generateContent({
           model,
           contents: `Parse this transaction: "${input}". 
@@ -175,9 +177,13 @@ export const parseTransactionInput = async (input: string): Promise<{
       });
 
       const text = result.text;
-      if (text) return JSON.parse(text);
-    } catch {
+      if (text) {
+        geminiUsage.logRequest('Text Parse', 'gemini-2.5-flash', Date.now() - startTime, true);
+        return JSON.parse(text);
+      }
+    } catch (error: any) {
       console.warn("Gemini Parse Failed, switching to manual regex:", getQuotaErrorMessage());
+      geminiUsage.logRequest('Text Parse', 'gemini-2.5-flash', Date.now() - startTime, false, error.message || String(error));
     }
   }
 
@@ -483,6 +489,7 @@ export const parseVoiceTransaction = async (
   }
 
   console.log("Voice Parse: Using gemini-2.5-flash");
+  const startTime = Date.now();
 
   try {
     const prompt = `You are a financial transaction parser. Listen to this audio and extract transaction details.
@@ -537,6 +544,7 @@ Return JSON with: amount (number), category (string), description (string), type
     const text = response.text;
     if (!text) {
       console.warn("Voice Parse: Empty response from Gemini");
+      geminiUsage.logRequest('Voice Parse', 'gemini-2.5-flash', Date.now() - startTime, false, 'Empty response');
       return null;
     }
 
@@ -545,14 +553,18 @@ Return JSON with: amount (number), category (string), description (string), type
     // Validate the response
     if (typeof parsed.amount !== 'number' || parsed.amount <= 0) {
       console.warn("Invalid amount in voice transaction:", parsed);
+      geminiUsage.logRequest('Voice Parse', 'gemini-2.5-flash', Date.now() - startTime, false, 'Invalid amount');
       return null;
     }
 
+    geminiUsage.logRequest('Voice Parse', 'gemini-2.5-flash', Date.now() - startTime, true);
     return parsed as ParsedVoiceTransaction;
 
   } catch (error: unknown) {
     // Check for rate limit errors
     const errMsg = error instanceof Error ? error.message : String(error);
+    geminiUsage.logRequest('Voice Parse', 'gemini-2.5-flash', Date.now() - startTime, false, errMsg);
+
     if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota')) {
       console.warn("Gemini Voice Parse: Rate limit exceeded");
       throw new Error('AI quota exceeded. Please try again in a few minutes.');
@@ -589,6 +601,8 @@ export const parseReceiptImage = async (
     console.warn("parseReceiptImage: Missing API Key or AI instance.");
     return null;
   }
+
+  const startTime = Date.now();
 
   try {
     const prompt = `You are an expert receipt/bill parser. Analyze this image and extract transaction details.
@@ -653,6 +667,7 @@ If you cannot read the receipt clearly, set confidence below 0.5.`;
     const text = response.text;
     if (!text) {
       console.warn("Receipt Parse: Empty response from Gemini");
+      geminiUsage.logRequest('Receipt Parse', 'gemini-2.5-flash', Date.now() - startTime, false, 'Empty response');
       return null;
     }
 
@@ -661,14 +676,18 @@ If you cannot read the receipt clearly, set confidence below 0.5.`;
     // Validate the response
     if (typeof parsed.amount !== 'number' || parsed.amount <= 0) {
       console.warn("Invalid amount in receipt:", parsed);
+      geminiUsage.logRequest('Receipt Parse', 'gemini-2.5-flash', Date.now() - startTime, false, 'Invalid amount');
       return null;
     }
 
+    geminiUsage.logRequest('Receipt Parse', 'gemini-2.5-flash', Date.now() - startTime, true);
     return parsed as ParsedReceipt;
 
   } catch (error: unknown) {
     // Check for rate limit errors
     const errMsg = error instanceof Error ? error.message : String(error);
+    geminiUsage.logRequest('Receipt Parse', 'gemini-2.5-flash', Date.now() - startTime, false, errMsg);
+
     if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota')) {
       console.warn("Gemini Receipt Parse: Rate limit exceeded");
       throw new Error('AI quota exceeded. Please try again in a few minutes.');

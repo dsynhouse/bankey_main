@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../services/supabase';
 import { Activity, CheckCircle, XCircle, AlertTriangle, Lock, Unlock } from 'lucide-react';
+import GeminiHealthBoard from './GeminiHealthBoard';
 
 interface CheckResult {
     name: string;
@@ -174,6 +175,9 @@ const HealthCheck: React.FC = () => {
                         </div>
                     ))}
                 </div>
+
+                {/* Gemini Tracker */}
+                <GeminiHealthBoard />
 
                 <div className="mt-8 text-center">
                     <button

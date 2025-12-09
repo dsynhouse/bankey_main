@@ -42,8 +42,11 @@ serve(async (req) => {
             .digest('hex')
 
         if (razorpay_signature !== expectedSignature) {
-            console.log('Signature mismatch, but proceeding for test mode')
-            // In test mode, we'll still activate if this fails
+            console.error('Signature mismatch: ', { razorpay_signature, expectedSignature })
+            return new Response(
+                JSON.stringify({ error: 'Invalid Payment Signature' }),
+                { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+            )
         }
 
         // Activate premium
