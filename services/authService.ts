@@ -5,7 +5,14 @@ import { User } from '@supabase/supabase-js';
 /**
  * AUTHENTICATION SERVICE
  * Email Only OTP Flow
+ * 
+ * DEV MODE: Use dev@bankey.test with OTP 123456 for testing
  */
+
+// Development test account constants
+const DEV_TEST_EMAIL = 'dev@bankey.test';
+const DEV_TEST_OTP = '123456';
+const isDev = import.meta.env?.DEV || false;
 
 export interface AuthResponse {
   success: boolean;
@@ -14,9 +21,15 @@ export interface AuthResponse {
 }
 
 export const requestOtp = async (email: string): Promise<AuthResponse> => {
-  if (!supabase) return { success: false, message: 'Backend not connected.' };
+  const cleanEmail = email.trim().toLowerCase();
 
-  const cleanEmail = email.trim();
+  // DEV MODE: Skip OTP for test account
+  if (isDev && cleanEmail === DEV_TEST_EMAIL) {
+    console.log('🔧 DEV MODE: Test account detected, skipping OTP request');
+    return { success: true, message: `DEV MODE: Use code ${DEV_TEST_OTP}` };
+  }
+
+  if (!supabase) return { success: false, message: 'Backend not connected.' };
 
   // We define the redirect URL to current origin to prevent issues
   const redirectTo = window.location.origin;
@@ -34,9 +47,24 @@ export const requestOtp = async (email: string): Promise<AuthResponse> => {
 };
 
 export const verifyOtp = async (email: string, code: string, name?: string): Promise<AuthResponse> => {
-  if (!supabase) return { success: false, message: 'Backend not connected.' };
+  const cleanEmail = email.trim().toLowerCase();
 
-  const cleanEmail = email.trim();
+  // DEV MODE: Bypass verification for test account
+  if (isDev && cleanEmail === DEV_TEST_EMAIL && code === DEV_TEST_OTP) {
+    console.log('🔧 DEV MODE: Test account verified with static OTP');
+    // Create a mock user object for dev purposes
+    const mockUser: User = {
+      id: 'dev-test-user-id-123',
+      email: DEV_TEST_EMAIL,
+      app_metadata: {},
+      user_metadata: { name: name || 'Dev Tester' },
+      aud: 'authenticated',
+      created_at: new Date().toISOString()
+    };
+    return { success: true, message: 'DEV MODE: Authenticated', user: mockUser };
+  }
+
+  if (!supabase) return { success: false, message: 'Backend not connected.' };
 
   // Verify using 'email' type which covers Magic Link clicks (via App.tsx) and Manual Code entry
   const { data, error } = await supabase.auth.verifyOtp({

@@ -211,7 +211,7 @@ export interface BankyContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: UserProfile | null;
-  login: (rememberMe?: boolean) => Promise<void>;
+  login: (rememberMe?: boolean, devUser?: { id: string; email: string; name?: string }) => Promise<void>;
 
   logout: () => Promise<void>;
   updateUserName: (name: string) => Promise<void>;

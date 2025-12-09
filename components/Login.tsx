@@ -48,9 +48,12 @@ const Login: React.FC = () => {
       const response = await verifyOtp(contact, otp);
 
       if (response.success && response.user) {
-        // Set persistence preference in context
-        // Casting to any because the context type definition might need update, but implementation supports it
-        await login(rememberMe);
+        // Pass devUser for dev mode (login will check if DEV mode is active)
+        await login(rememberMe, {
+          id: response.user.id,
+          email: response.user.email || contact,
+          name: response.user.user_metadata?.name
+        });
         navigate('/dashboard');
       } else {
         setLoading(false);

@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { Category, ReportData, ReportAnalysis, Transaction } from "../types";
+import { isApiLikelyAvailable, checkGeminiStatus } from "./geminiMonitor";
 
 // Safe API Key Retrieval for different build environments (Vite vs Webpack/CRA)
 const getApiKey = () => {
@@ -39,6 +40,45 @@ try {
 } catch (e) {
   console.warn("GenAI init failed:", e);
 }
+
+// Retry utility with exponential backoff
+const retryWithBackoff = async <T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> => {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: unknown) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      const errMsg = lastError.message;
+
+      // Don't retry quota/billing errors - they won't resolve with retries
+      if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') ||
+        errMsg.includes('quota') || errMsg.includes('billing')) {
+        // Update monitor cache so other calls know API is limited
+        checkGeminiStatus(true);
+        throw lastError;
+      }
+
+      // Wait with exponential backoff before retry
+      if (attempt < maxRetries - 1) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError;
+};
+
+// User-friendly error message generator
+const getQuotaErrorMessage = (): string => {
+  return "AI is temporarily unavailable (quota reached). Using smart fallback. Full AI will resume at midnight PT.";
+};
 
 // Fallback Regex Parser for when AI is unavailable or fails
 const regexParse = (input: string) => {

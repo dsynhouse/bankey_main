@@ -674,12 +674,25 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     }
 
-    // Handle Login Preference
-    const login = async (rememberMe: boolean = true) => {
+    // Handle Login Preference (and dev mode login)
+    const login = async (rememberMe: boolean = true, devUser?: { id: string; email: string; name?: string }) => {
         if (!rememberMe) {
             sessionStorage.setItem('banky_no_persist', 'true');
         } else {
             sessionStorage.removeItem('banky_no_persist');
+        }
+
+        // DEV MODE: Directly set user state for test account
+        if (devUser && import.meta.env?.DEV) {
+            console.log('🔧 DEV MODE: Setting user state directly');
+            setUser({
+                id: devUser.id,
+                email: devUser.email,
+                name: devUser.name || 'Dev Tester',
+                isPremium: true // Give premium features in dev mode
+            });
+            setUserState(prev => ({ ...prev, hasCompletedOnboarding: true }));
+            setIsLoading(false);
         }
     };
 
