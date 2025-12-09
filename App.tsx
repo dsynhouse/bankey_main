@@ -38,6 +38,8 @@ const ContactUs = React.lazy(() => import('./components/legal/ContactUs'));
 const ShippingPolicy = React.lazy(() => import('./components/legal/ShippingPolicy'));
 const HealthCheck = React.lazy(() => import('./components/HealthCheck'));
 const IOSInstallInstructions = React.lazy(() => import('./components/IOSInstallInstructions'));
+const PaymentSuccess = React.lazy(() => import('./components/PaymentSuccess'));
+
 
 
 // Protected Route Wrapper
@@ -149,6 +151,7 @@ const App: React.FC = () => {
                         <Route path="/register" element={<PublicRouteWrapper><Register /></PublicRouteWrapper>} />
                         <Route path="/health" element={<HealthCheck />} />
                         <Route path="/ios-install" element={<IOSInstallInstructions />} />
+                        <Route path="/payment-success" element={<RequireAuth><PaymentSuccess /></RequireAuth>} />
 
 
                         <Route path="/privacy" element={<PrivacyPolicy />} />

@@ -186,7 +186,9 @@ const verifyPayment = async (
         console.log('Payment verified successfully:', data);
 
         // Reload user profile to reflect premium status
-        window.location.reload();
+        // Reload user profile to reflect premium status
+        // Redirect to success page for verification
+        window.location.hash = '/payment-success';
 
     } catch (error) {
         console.error('Payment verification error:', error);
