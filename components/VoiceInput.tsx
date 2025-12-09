@@ -70,8 +70,9 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
                 setError('Could not understand the audio. Please try again.');
                 setState('error');
             }
-        } catch {
-            setError('Failed to process audio. Please try again.');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to process audio. Please try again.';
+            setError(message);
             setState('error');
         }
     }, []);

@@ -94,8 +94,9 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
                 setError('Could not read the receipt. Try a clearer image.');
                 setState('error');
             }
-        } catch {
-            setError('Failed to process image. Please try again.');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to process image. Please try again.';
+            setError(message);
             setState('error');
         }
     };
