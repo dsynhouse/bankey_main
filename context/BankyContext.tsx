@@ -439,21 +439,27 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
         window.addEventListener('beforeunload', handleUnload);
 
-        // Auto-refresh profile on window focus (Critical for mobile payments)
-        const handleFocus = () => {
-            if (user) {
+        // Auto-refresh profile on visibility change (Critical for iOS PWA)
+        // visibilitychange is more reliable than focus on mobile Safari
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && user) {
+                console.log('[BankyContext] App became visible, refreshing profile...');
                 fetchData(user.id);
             }
         };
-        window.addEventListener('focus', handleFocus);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         // Also listen for custom event from PaymentSuccess
-        window.addEventListener('payment-success', handleFocus);
+        const handlePaymentSuccess = () => {
+            if (user) fetchData(user.id);
+        };
+        window.addEventListener('payment-success', handlePaymentSuccess);
 
         return () => {
             subscription.unsubscribe();
             window.removeEventListener('beforeunload', handleUnload);
-            window.removeEventListener('focus', handleFocus);
-            window.removeEventListener('payment-success', handleFocus);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('payment-success', handlePaymentSuccess);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
