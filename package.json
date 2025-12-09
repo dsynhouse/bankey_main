@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "health-check": "node scripts/verify-gemini-health.js"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
