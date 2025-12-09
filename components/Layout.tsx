@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PieChart, GraduationCap, Wallet, Calculator, LogOut, Settings, Moon, Sun, Sparkles } from 'lucide-react';
+import { LayoutDashboard, PieChart, GraduationCap, Wallet, Calculator, LogOut, Settings, Sparkles } from 'lucide-react';
 import { useBanky } from '../context/useBanky';
 import { useSettings } from '../context/SettingsContext';
 import Mascot from './Mascot';
@@ -14,8 +14,8 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  // Use domain context for theme settings
-  const { theme, toggleTheme } = useSettings();
+  // Settings context still available if needed
+  useSettings();
   // Use main context for user and session operations
   const { user, userState, logout, showDailyBonus, closeDailyBonus } = useBanky();
 
@@ -29,31 +29,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return <>{children}</>;
   }
 
-  // Render Public Layout (simpler)
+  // Render Public Layout (simpler, no dark mode toggle)
   if (isPublicPage) {
-    return (
-      <>
-        <div className="absolute top-4 right-4 z-50 md:hidden">
-          <button
-            onClick={toggleTheme}
-            className="bg-white border-2 border-ink p-2 rounded-full shadow-neo-sm active:translate-y-0.5 active:shadow-none transition-all"
-          >
-            {theme === 'dark' ? <Sun className="w-5 h-5 text-ink" /> : <Moon className="w-5 h-5 text-ink" />}
-          </button>
-        </div>
-        {children}
-        {/* Theme Toggle for Desktop Public Pages */}
-        <div className="hidden md:block fixed bottom-6 right-6 z-50">
-          <button
-            onClick={toggleTheme}
-            className="bg-paper border-2 border-ink p-3 rounded-full shadow-neo hover:-translate-y-1 transition-all flex items-center gap-2"
-          >
-            {theme === 'dark' ? <Sun className="w-5 h-5 text-ink" /> : <Moon className="w-5 h-5 text-ink" />}
-            <span className="text-xs font-black uppercase text-ink">Mode</span>
-          </button>
-        </div>
-      </>
-    );
+    return <>{children}</>;
   }
 
   const navItems = [
