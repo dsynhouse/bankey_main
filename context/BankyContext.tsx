@@ -12,9 +12,46 @@ import { supabase } from '../services/supabase';
 
 import confetti from 'canvas-confetti';
 
-import { BankyContext } from './useBanky';
+export interface BankyContextType {
+    user: UserProfile | null;
+    isLoading: boolean;
+    transactions: Transaction[];
+    accounts: Account[];
+    budgets: Budget[];
+    goals: Goal[];
+    groups: Group[];
+    userState: UserState;
+    currency: Currency;
+    theme: Theme;
+    region: RegionCode;
+    toggleTheme: () => void;
+    addTransaction: (t: Omit<Transaction, 'id'>) => Promise<void>;
+    deleteTransaction: (id: string) => Promise<void>;
+    createAccount: (acc: Omit<Account, 'id'>, preferredCurrency?: Currency) => Promise<{ error: any }>;
+    deleteAccount: (id: string) => Promise<void>;
+    updateBudget: (category: Category, limit: number) => Promise<void>;
+    addGoal: (goal: Omit<Goal, 'id'>) => Promise<void>;
+    updateGoal: (id: string, savedAmount: number) => Promise<void>;
+    deleteGoal: (id: string) => Promise<void>;
+    addXp: (amount: number) => Promise<void>;
+    unlockReward: (item: string) => Promise<void>;
+    markUnitComplete: (unitId: string) => Promise<void>;
+    setCurrency: (c: Currency) => Promise<void>;
+    updateUserName: (name: string) => Promise<void>;
+    completeOnboarding: () => Promise<void>;
+    login: (rememberMe?: boolean, devUser?: any) => Promise<void>;
+    logout: () => Promise<void>;
+    addGroup: (name: string, members: Member[]) => Promise<void>;
+    addExpense: (groupId: string, expense: Omit<Expense, 'id'>) => Promise<void>;
+    deleteGroup: (groupId: string) => Promise<void>;
+    deleteExpense: (groupId: string, expenseId: string) => Promise<void>;
+    showDailyBonus: boolean;
+    closeDailyBonus: () => void;
+    checkDailyBonus: (userId: string, lastBonusDate: string | null, streak: number) => Promise<void>;
+    refreshProfile: () => Promise<void>;
+}
 
-
+export const BankyContext = React.createContext<BankyContextType | undefined>(undefined);
 
 export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // --- AUTH STATE ---
@@ -402,9 +439,21 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
         window.addEventListener('beforeunload', handleUnload);
 
+        // Auto-refresh profile on window focus (Critical for mobile payments)
+        const handleFocus = () => {
+            if (user) {
+                fetchData(user.id);
+            }
+        };
+        window.addEventListener('focus', handleFocus);
+        // Also listen for custom event from PaymentSuccess
+        window.addEventListener('payment-success', handleFocus);
+
         return () => {
             subscription.unsubscribe();
             window.removeEventListener('beforeunload', handleUnload);
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('payment-success', handleFocus);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -888,11 +937,12 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             currency, setCurrency,
             theme, toggleTheme,
             region, setRegion,
-            showDailyBonus, closeDailyBonus,
+            showDailyBonus, closeDailyBonus, checkDailyBonus,
             // Bill Splitter
             groups, addGroup, addExpense, settleDebt,
             deleteGroup: deleteGroupFn,
-            deleteExpense: deleteExpenseFn
+            deleteExpense: deleteExpenseFn,
+            refreshProfile: async () => { if (user) await fetchData(user.id); }
         }}>
             {children}
         </BankyContext.Provider>

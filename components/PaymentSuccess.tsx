@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 import { useBanky } from '../context/useBanky';
+import { supabase } from '../services/supabase';
 import { getUserSubscription } from '../services/razorpayService';
 import Mascot from './Mascot';
 import Confetti from 'react-confetti';
@@ -37,14 +38,26 @@ const PaymentSuccess: React.FC = () => {
             if (!user) return;
 
             try {
-                // Fetch latest subscription status
+                // 1. Check Profile directly (Truth Source)
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('is_premium')
+                    .eq('id', user.id)
+                    .single();
+
+                // 2. Also Check Subscription (Backup)
                 const sub = await getUserSubscription(user.id);
 
-                if (sub && sub.status === 'active') {
+                const isPremiumActive = (profile && profile.is_premium) || (sub && sub.status === 'active');
+
+                if (isPremiumActive) {
                     if (isMounted) {
                         setStatus('success');
-                        // Force refresh user profile to update context
+                        // CRITICAL: Force update app-wide context
                         await refreshProfile();
+
+                        // Emit event for any other listeners
+                        window.dispatchEvent(new Event('payment-success'));
 
                         // Auto-redirect after 3 seconds
                         timeout = setTimeout(() => {
@@ -63,7 +76,16 @@ const PaymentSuccess: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Verification error", error);
-                if (isMounted) setStatus('timeout');
+                if (isMounted) {
+                    // Don't fail immediately, retry a few times unless exhausted
+                    if (retryCount < 15) {
+                        timeout = setTimeout(() => {
+                            if (isMounted) setRetryCount(prev => prev + 1);
+                        }, 2000);
+                    } else {
+                        setStatus('timeout');
+                    }
+                }
             }
         };
 
