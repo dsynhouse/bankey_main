@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, userState, logout, showDailyBonus, closeDailyBonus } = useBanky();
 
   // Hide Sidebar on Public pages
-  const isPublicPage = ['/', '/login', '/register'].includes(location.pathname);
+  const isPublicPage = ['/', '/login', '/register', '/ios-install'].includes(location.pathname);
 
   // Independent Legal Pages (No Theme Toggle, No Sidebar)
   const isLegalPage = ['/privacy', '/terms', '/data-protection', '/cancellation', '/disclaimers', '/contact', '/shipping', '/health', '/admin/notifications'].includes(location.pathname);
