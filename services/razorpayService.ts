@@ -131,6 +131,10 @@ export const initiateSubscription = async (
             modal: {
                 ondismiss: () => {
                     console.log('Payment modal closed');
+                    // Check if we should redirect anyway (in case handler misfired but payment succeeded)
+                    // We can't know for sure here, but we can perhaps trigger a soft profile refresh
+                    // or just let it be. For now, logging.
+                    // Potential enhancement: Poll status if we suspect payment was made.
                 }
             }
         };
@@ -185,10 +189,14 @@ const verifyPayment = async (
         // Success! Premium activated
         console.log('Payment verified successfully:', data);
 
-        // Reload user profile to reflect premium status
-        // Reload user profile to reflect premium status
-        // Redirect to success page for verification
-        window.location.hash = '/payment-success';
+        // Robust Redirect Logic for Mobile/iOS
+        // Use replace to prevent back-button loops and ensure hash change picks up
+        window.location.href = window.location.origin + '/#/payment-success';
+
+        // Fallback for some PWA contexts
+        setTimeout(() => {
+            window.location.replace('/#/payment-success');
+        }, 100);
 
     } catch (error) {
         console.error('Payment verification error:', error);
