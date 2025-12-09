@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
 import { calculateNetBalances, simplifyDebts } from '../services/billSplitterService';
-import { notifyMember, generateSettlementNotification } from '../services/notificationService';
 import AddExpenseModal from './AddExpenseModal';
 import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus, Trash2 } from 'lucide-react';
 import { Member } from '../types';
@@ -99,12 +98,6 @@ const BillSplitter: React.FC = () => {
 
         if (confirm(`Settle debt: ${debt.amount} from ${fromMember.name} to ${toMember.name}?`)) {
             settleDebt(effectiveActiveGroupId, debt.from, debt.to, debt.amount);
-
-            // Notify
-            const message = generateSettlementNotification(fromMember, toMember, debt.amount);
-            notifyMember(toMember, "Debt Settled", message);
-
-
         }
     };
 

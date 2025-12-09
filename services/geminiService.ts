@@ -485,7 +485,13 @@ Return JSON with: amount (number), category (string), description (string), type
 
     return parsed as ParsedVoiceTransaction;
 
-  } catch (error) {
+  } catch (error: unknown) {
+    // Check for rate limit errors
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota')) {
+      console.warn("Gemini Voice Parse: Rate limit exceeded");
+      throw new Error('AI quota exceeded. Please try again in a few minutes.');
+    }
     console.error("Gemini Voice Parse Error:", error);
     return null;
   }
@@ -595,7 +601,13 @@ If you cannot read the receipt clearly, set confidence below 0.5.`;
 
     return parsed as ParsedReceipt;
 
-  } catch (error) {
+  } catch (error: unknown) {
+    // Check for rate limit errors
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota')) {
+      console.warn("Gemini Receipt Parse: Rate limit exceeded");
+      throw new Error('AI quota exceeded. Please try again in a few minutes.');
+    }
     console.error("Gemini Receipt Parse Error:", error);
     return null;
   }

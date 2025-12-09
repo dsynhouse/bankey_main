@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Member, Expense } from '../types';
 import { calculateSplits } from '../services/billSplitterService';
-import { notifyMember, generateExpenseNotification } from '../services/notificationService';
 import { X, DollarSign, Check, Percent } from 'lucide-react';
 
 interface AddExpenseModalProps {
@@ -56,18 +55,6 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ members, onClose, onA
         };
 
         onAdd(newExpense);
-
-        // Notify members involved (excluding payer)
-        splitDetails.forEach(split => {
-            if (split.memberId !== paidBy && split.amount > 0) {
-                const member = members.find(m => m.id === split.memberId);
-                if (member) {
-                    const message = generateExpenseNotification(newExpense as Expense, member, split.amount);
-                    notifyMember(member, "New Expense Added", message);
-                }
-            }
-        });
-
         onClose();
     };
 
