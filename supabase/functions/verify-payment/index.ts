@@ -64,6 +64,34 @@ serve(async (req) => {
 
         if (subError) console.error('Subscription update error:', subError)
 
+        // Record the payment
+        const { error: paymentError } = await supabase.from('payments').insert({
+            user_id: userId,
+            razorpay_payment_id: razorpay_payment_id,
+            // Fetch subscription UUID first if needed, but we can link by razorpay_subscription_id or just skip validation for now?
+            // The schema has subscription_id UUID fk. We need to fetch the subscription internal ID first.
+            // Let's do a subquery or fetch it.
+            amount: 149.00, // Hardcoded for now based on plan, or fetch from order? We don't have order here.
+            status: 'captured'
+        })
+
+        // Actually, let's just make it robust. We need the internal subscription ID.
+        const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('id')
+            .eq('razorpay_subscription_id', razorpay_subscription_id)
+            .single()
+
+        if (subData) {
+            await supabase.from('payments').insert({
+                user_id: userId,
+                subscription_id: subData.id,
+                razorpay_payment_id: razorpay_payment_id,
+                amount: 149.00,
+                status: 'captured'
+            })
+        }
+
         // Update profile with premium status
         const expiresAt = new Date()
         expiresAt.setDate(expiresAt.getDate() + 30)

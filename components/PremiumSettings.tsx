@@ -97,8 +97,11 @@ export const PremiumSettings: React.FC = () => {
     const handleCancel = async () => {
         // Access snake_case field from Supabase (database returns snake_case, not camelCase)
         const subscriptionId = (subscription as unknown as Record<string, unknown>)?.razorpay_subscription_id as string || subscription?.razorpaySubscriptionId;
+
+        console.log('Attempting to cancel subscription:', { subscription, subscriptionId });
+
         if (!subscriptionId) {
-            alert('No active subscription found to cancel.');
+            alert('Error: Could not find Subscription ID. Please verify you have an active subscription.');
             return;
         }
 
@@ -111,9 +114,9 @@ export const PremiumSettings: React.FC = () => {
         setLoading(true);
         try {
             await cancelSubscription(subscriptionId);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Cancellation error:', error);
-            alert('Failed to cancel subscription. Please contact support.');
+            alert(`Failed to cancel subscription: ${error.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }
