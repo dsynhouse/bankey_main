@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { geminiUsage, GeminiLog, GeminiStats } from '../services/geminiUsage';
-import { RefreshCw, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { RefreshCw, Trash2, CheckCircle, XCircle } from 'lucide-react';
 
 const GeminiHealthBoard: React.FC = () => {
     const [stats, setStats] = useState<GeminiStats | null>(null);
@@ -12,9 +12,18 @@ const GeminiHealthBoard: React.FC = () => {
     };
 
     useEffect(() => {
-        refreshData();
+        // Initial load
+        const loadData = () => {
+            const logs = geminiUsage.getLogs();
+            const stats = geminiUsage.getStats();
+            setLogs(logs);
+            setStats(stats);
+        };
+
+        loadData();
+
         // Auto-refresh every 5s
-        const interval = setInterval(refreshData, 5000);
+        const interval = setInterval(loadData, 5000);
         return () => clearInterval(interval);
     }, []);
 

@@ -114,9 +114,9 @@ export const PremiumSettings: React.FC = () => {
         setLoading(true);
         try {
             await cancelSubscription(subscriptionId);
-        } catch (error: any) {
+        } catch (error) {
             console.error('Cancellation error:', error);
-            alert(`Failed to cancel subscription: ${error.message || 'Unknown error'}`);
+            alert(`Failed to cancel subscription: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setLoading(false);
         }
@@ -233,8 +233,8 @@ export const PremiumSettings: React.FC = () => {
 
                 {/* Debug Info (Only visible if issues persist) */}
                 <div className="mt-8 pt-4 border-t border-gray-100 text-[10px] text-gray-400 font-mono">
-                    <p>DEBUG ID: {(subscription as any)?.razorpay_subscription_id || subscription?.razorpaySubscriptionId || 'NONE'}</p>
-                    <p>STATUS: {(subscription as any)?.status || subscription?.status || 'UNKNOWN'}</p>
+                    <p>DEBUG ID: {(subscription as unknown as Record<string, unknown>)?.razorpay_subscription_id as string || subscription?.razorpaySubscriptionId || 'NONE'}</p>
+                    <p>STATUS: {(subscription as unknown as Record<string, unknown>)?.status as string || subscription?.status || 'UNKNOWN'}</p>
                     <p>V: 2.3.1 (Hotfix)</p>
                 </div>
             </div>

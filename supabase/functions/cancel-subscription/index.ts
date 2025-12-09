@@ -69,8 +69,8 @@ serve(async (req) => {
         await supabase
             .from('subscriptions')
             .update({
-                status: 'cancelled',
-                cancelled_at: new Date().toISOString()
+                status: 'active', // Keep active until period ends
+                cancel_at_period_end: true
             })
             .eq('razorpay_subscription_id', subscriptionId)
 

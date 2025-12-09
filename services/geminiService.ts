@@ -54,7 +54,7 @@ const retryWithBackoff = async <T>(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
+    } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       const errMsg = lastError.message;
       const status = error.status || error.statusCode; // GoogleGenAI might provide status
@@ -181,7 +181,7 @@ export const parseTransactionInput = async (input: string): Promise<{
         geminiUsage.logRequest('Text Parse', 'gemini-2.5-flash', Date.now() - startTime, true);
         return JSON.parse(text);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.warn("Gemini Parse Failed, switching to manual regex:", getQuotaErrorMessage());
       geminiUsage.logRequest('Text Parse', 'gemini-2.5-flash', Date.now() - startTime, false, error.message || String(error));
     }
