@@ -200,29 +200,43 @@ export const PremiumSettings: React.FC = () => {
                     )}
                 </div>
 
-                {showPayments && payments.length > 0 && (
+                {showPayments && (
                     <div className="payment-history mt-6">
                         <h3 className="text-lg font-semibold mb-3">Payment History</h3>
-                        <div className="space-y-2">
-                            {payments.map((payment) => (
-                                <div key={payment.id} className="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                                    <div>
-                                        <p className="font-medium">₹{payment.amount.toFixed(2)}</p>
-                                        <p className="text-sm text-gray-500">
-                                            {new Date(payment.createdAt).toLocaleDateString('en-IN')}
-                                        </p>
+                        {payments.length > 0 ? (
+                            <div className="space-y-2">
+                                {payments.map((payment) => (
+                                    <div key={payment.id} className="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                        <div>
+                                            <p className="font-medium">₹{payment.amount.toFixed(2)}</p>
+                                            <p className="text-sm text-gray-500">
+                                                {new Date(payment.createdAt).toLocaleDateString('en-IN')}
+                                            </p>
+                                        </div>
+                                        <span className={`text-sm px-2 py-1 rounded ${payment.status === 'captured'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                            }`}>
+                                            {payment.status}
+                                        </span>
                                     </div>
-                                    <span className={`text-sm px-2 py-1 rounded ${payment.status === 'captured'
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                                        }`}>
-                                        {payment.status}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">
+                                <p>No payment records found.</p>
+                                <p className="text-xs mt-1">(Records start from 10th Dec 2025 update)</p>
+                            </div>
+                        )}
                     </div>
                 )}
+
+                {/* Debug Info (Only visible if issues persist) */}
+                <div className="mt-8 pt-4 border-t border-gray-100 text-[10px] text-gray-400 font-mono">
+                    <p>DEBUG ID: {(subscription as any)?.razorpay_subscription_id || subscription?.razorpaySubscriptionId || 'NONE'}</p>
+                    <p>STATUS: {(subscription as any)?.status || subscription?.status || 'UNKNOWN'}</p>
+                    <p>V: 2.3.1 (Hotfix)</p>
+                </div>
             </div>
         );
     }
