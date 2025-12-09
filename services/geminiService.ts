@@ -126,39 +126,50 @@ export const parseTransactionInput = async (input: string): Promise<{
   description: string;
   type: 'expense' | 'income';
 } | null> => {
-  // 1. Try AI first if key exists
+  // 1. Check if API is likely available before making calls
+  if (!isApiLikelyAvailable()) {
+    console.info("Gemini API rate limited, using regex fallback");
+    const fallback = regexParse(input);
+    if (fallback.amount > 0) return fallback;
+    return null;
+  }
+
+  // 2. Try AI with retry logic
   if (apiKey && ai) {
     try {
-      const model = "gemini-2.5-flash-lite"; // High speed, low latency
-      const response = await ai.models.generateContent({
-        model,
-        contents: `Parse this transaction: "${input}". 
-          Classify into one of these categories: Food, Transport, Leisure, Shopping, Bills, Investment, Business, Income, Other.
-          If it sounds like earning money, type is 'income', else 'expense'.
-          Return valid JSON.`,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              amount: { type: Type.NUMBER },
-              category: { type: Type.STRING },
-              description: { type: Type.STRING },
-              type: { type: Type.STRING, enum: ['expense', 'income'] }
-            },
-            required: ["amount", "category", "description", "type"]
+      const result = await retryWithBackoff(async () => {
+        const model = "gemini-2.5-flash-lite"; // High speed, low latency
+        const response = await ai!.models.generateContent({
+          model,
+          contents: `Parse this transaction: "${input}". 
+            Classify into one of these categories: Food, Transport, Leisure, Shopping, Bills, Investment, Business, Income, Other.
+            If it sounds like earning money, type is 'income', else 'expense'.
+            Return valid JSON.`,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                amount: { type: Type.NUMBER },
+                category: { type: Type.STRING },
+                description: { type: Type.STRING },
+                type: { type: Type.STRING, enum: ['expense', 'income'] }
+              },
+              required: ["amount", "category", "description", "type"]
+            }
           }
-        }
+        });
+        return response;
       });
 
-      const text = response.text;
+      const text = result.text;
       if (text) return JSON.parse(text);
-    } catch (error) {
-      console.warn("Gemini Parse Failed, switching to manual regex:", error);
+    } catch {
+      console.warn("Gemini Parse Failed, switching to manual regex:", getQuotaErrorMessage());
     }
   }
 
-  // 2. Fallback to Regex
+  // 3. Fallback to Regex
   const fallback = regexParse(input);
   if (fallback.amount > 0) return fallback;
 
