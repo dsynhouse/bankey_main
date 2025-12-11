@@ -98,7 +98,6 @@ export const PremiumSettings: React.FC = () => {
         // Access snake_case field from Supabase (database returns snake_case, not camelCase)
         const subscriptionId = (subscription as unknown as Record<string, unknown>)?.razorpay_subscription_id as string || subscription?.razorpaySubscriptionId;
 
-        console.log('Attempting to cancel subscription:', { subscription, subscriptionId });
 
         if (!subscriptionId) {
             alert('Error: Could not find Subscription ID. Please verify you have an active subscription.');

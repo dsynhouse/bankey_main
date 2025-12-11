@@ -21,7 +21,7 @@ declare module 'react-confetti' {
             h: number;
         };
         drawShape?: (ctx: CanvasRenderingContext2D) => void;
-        onConfettiComplete?: (confetti?: any) => void;
+        onConfettiComplete?: (confetti?: unknown) => void;
     }
 
     export default class Confetti extends React.Component<ConfettiProps> { }

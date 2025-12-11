@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { UserState } from '../types';
 import PaymentSuccess from './PaymentSuccess';
 import { BankyContext } from '../context/useBanky';
 import { supabase } from '../services/supabase';
@@ -40,7 +41,7 @@ const renderWithContext = (component: React.ReactNode) => {
             budgets: [],
             goals: [],
             groups: [],
-            userState: {} as any,
+            userState: {} as UserState,
             currency: { code: 'USD', symbol: '$', rate: 1 },
             theme: 'light',
             region: 'Global',
@@ -88,10 +89,10 @@ describe('PaymentSuccess Component', () => {
                 })
             })
         });
-        (supabase.from as any).mockImplementation(mockSelect);
+        (supabase.from as unknown as Mock).mockImplementation(mockSelect);
 
         // Mock Subscription Query (Backup)
-        (razorpayService.getUserSubscription as any).mockResolvedValue({ status: 'active' });
+        (razorpayService.getUserSubscription as unknown as Mock).mockResolvedValue({ status: 'active' });
 
         renderWithContext(<PaymentSuccess />);
 
@@ -128,12 +129,12 @@ describe('PaymentSuccess Component', () => {
                 })
             });
 
-        (supabase.from as any).mockImplementation((table: string) => {
+        (supabase.from as unknown as Mock).mockImplementation((table: string) => {
             if (table === 'profiles') return mockSelect();
             return { select: () => ({ eq: () => ({ single: () => ({ data: null }) }) }) }
         });
 
-        (razorpayService.getUserSubscription as any).mockResolvedValue({ status: 'created' }); // Not active yet
+        (razorpayService.getUserSubscription as unknown as Mock).mockResolvedValue({ status: 'created' }); // Not active yet
 
         renderWithContext(<PaymentSuccess />);
 

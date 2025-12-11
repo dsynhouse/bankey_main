@@ -404,7 +404,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // visibilitychange is more reliable than focus on mobile Safari
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible' && user) {
-                console.log('[BankyContext] App became visible, refreshing profile...');
                 fetchData(user.id);
             }
         };

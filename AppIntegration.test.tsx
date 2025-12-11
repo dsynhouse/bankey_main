@@ -1,8 +1,7 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
-import * as supabaseService from './services/supabase';
 
 // CRITICAL: We do NOT mock the providers here. We want to test the REAL provider stack.
 // We only mock external services (Supabase, Razorpay, etc.)
@@ -53,7 +52,7 @@ vi.mock('@sentry/react', () => ({
     init: vi.fn(),
     browserTracingIntegration: vi.fn(),
     captureMessage: vi.fn(),
-    ErrorBoundary: ({ children }: any) => <div>{children}</div>
+    ErrorBoundary: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }));
 
 
@@ -69,7 +68,7 @@ describe('App Integration (Full Provider Stack)', () => {
             unobserve = vi.fn();
             disconnect = vi.fn();
         }
-        window.IntersectionObserver = MockIntersectionObserver as any;
+        window.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
     });
 
     it('boots without crashing and renders Landing Page for unauthenticated user', async () => {
@@ -96,7 +95,7 @@ describe('App Integration (Full Provider Stack)', () => {
         // But types need casting
         const { supabase } = await import('./services/supabase');
 
-        (supabase.auth.getSession as any).mockResolvedValue({
+        (supabase.auth.getSession as unknown as Mock).mockResolvedValue({
             data: { session: { user: mockUser } }
         });
 
