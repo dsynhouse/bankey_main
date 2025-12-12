@@ -5,6 +5,7 @@ import { ArrowRight, Star, TrendingUp, Wallet, Brain, Target, Crown, BookOpen, C
 import Mascot from './Mascot';
 import DsynLabsLogo from './DsynLabsLogo';
 import { SEO } from './SEO';
+import { RiveAnimation } from './RiveAnimation';
 
 const LandingPage: React.FC = () => {
     const [savingsInput, setSavingsInput] = useState(50);
@@ -233,7 +234,15 @@ const LandingPage: React.FC = () => {
 
                         {/* Mascot - Popped Out (Placed after card to ensure z-index stacking works) */}
                         <div className="absolute -top-12 -left-4 z-50 pointer-events-none">
-                            <Mascot className="w-28 h-28 drop-shadow-lg" mood="cool" />
+                            {/* RIVE DEMO REPLACEMENT */}
+                            <div className="w-32 h-32 pointer-events-auto">
+                                <RiveAnimation
+                                    src="https://cdn.rive.app/animations/vehicles.riv"
+                                    stateMachines="bumpy"
+                                    className="w-full h-full"
+                                />
+                            </div>
+                            {/* <Mascot className="w-28 h-28 drop-shadow-lg" mood="cool" /> */}
 
                             {/* Coin Drop Animation */}
                             {demoAction === 'adding' && (
