@@ -9,6 +9,7 @@ import { FeatureFlagProvider } from './context/FeatureFlagContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { GamificationProvider } from './context/GamificationContext';
 import { BillSplitterProvider } from './context/BillSplitterContext';
+import { PreferencesProvider } from './context/PreferencesContext';
 import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabase';
 import { HelmetProvider } from 'react-helmet-async';
@@ -83,13 +84,15 @@ const DomainContextsWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
   const userId = user?.id || null;
 
   return (
-    <SettingsProvider userId={userId}>
-      <GamificationProvider userId={userId}>
-        <BillSplitterProvider userId={userId}>
-          {children}
-        </BillSplitterProvider>
-      </GamificationProvider>
-    </SettingsProvider>
+    <PreferencesProvider user={user}>
+      <SettingsProvider userId={userId}>
+        <GamificationProvider userId={userId}>
+          <BillSplitterProvider userId={userId}>
+            {children}
+          </BillSplitterProvider>
+        </GamificationProvider>
+      </SettingsProvider>
+    </PreferencesProvider>
   );
 };
 
