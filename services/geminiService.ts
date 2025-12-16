@@ -231,7 +231,13 @@ export const getFinancialInsights = async (history: { role: string, parts: { tex
       }
     });
 
-    const result = await chat.sendMessage({ message: newMessage });
+    // Add 15s Timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 15000));
+
+    const result = await Promise.race([
+      chat.sendMessage({ message: newMessage }),
+      timeoutPromise
+    ]) as any;
 
     // Extract Grounding Sources
     const chunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
@@ -243,7 +249,7 @@ export const getFinancialInsights = async (history: { role: string, parts: { tex
 
   } catch (error) {
     console.error("Gemini Chat Error:", error);
-    return { text: "My brain froze. Try asking that again later.", sources: [] };
+    return { text: "My brain froze (Network Timeout). Please check your internet connection and try again.", sources: [] };
   }
 };
 
@@ -477,7 +483,7 @@ export interface ParsedVoiceTransaction {
 
 /**
  * Parse voice audio to extract transaction details
- * Uses Gemini 2.5 Flash for audio transcription and structured extraction
+ * Uses Gemini 1.5 Flash for audio transcription and structured extraction
  * Supports English and Hindi
  * 
  * @param audioBase64 - Base64 encoded audio data

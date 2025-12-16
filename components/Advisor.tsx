@@ -7,9 +7,11 @@ import { Send, Bot, User, Sparkles, ExternalLink, Globe, BarChart3, AlertCircle 
 import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
 import { useBanky } from '../context/useBanky';
 import { usePremium } from '../context/usePremium';
+import { usePreferences } from '../context/PreferencesContext';
 
 const Advisor: React.FC = () => {
-  const { transactions, currency } = useBanky();
+  const { transactions } = useBanky();
+  const { currency } = usePreferences();
   const { isPremium } = usePremium();
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     { id: '1', role: 'model', text: '👋 Hello! I\'m Bankey AI, your financial learning companion.\n\n**Important:** I provide educational insights only - not financial advice. For personalized recommendations, please consult a licensed financial advisor.\n\nAsk me anything about financial concepts, understanding your spending patterns, or learning about budgeting and investing!', timestamp: Date.now() }
