@@ -10,10 +10,6 @@ export interface BankyContextType {
     goals: Goal[];
     groups: Group[];
     userState: UserState;
-    currency: Currency;
-    theme: Theme;
-    region: RegionCode;
-    toggleTheme: () => void;
     addTransaction: (t: Omit<Transaction, 'id'>) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     createAccount: (acc: Omit<Account, 'id'>, preferredCurrency?: Currency) => Promise<{ error: unknown }>;
@@ -25,7 +21,6 @@ export interface BankyContextType {
     addXp: (amount: number) => Promise<void>;
     unlockReward: (item: string) => Promise<void>;
     markUnitComplete: (unitId: string) => Promise<void>;
-    setCurrency: (c: Currency) => Promise<void>;
     updateUserName: (name: string) => Promise<void>;
     completeOnboarding: () => Promise<void>;
     login: (rememberMe?: boolean, devUser?: unknown) => Promise<void>;
