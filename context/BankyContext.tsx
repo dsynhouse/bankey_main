@@ -45,7 +45,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // NOTE: Using UTC ensures consistency across devices, though it might reset at a different time than local midnight.
 
         // 1. Check LocalStorage first (Double-Lock)
-        const localLastBonus = localStorage.getItem(`banky_last_bonus_${userId} `);
+        const localLastBonus = localStorage.getItem(`banky_last_bonus_${userId}`);
         if (localLastBonus === todayStr) return;
 
         // 2. If already claimed today (from DB), do nothing.
@@ -76,7 +76,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setShowDailyBonus(true);
 
         // Save to LocalStorage immediately
-        localStorage.setItem(`banky_last_bonus_${userId} `, todayStr);
+        localStorage.setItem(`banky_last_bonus_${userId}`, todayStr);
 
         confetti({
             particleCount: 100,
@@ -148,7 +148,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 }
 
                 // LocalStorage Override for Onboarding
-                const localOnboarding = localStorage.getItem(`banky_onboarding_${userId} `);
+                const localOnboarding = localStorage.getItem(`banky_onboarding_${userId}`);
                 if (localOnboarding === 'true' && !profile.has_completed_onboarding) {
                     setUserState(prev => ({ ...prev, hasCompletedOnboarding: true }));
                     // Try to sync back to DB if it was missed
@@ -265,7 +265,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!user || !supabase) return;
 
         const channel = supabase.channel('realtime_sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id = eq.${user.id} ` }, (payload) => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${user.id}` }, (payload) => {
                 if (payload.eventType === 'INSERT') {
                     const newRecord = payload.new;
                     const tx: Transaction = {
@@ -282,7 +282,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     setTransactions(prev => prev.filter(t => t.id !== payload.old.id));
                 }
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts', filter: `user_id = eq.${user.id} ` }, (payload) => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts', filter: `user_id=eq.${user.id}` }, (payload) => {
                 if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
                     supabase.from('accounts').select('*').eq('user_id', user.id).then(({ data }) => {
                         if (data) setAccounts(data.map(a => ({ id: a.id, name: a.name, type: a.type as AccountType, balance: parseFloat(a.balance), currency: a.currency, color: a.color || 'bg-ink' })));
@@ -619,7 +619,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setUserState(prev => ({ ...prev, hasCompletedOnboarding: true }));
 
         if (user) {
-            localStorage.setItem(`banky_onboarding_${user.id} `, 'true');
+            localStorage.setItem(`banky_onboarding_${user.id}`, 'true');
         }
 
         if (supabase && user) {
