@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import BillSplitter from './BillSplitter';
 import DreamBoard from './DreamBoard.tsx';
 import { FlashCards, RecentMoves, QuickStats } from './dashboard/index';
@@ -10,7 +11,8 @@ import { SEO } from './SEO';
  * Refactored to use extracted sub-components for better maintainability.
  */
 const Dashboard: React.FC = () => {
-    const { accounts, transactions, addTransaction, user, currency, userState } = useBanky();
+    const { accounts, transactions, addTransaction, user, userState } = useBanky();
+    const { currency } = usePreferences();
     const [activeTab, setActiveTab] = useState<'overview' | 'dreamboard' | 'bills'>('overview');
 
     const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);

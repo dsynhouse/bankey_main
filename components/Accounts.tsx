@@ -1,11 +1,13 @@
 
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { AccountType } from '../types';
 import { CreditCard, Wallet, Briefcase, TrendingUp, Plus, X, Trash2, AlertTriangle } from 'lucide-react';
 
 const Accounts: React.FC = () => {
-  const { accounts, createAccount, deleteAccount, currency } = useBanky();
+  const { accounts, createAccount, deleteAccount } = useBanky();
+  const { currency } = usePreferences();
   const [showAdd, setShowAdd] = useState(false);
   const [newAccName, setNewAccName] = useState('');
   const [newAccType, setNewAccType] = useState<AccountType>(AccountType.SPENDING);

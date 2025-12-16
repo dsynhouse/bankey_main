@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { Category } from '../types';
 import { Edit2, TrendingUp, AlertTriangle, Check, X } from 'lucide-react';
 import Mascot from './Mascot';
@@ -8,7 +9,8 @@ import CategoryIcon from './CategoryIcon';
 import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
 
 const BudgetPlanner: React.FC = () => {
-  const { transactions, budgets, updateBudget, currency } = useBanky();
+  const { transactions, budgets, updateBudget } = useBanky();
+  const { currency } = usePreferences();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [tempLimit, setTempLimit] = useState<string>('');
 

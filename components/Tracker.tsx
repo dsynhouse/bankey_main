@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { parseTransactionInput } from '../services/geminiService';
 import { Category, Transaction } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -12,7 +13,8 @@ import ReceiptScanner from './ReceiptScanner';
 
 
 const Tracker: React.FC = () => {
-  const { transactions, addTransaction, deleteTransaction, accounts, currency } = useBanky();
+  const { transactions, addTransaction, deleteTransaction, accounts } = useBanky();
+  const { currency } = usePreferences();
   const [activeTab, setActiveTab] = useState<'list' | 'analytics' | 'calendar'>('list');
 
   // AI Input State

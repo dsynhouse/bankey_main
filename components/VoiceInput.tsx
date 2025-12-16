@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Mic, MicOff, Loader2, X, Check, AlertCircle } from 'lucide-react';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { usePremium } from '../context/usePremium';
 import { Link } from 'react-router-dom';
 import {
@@ -21,7 +22,8 @@ interface VoiceInputProps {
 }
 
 const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) => {
-    const { addTransaction, accounts, currency } = useBanky();
+    const { addTransaction, accounts } = useBanky();
+    const { currency } = usePreferences();
     const { isPremium } = usePremium();
 
     // Compute initial state based on premium status and voice support

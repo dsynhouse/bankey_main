@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { calculateNetBalances, simplifyDebts } from '../services/billSplitterService';
 import AddExpenseModal from './AddExpenseModal';
 import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus, Trash2 } from 'lucide-react';
 import { Member } from '../types';
 
 const BillSplitter: React.FC = () => {
-    const { groups, addGroup, addExpense, settleDebt, deleteGroup, deleteExpense, currency, user } = useBanky();
+    const { groups, addGroup, addExpense, settleDebt, deleteGroup, deleteExpense, user } = useBanky();
+    const { currency } = usePreferences();
     const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
     const [showAddExpense, setShowAddExpense] = useState(false);
 

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { Plus, X, Target } from 'lucide-react';
 import { Goal } from '../types';
 
 const DreamBoard: React.FC = () => {
-    const { goals, addGoal, updateGoal, currency } = useBanky();
+    const { goals, addGoal, updateGoal } = useBanky();
+    const { currency } = usePreferences();
     const [isAddingGoal, setIsAddingGoal] = useState(false);
     const [newGoalTitle, setNewGoalTitle] = useState('');
     const [newGoalAmount, setNewGoalAmount] = useState('');
