@@ -289,15 +289,44 @@ export const getPersonalizedAnalysis = async (transactions: Transaction[], curre
       - Use minimal emojis (as shown in headers only).
     `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt
-    });
+    // Add 15s Timeout to prevent hanging on Native
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 15000));
+
+    const response = await Promise.race([
+      ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt
+      }),
+      timeoutPromise
+    ]) as any;
 
     return { text: response.text, sources: [] };
   } catch (error) {
-    console.error("Analysis Error:", error);
-    return { text: "Couldn't analyze data right now.", sources: [] };
+    console.error("Analysis Error (Client SDK):", error);
+
+    // --- FALLBACK: TRY SUPABASE PROXY (Solves Native Origin Issues) ---
+    try {
+      console.log("Attempting Fallback to Supabase Edge Function...");
+      // Dynamic import to avoid circular dependencies if any, or just standard import
+      const { supabase } = await import('./supabase');
+
+      const { data, error: funcError } = await supabase.functions.invoke('ai-advisor', {
+        body: {
+          prompt: prompt,
+          model: 'gemini-2.5-flash'
+        }
+      });
+
+      if (funcError) throw funcError;
+      if (data?.text) {
+        console.log("Supabase Proxy Success");
+        return { text: data.text, sources: [] };
+      }
+    } catch (proxyError) {
+      console.error("Proxy Fallback Failed:", proxyError);
+    }
+
+    return { text: "Couldn't analyze data right now. (Check Network/API Key)", sources: [] };
   }
 };
 
