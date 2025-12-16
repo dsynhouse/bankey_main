@@ -1,9 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { getFinancialAdvice, getPersonalizedAnalysis } from '../services/geminiService';
+import { getFinancialInsights, getPersonalizedAnalysis } from '../services/geminiService';
 import { ChatMessage } from '../types';
-import { Send, Bot, User, Sparkles, ExternalLink, Globe, BarChart3 } from 'lucide-react';
+import { Send, Bot, User, Sparkles, ExternalLink, Globe, BarChart3, AlertCircle } from 'lucide-react';
 import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
 import { useBanky } from '../context/useBanky';
 import { usePremium } from '../context/usePremium';
@@ -12,7 +12,7 @@ const Advisor: React.FC = () => {
   const { transactions, currency } = useBanky();
   const { isPremium } = usePremium();
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    { id: '1', role: 'model', text: 'Hello! I\'m Bankey AI. I\'m here to help you optimize your finances. Ask me anything about budgeting, investments, or analyzing your spending habits.', timestamp: Date.now() }
+    { id: '1', role: 'model', text: '👋 Hello! I\'m Bankey AI, your financial learning companion.\n\n**Important:** I provide educational insights only - not financial advice. For personalized recommendations, please consult a licensed financial advisor.\n\nAsk me anything about financial concepts, understanding your spending patterns, or learning about budgeting and investing!', timestamp: Date.now() }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -42,7 +42,7 @@ const Advisor: React.FC = () => {
       parts: [{ text: m.text }]
     }));
 
-    const response = await getFinancialAdvice(history, userMsg.text, currency.code);
+    const response = await getFinancialInsights(history, userMsg.text, currency.code);
 
     const botMsg: ChatMessage = {
       id: crypto.randomUUID(),
@@ -92,8 +92,8 @@ const Advisor: React.FC = () => {
     <div className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col pb-4 font-sans">
       <div className="mb-6 border-b-4 border-ink pb-4 flex flex-wrap gap-4 items-center justify-between">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-black text-ink uppercase italic tracking-tighter font-display">Hype Man</h1>
-          <p className="text-gray-500 font-bold">Real-time stats. Real-time facts.</p>
+          <h1 className="text-4xl sm:text-5xl font-black text-ink uppercase italic tracking-tighter font-display">Learning Hub</h1>
+          <p className="text-gray-500 font-bold">Educational insights. Real-time facts.</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <button
@@ -106,6 +106,15 @@ const Advisor: React.FC = () => {
           <div className="bg-banky-yellow border-2 border-ink p-2 shadow-neo hidden md:block rotate-6">
             <Sparkles className="w-8 h-8 text-ink" />
           </div>
+        </div>
+      </div>
+
+      {/* Educational Disclaimer */}
+      <div className="mb-4 bg-blue-50 border-2 border-ink p-4 flex items-start gap-3 shadow-neo-sm">
+        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm">
+          <p className="font-black uppercase text-blue-900 mb-1">Educational Tool Only</p>
+          <p className="text-gray-700">This AI provides educational information, not financial advice. Always consult a licensed financial advisor for personalized recommendations.</p>
         </div>
       </div>
 
