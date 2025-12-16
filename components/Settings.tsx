@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { useSettings } from '../context/SettingsContext';
 import { Currency, ChatMessage } from '../types';
 import { getSupportAdvice } from '../services/geminiService';
@@ -30,10 +31,9 @@ import { SEO } from './SEO';
 
 const Settings: React.FC = () => {
     const [searchParams] = useSearchParams();
-    // Use domain context for settings (theme, currency)
-    const { currency } = useSettings();
     // Use main context for user and data operations
-    const { user, setCurrency, logout, updateUserName, transactions, accounts } = useBanky();
+    const { user, logout, updateUserName, transactions, accounts } = useBanky();
+    const { currency, setCurrency } = usePreferences();
 
     // Read tab from URL query param (e.g., /settings?tab=premium)
     const urlTab = searchParams.get('tab') as 'profile' | 'preferences' | 'premium' | 'security' | 'support' | null;
