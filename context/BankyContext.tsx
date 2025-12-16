@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, Account, AccountType, UserState, Budget, Category, UserProfile, Currency, Goal, Theme, RegionCode, Group, Member, Expense } from '../types';
 import { INITIAL_USER_STATE, SUPPORTED_CURRENCIES, DEFAULT_CURRENCY } from '../constants';
+import { handleSupabaseError } from '../utils/errorHandler';
+import { logger } from '../utils/logger';
 import { BASE_MODULES } from '../data/educationData';
 import { addXpService } from '../services/gamificationService';
 import { createDefaultAccount, saveTransaction, updateAccountBalance } from '../services/transactionService';
@@ -43,7 +45,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // NOTE: Using UTC ensures consistency across devices, though it might reset at a different time than local midnight.
 
         // 1. Check LocalStorage first (Double-Lock)
-        const localLastBonus = localStorage.getItem(`banky_last_bonus_${userId}`);
+        const localLastBonus = localStorage.getItem(`banky_last_bonus_${userId} `);
         if (localLastBonus === todayStr) return;
 
         // 2. If already claimed today (from DB), do nothing.
@@ -74,7 +76,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setShowDailyBonus(true);
 
         // Save to LocalStorage immediately
-        localStorage.setItem(`banky_last_bonus_${userId}`, todayStr);
+        localStorage.setItem(`banky_last_bonus_${userId} `, todayStr);
 
         confetti({
             particleCount: 100,
@@ -90,7 +92,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 last_bonus_date: todayStr,
                 streak_days: newStreak
             });
-            if (error) console.error("Error updating Daily Bonus:", error);
+            if (error) handleSupabaseError(error, 'checkDailyBonus:updateBonus');
         }
     };
 
@@ -135,7 +137,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
                 // 3. Update State & DB if mismatch
                 if (calculatedXp !== profile.total_xp || calculatedLevel !== profile.level) {
-                    console.warn(`XP Mismatch! Fixing... Old: ${profile.total_xp} (Lvl ${profile.level}) -> New: ${calculatedXp} (Lvl ${calculatedLevel})`);
+                    logger.warn(`XP Mismatch! Fixing... Old: ${profile.total_xp} (Lvl ${profile.level}) -> New: ${calculatedXp} (Lvl ${calculatedLevel})`);
 
                     setUserState(prev => ({ ...prev, totalXp: calculatedXp, level: calculatedLevel }));
 
@@ -146,7 +148,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 }
 
                 // LocalStorage Override for Onboarding
-                const localOnboarding = localStorage.getItem(`banky_onboarding_${userId}`);
+                const localOnboarding = localStorage.getItem(`banky_onboarding_${userId} `);
                 if (localOnboarding === 'true' && !profile.has_completed_onboarding) {
                     setUserState(prev => ({ ...prev, hasCompletedOnboarding: true }));
                     // Try to sync back to DB if it was missed
@@ -170,7 +172,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 checkDailyBonus(userId, profile.last_bonus_date, profile.streak_days || 1);
             } else {
                 // Profile missing? Create one.
-                console.info("Profile not found. Creating default profile...");
+                logger.info('Profile not found. Creating default profile...');
                 const { error: insertError } = await supabase.from('profiles').upsert({
                     id: userId,
                     total_xp: 0,
@@ -180,7 +182,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 });
 
                 if (insertError) {
-                    console.error("Error creating profile:", insertError);
+                    handleSupabaseError(insertError, 'fetchData:createProfile');
                 } else {
                     // Re-fetch or just set default state
                     // We'll let the next reload or state update handle it, but ideally we should set state here.
@@ -249,10 +251,10 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             if (loadedGroups) {
                 setGroups(loadedGroups);
             }
-            if (groupsError) console.error("Error loading groups:", groupsError);
+            if (groupsError) handleSupabaseError(groupsError, 'fetchData:loadGroups');
 
         } catch (error) {
-            console.error("Error fetching data:", error);
+            handleSupabaseError(error, 'fetchData');
         } finally {
             setIsLoading(false);
         }
@@ -263,7 +265,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!user || !supabase) return;
 
         const channel = supabase.channel('realtime_sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${user.id}` }, (payload) => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id = eq.${user.id} ` }, (payload) => {
                 if (payload.eventType === 'INSERT') {
                     const newRecord = payload.new;
                     const tx: Transaction = {
@@ -280,7 +282,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     setTransactions(prev => prev.filter(t => t.id !== payload.old.id));
                 }
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts', filter: `user_id=eq.${user.id}` }, (payload) => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts', filter: `user_id = eq.${user.id} ` }, (payload) => {
                 if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
                     supabase.from('accounts').select('*').eq('user_id', user.id).then(({ data }) => {
                         if (data) setAccounts(data.map(a => ({ id: a.id, name: a.name, type: a.type as AccountType, balance: parseFloat(a.balance), currency: a.currency, color: a.color || 'bg-ink' })));
@@ -385,7 +387,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // Auto-create default account if none exists
         if (!targetAccountId && accounts.length === 0) {
-            console.info("No account found. Creating default account...");
+            logger.info('No account found. Creating default account...');
             if (supabase && user) {
                 // Ensure profile exists (foreign key constraint)
                 const { error: profileError } = await supabase.from('profiles').upsert({
@@ -395,20 +397,20 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     streak_days: userState.streakDays || 1,
                     has_completed_onboarding: userState.hasCompletedOnboarding || false
                 });
-                if (profileError) { console.error("Error ensuring profile:", profileError); return; }
+                if (profileError) { handleSupabaseError(profileError, 'addTransaction:ensureProfile'); return; }
 
                 const { account, error } = await createDefaultAccount(supabase, user.id, DEFAULT_CURRENCY.code);
                 if (account) {
                     setAccounts([account]);
                     targetAccountId = account.id;
                 } else {
-                    console.error("Error creating default account:", error);
+                    handleSupabaseError(error, 'addTransaction:createDefaultAccount');
                     return;
                 }
             }
         } else if (!targetAccountId) {
             if (accounts.length > 0) targetAccountId = accounts[0].id;
-            else { console.warn("No account found for transaction"); return; }
+            else { logger.warn('No account found for transaction'); return; }
         }
 
         const optimisticId = crypto.randomUUID();
@@ -429,7 +431,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const { error } = await saveTransaction(supabase, user.id, newTx);
 
             if (error) {
-                console.error("Error adding transaction:", error);
+                handleSupabaseError(error, 'addTransaction:saveTransaction');
                 return;
             }
 
@@ -442,10 +444,10 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             if (account) {
                 const newBalance = t.type === 'income' ? account.balance + t.amount : account.balance - t.amount;
                 const { error: balanceError } = await updateAccountBalance(supabase, targetAccountId, newBalance);
-                if (balanceError) console.error("Error updating account balance:", balanceError);
+                if (balanceError) handleSupabaseError(balanceError, 'addTransaction:updateBalance');
             }
         } else {
-            console.warn("Cannot save transaction: Missing user or account ID");
+            logger.warn('Cannot save transaction: Missing user or account ID');
         }
     };
 
@@ -497,7 +499,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             });
 
             if (profileError) {
-                console.error("Error ensuring profile exists during account creation:", profileError);
+                handleSupabaseError(profileError, 'createAccount:ensureProfile');
                 return { error: profileError };
             }
 
@@ -513,7 +515,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             });
 
             if (error) {
-                console.error("Error creating account:", error);
+                handleSupabaseError(error, 'createAccount');
                 // Rollback optimistic update if needed, or just let the user retry
                 return { error };
             }
@@ -600,9 +602,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setUserState(prev => ({ ...prev, completedUnitIds: newCompleted }));
         if (supabase && user) {
             const { error } = await supabase.from('profiles').upsert({ id: user.id, completed_unit_ids: newCompleted });
-            if (error) console.error("Error marking unit complete:", error);
+            if (error) handleSupabaseError(error, 'markUnitComplete');
         } else {
-            console.warn("Cannot save progress: User not authenticated");
+            logger.warn('Cannot save progress: User not authenticated');
         }
     };
 
@@ -617,7 +619,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setUserState(prev => ({ ...prev, hasCompletedOnboarding: true }));
 
         if (user) {
-            localStorage.setItem(`banky_onboarding_${user.id}`, 'true');
+            localStorage.setItem(`banky_onboarding_${user.id} `, 'true');
         }
 
         if (supabase && user) {
@@ -626,7 +628,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 id: user.id,
                 has_completed_onboarding: true
             });
-            if (error) console.error("Error persisting onboarding:", error);
+            if (error) handleSupabaseError(error, 'completeOnboarding');
         }
     }
 
@@ -674,7 +676,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (supabase && user) {
             const { error } = await createGroup(supabase, user.id, newGroup);
             if (error) {
-                console.error("❌ Error creating group:", error);
+                handleSupabaseError(error, 'addGroup');
             }
         }
     };
@@ -713,8 +715,8 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (supabase && user) {
             const { error } = await addExpenseService(supabase, user.id, groupId, newExpense);
             if (error) {
-                console.error("❌ Error adding expense:", error);
-                console.error("Full error details:", JSON.stringify(error, null, 2));
+                handleSupabaseError(error, 'addExpense');
+                logger.debug('Expense error details', { error });
             }
 
             // Update member balances in DB
@@ -760,7 +762,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setGroups(prev => prev.filter(g => g.id !== groupId));
         if (supabase) {
             const { error } = await deleteGroup(supabase, groupId);
-            if (error) console.error("Error deleting group:", error);
+            if (error) handleSupabaseError(error, 'deleteGroup');
         }
     };
 
@@ -792,7 +794,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             // DB Update
             if (supabase) {
                 const { error } = await deleteExpense(supabase, expenseId);
-                if (error) console.error("Error deleting expense:", error);
+                if (error) handleSupabaseError(error, 'deleteExpense');
 
                 // Reverse balances in DB
                 // Payer
