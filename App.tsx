@@ -12,6 +12,7 @@ import { BillSplitterProvider } from './context/BillSplitterContext';
 import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabase';
 import { HelmetProvider } from 'react-helmet-async';
+import { App as CapacitorApp } from '@capacitor/app';
 
 // Lazy Load Pages
 const LandingPage = React.lazy(() => import('./components/LandingPage'));
@@ -119,6 +120,21 @@ const App: React.FC = () => {
     };
 
     handleInitialSession();
+  }, []);
+
+  // Handle Android Back Button
+  useEffect(() => {
+    CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      if (!canGoBack) {
+        CapacitorApp.exitApp();
+      } else {
+        window.history.back();
+      }
+    });
+
+    return () => {
+      CapacitorApp.removeAllListeners();
+    };
   }, []);
 
   if (!isReady) {

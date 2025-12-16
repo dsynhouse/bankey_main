@@ -224,7 +224,6 @@ const Education: React.FC = () => {
     // Auto-select first playbook module
     useEffect(() => {
         if (showPlaybook && !playbookModuleId && modules.length > 0) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setPlaybookModuleId(modules[0].id);
         }
     }, [showPlaybook, modules, playbookModuleId]);
@@ -264,7 +263,6 @@ const Education: React.FC = () => {
         if (activeModule && viewMode === 'lesson') {
             const currentStep = activeModule.steps[currentStepIndex];
             if (currentStep && currentStep.type === 'connections' && currentStep.connectionPairs) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setShuffledConnectionItems(
                     [...currentStep.connectionPairs.map(p => p.term), ...currentStep.connectionPairs.map(p => p.match)]
                         .sort(() => Math.random() - 0.5)
@@ -296,7 +294,6 @@ const Education: React.FC = () => {
         if (activeModule && viewMode === 'lesson') {
             const step = activeModule.steps[currentStepIndex];
             if (step.type === 'slider-allocator' && step.allocatorCategories && allocatorValues.length === 0) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setAllocatorValues(step.allocatorCategories.map(c => ({ label: c.label, value: c.startPercent })));
             }
         }
