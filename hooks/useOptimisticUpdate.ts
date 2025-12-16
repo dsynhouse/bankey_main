@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 /**
  * Generic hook for optimistic UI updates with automatic rollback on error
