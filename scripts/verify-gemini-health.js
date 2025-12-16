@@ -2,7 +2,7 @@ const { GoogleGenAI } = require('@google/genai');
 
 // Verification Script
 (async () => {
-    const apiKey = process.env.VITE_API_KEY || 'AIzaSyBzX0bi23uhZlED71TZlAlXtIAFjX0EsoE'; // Fallback to known key if env missing in simple run
+    const apiKey = process.env.VITE_API_KEY;
 
     if (!apiKey) {
         console.error('❌ No API Key found.');
