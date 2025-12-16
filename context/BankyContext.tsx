@@ -27,58 +27,14 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [groups, setGroups] = useState<Group[]>([]);
 
     const [userState, setUserState] = useState<UserState>(INITIAL_USER_STATE);
-    const [currency, setCurrencyState] = useState<Currency>(DEFAULT_CURRENCY);
-    const [region, setRegionState] = useState<RegionCode>('Global');
 
     // --- UI STATE ---
-    const [theme, setTheme] = useState<Theme>('light');
     const [showDailyBonus, setShowDailyBonus] = useState(false);
-
-    // --- THEME & REGION PERSISTENCE ---
-    useEffect(() => {
-        if (user) {
-            const savedTheme = localStorage.getItem(`banky_theme_${user.id}`) as Theme;
-            if (savedTheme) setTheme(savedTheme);
-
-            const savedRegion = localStorage.getItem(`banky_region_${user.id}`) as RegionCode;
-            if (savedRegion) setRegionState(savedRegion);
-        } else {
-            const savedTheme = localStorage.getItem('banky_theme_pref') as Theme;
-            if (savedTheme) setTheme(savedTheme);
-        }
-    }, [user]);
-
-    useEffect(() => {
-        if (theme === 'dark') {
-            document.body.classList.add('dark-mode');
-        } else {
-            document.body.classList.remove('dark-mode');
-        }
-        if (user) {
-            localStorage.setItem(`banky_theme_${user.id}`, theme);
-        }
-        localStorage.setItem('banky_theme_pref', theme);
-    }, [theme, user]);
-
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
 
     const closeDailyBonus = () => {
         setShowDailyBonus(false);
     };
 
-    const hydrateCurrency = (code: string) => {
-        const found = SUPPORTED_CURRENCIES.find(c => c.code === code);
-        if (found) setCurrencyState(found);
-    };
-
-    const setRegion = (r: RegionCode) => {
-        setRegionState(r);
-        if (user) {
-            localStorage.setItem(`banky_region_${user.id}`, r);
-        }
-    };
 
     // --- DAILY BONUS LOGIC (Robust ISO Date Check) ---
     const checkDailyBonus = async (userId: string, lastBonusDate: string | null, currentStreak: number) => {
@@ -196,9 +152,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     // Try to sync back to DB if it was missed
                     if (supabase) supabase.from('profiles').upsert({ id: userId, has_completed_onboarding: true });
                 }
-                if (profile.currency_code) {
-                    hydrateCurrency(profile.currency_code);
-                }
+                // Currency now handled by PreferencesContext
 
                 // Sync user name from profile if available
                 if (profile.name) {
@@ -443,7 +397,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 });
                 if (profileError) { console.error("Error ensuring profile:", profileError); return; }
 
-                const { account, error } = await createDefaultAccount(supabase, user.id, currency.code);
+                const { account, error } = await createDefaultAccount(supabase, user.id, DEFAULT_CURRENCY.code);
                 if (account) {
                     setAccounts([account]);
                     targetAccountId = account.id;
@@ -530,10 +484,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const newAcc: Account = { ...acc, id: optimisticId };
         setAccounts(prev => [...prev, newAcc]);
 
-        // Update Global Currency if provided (during onboarding)
-        if (preferredCurrency) {
-            setCurrency(preferredCurrency);
-        }
+        // Preferred currency now handled by PreferencesContext
 
         if (supabase && user) {
             // 1. Ensure Profile Exists (Critical for Foreign Key)
@@ -655,20 +606,10 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
-    const setCurrency = async (c: Currency) => {
-        setCurrencyState(c);
-        if (supabase && user) {
-            const { error } = await supabase.from('profiles').upsert({ id: user.id, currency_code: c.code });
-            if (error) console.error("Error saving currency:", error);
-        }
-    };
-
     const updateUserName = async (name: string) => {
         setUser(prev => prev ? { ...prev, name } : null);
         if (supabase && user) {
-            if (supabase && user) {
-                await supabase.from('profiles').upsert({ id: user.id, name });
-            }
+            await supabase.from('profiles').upsert({ id: user.id, name });
         }
     };
 
@@ -899,9 +840,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             userState, addXp, unlockReward, markUnitComplete,
             budgets, updateBudget,
             goals, addGoal, updateGoal, deleteGoal,
-            currency, setCurrency,
-            theme, toggleTheme,
-            region, setRegion,
             showDailyBonus, closeDailyBonus, checkDailyBonus,
             // Bill Splitter
             groups, addGroup, addExpense, settleDebt,
