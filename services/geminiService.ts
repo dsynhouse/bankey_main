@@ -59,33 +59,45 @@ const callGeminiWithFallback = async (
       console.log(`${methodName}: Attempting Supabase Proxy...`);
 
       // Construct Body based on request type
-      const body: any = {
-        model: fallbackModel,
-        prompt: isImageOrAudio ? null : promptOrPayload // Simple prompt for text
-        // Note: If isImageOrAudio is true, we CANNOT send full payload yet via this simple proxy unless updated.
-        // The current proxy logic assumes 'prompt' in body.
-        // If we want to support full media, we need to serialize it.
-        // However, 'parseVoiceTransaction' and 'parseReceiptImage' use 'contents' with inlineData.
-        // For now, we will ONLY try fallback if it's NOT media, OR if we update the proxy.
-        // Given the user constraint, I will assume the proxy update I did (sending JSON) works for simple text.
-        // Media fallback is risky without updating the Backend Function to handle 'contents'.
+      let body: any = {
+        model: fallbackModel
       };
 
-      // If it's media, we skip proxy for now to avoid 500s, UNLESS we update backend.
-      if (isImageOrAudio) {
-        console.warn(`${methodName}: Proxy does not yet support Media Uploads(Voice / Image).Skipping.`);
-        throw error;
+      // Handle 'promptOrPayload' which can be either a string (prompt) or an object ({ contents, config })
+      if (typeof promptOrPayload === 'string') {
+        body.prompt = promptOrPayload;
+      } else if (promptOrPayload && typeof promptOrPayload === 'object' && promptOrPayload.contents) {
+        // It's a full payload with contents/config
+        body.contents = promptOrPayload.contents;
+        if (promptOrPayload.config) {
+          body.config = promptOrPayload.config;
+        }
       }
+
+      console.log(`${methodName}: Sending Payload to Proxy (Is Media: ${isImageOrAudio})`);
 
       const { data, error: funcError } = await supabase.functions.invoke('ai-advisor', {
         body: body
       });
 
       if (funcError) throw funcError;
+
+      // If we got 'text' directly (legacy or simple text)
       if (data?.text) {
         console.log(`${methodName}: Proxy Success`);
-        return { text: data.text }; // Normalize response to conform to SDK-like structure
+        // If the return was a full "data" object (raw Gemini response), we should reconstruct it if possible, 
+        // OR just return a minimal object that behaves like the SDK response (which usually has .text property).
+        // Our updated proxy returns { text: "...", data: rawResponse }.
+
+        // SDK calls usually return { text: string } via result.response.text(), or just result.text in my mocking.
+        // Wait, my retryWithBackoff returns `response`, and `result.text` access in `parseTransactionInput`.
+
+        // Let's standardise on returning an object that has a text property or mimics the candidates structure.
+        // My previous refactors use `result.text` or `JSON.parse(text)`.
+
+        return { text: data.text, candidates: data.data?.candidates };
       }
+
     } catch (proxyError) {
       console.error(`${methodName}: Proxy Fallback Failed`, proxyError);
     }
@@ -465,30 +477,34 @@ export const analyzeFinancialReport = async (report: ReportData): Promise<Report
     `;
 
     // Use helper (Text-based, so Proxy works!)
+    const contents = [{ role: "user", parts: [{ text: prompt }] }];
+    const config = {
+      temperature: 0,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          summary: { type: Type.STRING },
+          strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+          weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
+          tips: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+        required: ["summary", "strengths", "weaknesses", "tips"]
+      }
+    };
+
+    // Use helper with full payload for JSON schema support in proxy
     const result = await callGeminiWithFallback(
       'analyzeFinancialReport',
       async () => {
         const response = await ai!.models.generateContent({
           model: "gemini-2.5-flash",
-          contents: prompt,
-          config: {
-            temperature: 0,
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                summary: { type: Type.STRING },
-                strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-                weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
-                tips: { type: Type.ARRAY, items: { type: Type.STRING } },
-              },
-              required: ["summary", "strengths", "weaknesses", "tips"]
-            }
-          }
+          contents,
+          config
         });
         return { text: response.text };
       },
-      prompt
+      { contents, config }
     );
 
     const text = result?.text;
@@ -526,45 +542,49 @@ export const parseFinancialDocument = async (base64Data: string, mimeType: strin
       - Return JSON matching the schema.
     `;
 
-    // Use helper with strict timeout (Media fallback skipped)
+    const contents = [
+      { text: prompt },
+      { inlineData: { mimeType: mimeType, data: base64Data } }
+    ];
+
+    const config = {
+      temperature: 0,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          revenue: { type: Type.NUMBER },
+          cogs: { type: Type.NUMBER },
+          grossProfit: { type: Type.NUMBER },
+          expenses: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                category: { type: Type.STRING },
+                amount: { type: Type.NUMBER }
+              }
+            }
+          },
+          netIncome: { type: Type.NUMBER },
+          currency: { type: Type.STRING }
+        },
+        required: ["revenue", "cogs", "grossProfit", "expenses", "netIncome", "currency"]
+      }
+    };
+
+    // Use helper with strict timeout AND proxy support
     const result = await callGeminiWithFallback(
       'parseFinancialDocument',
       async () => {
         const response = await ai!.models.generateContent({
           model: "gemini-2.5-flash",
-          contents: [
-            { text: prompt },
-            { inlineData: { mimeType: mimeType, data: base64Data } }
-          ],
-          config: {
-            temperature: 0,
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                revenue: { type: Type.NUMBER },
-                cogs: { type: Type.NUMBER },
-                grossProfit: { type: Type.NUMBER },
-                expenses: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      category: { type: Type.STRING },
-                      amount: { type: Type.NUMBER }
-                    }
-                  }
-                },
-                netIncome: { type: Type.NUMBER },
-                currency: { type: Type.STRING }
-              },
-              required: ["revenue", "cogs", "grossProfit", "expenses", "netIncome", "currency"]
-            }
-          }
+          contents,
+          config
         });
         return { text: response.text };
       },
-      null,
+      { contents, config },
       'gemini-2.5-flash',
       true
     );
@@ -627,40 +647,45 @@ EXAMPLES:
 
 Return JSON with: amount (number), category (string), description (string), type (expense or income), confidence (0-1), transcription (what you heard).`;
 
-    // Use helper with strict timeout (Media fallback skipped for now)
+    // Construct content once for both SDK and Proxy
+    const contents = [{
+      role: "user",
+      parts: [
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType: mimeType.split(';')[0],
+            data: audioBase64
+          }
+        }
+      ]
+    }];
+
+    const config = {
+      temperature: 0.2,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          amount: { type: Type.NUMBER },
+          category: { type: Type.STRING },
+          description: { type: Type.STRING },
+          type: { type: Type.STRING, enum: ['expense', 'income'] },
+          confidence: { type: Type.NUMBER },
+          transcription: { type: Type.STRING }
+        },
+        required: ["amount", "category", "description", "type", "confidence"]
+      }
+    };
+
+    // Use helper with strict timeout and NOW full proxy support
     const result = await callGeminiWithFallback(
       'parseVoiceTransaction',
       async () => {
         const response = await ai!.models.generateContent({
           model: "gemini-2.5-flash",
-          contents: [{
-            role: "user",
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType: mimeType.split(';')[0],
-                  data: audioBase64
-                }
-              }
-            ]
-          }],
-          config: {
-            temperature: 0.2,
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                amount: { type: Type.NUMBER },
-                category: { type: Type.STRING },
-                description: { type: Type.STRING },
-                type: { type: Type.STRING, enum: ['expense', 'income'] },
-                confidence: { type: Type.NUMBER },
-                transcription: { type: Type.STRING }
-              },
-              required: ["amount", "category", "description", "type", "confidence"]
-            }
-          }
+          contents,
+          config
         });
 
         const text = response.text;
@@ -675,7 +700,7 @@ Return JSON with: amount (number), category (string), description (string), type
         geminiUsage.logRequest('Voice Parse', 'gemini-2.5-flash', Date.now() - startTime, true);
         return parsed as ParsedVoiceTransaction;
       },
-      null, // No text prompt for proxy fallback (media)
+      { contents, config }, // <--- Pass full payload!
       'gemini-2.5-flash',
       true // isImageOrAudio
     );
@@ -744,50 +769,54 @@ EXAMPLES:
 Return a confidence score (0-1) based on image clarity and text readability.
 If you cannot read the receipt clearly, set confidence below 0.5.`;
 
-    // Use helper with strict timeout (Media fallback skipped for now)
+    const contents = [{
+      role: "user",
+      parts: [
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType: mimeType,
+            data: imageBase64
+          }
+        }
+      ]
+    }];
+
+    const config = {
+      temperature: 0.1,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          amount: { type: Type.NUMBER },
+          merchant: { type: Type.STRING },
+          category: { type: Type.STRING },
+          description: { type: Type.STRING },
+          date: { type: Type.STRING },
+          items: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING },
+                price: { type: Type.NUMBER }
+              }
+            }
+          },
+          confidence: { type: Type.NUMBER }
+        },
+        required: ["amount", "merchant", "category", "description", "confidence"]
+      }
+    };
+
+    // Use helper with strict timeout AND full proxy support
     const result = await callGeminiWithFallback(
       'parseReceiptImage',
       async () => {
         const response = await ai!.models.generateContent({
           model: "gemini-2.5-flash",
-          contents: [{
-            role: "user",
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: imageBase64
-                }
-              }
-            ]
-          }],
-          config: {
-            temperature: 0.1,
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                amount: { type: Type.NUMBER },
-                merchant: { type: Type.STRING },
-                category: { type: Type.STRING },
-                description: { type: Type.STRING },
-                date: { type: Type.STRING },
-                items: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      name: { type: Type.STRING },
-                      price: { type: Type.NUMBER }
-                    }
-                  }
-                },
-                confidence: { type: Type.NUMBER }
-              },
-              required: ["amount", "merchant", "category", "description", "confidence"]
-            }
-          }
+          contents,
+          config
         });
 
         const text = response.text;
@@ -806,7 +835,7 @@ If you cannot read the receipt clearly, set confidence below 0.5.`;
         return parsed as ParsedReceipt;
 
       },
-      null,
+      { contents, config }, // Pass full payload
       'gemini-2.5-flash',
       true
     );

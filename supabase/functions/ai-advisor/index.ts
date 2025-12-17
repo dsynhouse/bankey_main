@@ -17,10 +17,10 @@ serve(async (req) => {
         }
 
         // 2. Parse Input
-        const { prompt, model = 'gemini-2.5-flash' } = await req.json();
+        const { prompt, contents, config, model = 'gemini-2.5-flash' } = await req.json();
 
-        if (!prompt) {
-            return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+        if (!prompt && !contents) {
+            return new Response(JSON.stringify({ error: 'Prompt or contents required' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
             });
@@ -35,22 +35,41 @@ serve(async (req) => {
             });
         }
 
+        // Prepare Request Body
+        let requestBody;
+        if (contents) {
+            // Advanced: Pass full contents (text + image/audio) + config (schema)
+            requestBody = {
+                contents: contents,
+                generationConfig: config || { temperature: 0.7 }
+            };
+        } else {
+            // Simple Prompt
+            requestBody = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7 }
+            };
+        }
+
         // 4. Call Gemini API (REST)
-        // We use the same structure as the prompt in client
         const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.7
-                }
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Gemini API Error:', errorText);
+
+            // Handle HTTP 503 (Overloaded) specifically 
+            if (response.status === 503) {
+                return new Response(JSON.stringify({ error: 'AI Service Overloaded', details: errorText }), {
+                    status: 503,
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                });
+            }
+
             return new Response(JSON.stringify({ error: `Gemini API Error: ${response.status}`, details: errorText }), {
                 status: response.status,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
@@ -58,6 +77,16 @@ serve(async (req) => {
         }
 
         const data = await response.json();
+        // Return full data so client can parse structured output or text
+        const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+        // 5. Return Result (Supports both simple text and raw response)
+        return new Response(JSON.stringify({
+            text: generatedText, // Convenience
+            data: data // Full Raw Response (for JSON parsing)
+        }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
         const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
         // 5. Return Result
