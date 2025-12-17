@@ -56,7 +56,7 @@ const callGeminiWithFallback = async (
     // 2. Fallback to Supabase Proxy
     try {
       const { supabase } = await import('./supabase');
-      console.log(`${methodName}: Attempting Supabase Proxy...`);
+      // Fallback to proxy...
 
       // Construct Body based on request type
       let body: any = {
@@ -74,7 +74,7 @@ const callGeminiWithFallback = async (
         }
       }
 
-      console.log(`${methodName}: Sending Payload to Proxy (Is Media: ${isImageOrAudio})`);
+
 
       const { data, error: funcError } = await supabase.functions.invoke('ai-advisor', {
         body: body
@@ -84,7 +84,7 @@ const callGeminiWithFallback = async (
 
       // If we got 'text' directly (legacy or simple text)
       if (data?.text) {
-        console.log(`${methodName}: Proxy Success`);
+        // Proxy success
         // If the return was a full "data" object (raw Gemini response), we should reconstruct it if possible, 
         // OR just return a minimal object that behaves like the SDK response (which usually has .text property).
         // Our updated proxy returns { text: "...", data: rawResponse }.
@@ -627,7 +627,7 @@ export const parseVoiceTransaction = async (
     return null;
   }
 
-  console.log("Voice Parse: Using gemini-2.5-flash");
+
   const startTime = Date.now();
 
   try {
