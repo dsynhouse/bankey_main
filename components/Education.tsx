@@ -223,12 +223,13 @@ const Education: React.FC = () => {
     const [showVictory, setShowVictory] = useState(false);
     const [earnedLoot, setEarnedLoot] = useState<typeof LOOT_TABLE[0] | null>(null);
 
-    // Auto-select first playbook module
-    useEffect(() => {
-        if (showPlaybook && !playbookModuleId && modules.length > 0) {
+    // Auto-select first playbook module when opening (using lazy initialization)
+    const handleShowPlaybook = React.useCallback((show: boolean) => {
+        setShowPlaybook(show);
+        if (show && !playbookModuleId && modules.length > 0) {
             setPlaybookModuleId(modules[0].id);
         }
-    }, [showPlaybook, modules, playbookModuleId]);
+    }, [modules, playbookModuleId]);
 
     const resetStepState = React.useCallback(() => {
         setLessonStatus('idle');
@@ -941,7 +942,7 @@ const Education: React.FC = () => {
                     </div>
 
                     <Link to="/knowledge-bank" className="flex items-center gap-2 px-4 py-2 bg-banky-green text-ink border-2 border-ink font-black uppercase shadow-sm hover:shadow-neo-sm transition-all text-xs md:text-sm"><BookOpen className="w-4 h-4" /> Knowledge Bank</Link>
-                    <button onClick={() => setShowPlaybook(true)} className="flex items-center gap-2 px-4 py-2 bg-banky-blue text-white border-2 border-ink font-black uppercase shadow-sm hover:shadow-neo-sm transition-all text-xs md:text-sm"><Book className="w-4 h-4" /> Playbook</button>
+                    <button onClick={() => handleShowPlaybook(true)} className="flex items-center gap-2 px-4 py-2 bg-banky-blue text-white border-2 border-ink font-black uppercase shadow-sm hover:shadow-neo-sm transition-all text-xs md:text-sm"><Book className="w-4 h-4" /> Playbook</button>
                     <button onClick={() => setShowInventory(true)} className="flex items-center gap-2 px-4 py-2 bg-banky-pink border-2 border-ink font-black uppercase shadow-sm hover:shadow-neo-sm transition-all text-xs md:text-sm"><Package className="w-4 h-4" /> Loot</button>
                 </div>
             </div>
@@ -1090,7 +1091,7 @@ const Education: React.FC = () => {
             {showPlaybook && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm animate-fade-in">
                     <div className="bg-white border-4 border-ink shadow-neo-xl w-full max-w-5xl h-[85vh] overflow-hidden flex flex-row relative">
-                        <button onClick={() => setShowPlaybook(false)} className="absolute top-4 right-4 bg-gray-100 border-2 border-ink p-2 hover:bg-red-500 hover:text-white z-30"><X className="w-6 h-6" /></button>
+                        <button onClick={() => handleShowPlaybook(false)} className="absolute top-4 right-4 bg-gray-100 border-2 border-ink p-2 hover:bg-red-500 hover:text-white z-30"><X className="w-6 h-6" /></button>
 
                         {/* Sidebar */}
                         <div className="w-16 md:w-1/3 h-full border-r-4 border-ink bg-gray-50 flex flex-col flex-shrink-0 transition-all duration-300">

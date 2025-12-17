@@ -99,7 +99,6 @@ const HealthCheck: React.FC = () => {
 
     useEffect(() => {
         if (isAuthenticated) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             runDiagnostics();
         }
     }, [isAuthenticated, runDiagnostics]);
