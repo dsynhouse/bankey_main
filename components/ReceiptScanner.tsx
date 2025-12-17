@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, Loader2, X, Check, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Camera, X, Loader2, Check, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { usePremium } from '../context/usePremium';
 import { Link } from 'react-router-dom';
 import { parseReceiptImage, ParsedReceipt } from '../services/geminiService';
@@ -16,7 +17,8 @@ interface ReceiptScannerProps {
 
 
 const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccountId }) => {
-    const { addTransaction, accounts, currency } = useBanky();
+    const { addTransaction, accounts } = useBanky();
+    const { currency } = usePreferences();
     const { isPremium } = usePremium();
 
     // Compute initial state

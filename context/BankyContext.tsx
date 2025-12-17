@@ -264,7 +264,10 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     useEffect(() => {
         if (!user || !supabase) return;
 
+        console.log('🔌 Connecting to Realtime Sync Channel...');
+
         const channel = supabase.channel('realtime_sync')
+            // 1. Transactions: Handle INSERT, UPDATE, DELETE
             .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${user.id}` }, (payload) => {
                 if (payload.eventType === 'INSERT') {
                     const newRecord = payload.new;
@@ -278,18 +281,88 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         type: newRecord.type as 'expense' | 'income'
                     };
                     setTransactions(prev => prev.some(t => t.id === tx.id) ? prev : [tx, ...prev]);
+                    // Also refresh accounts as balance might have changed
+                    refreshAccounts();
                 } else if (payload.eventType === 'DELETE') {
                     setTransactions(prev => prev.filter(t => t.id !== payload.old.id));
+                    refreshAccounts();
+                } else if (payload.eventType === 'UPDATE') {
+                    const newRecord = payload.new;
+                    setTransactions(prev => prev.map(t => t.id === newRecord.id ? {
+                        id: newRecord.id,
+                        date: newRecord.date,
+                        amount: parseFloat(newRecord.amount),
+                        category: newRecord.category as Category,
+                        description: newRecord.description,
+                        accountId: newRecord.account_id,
+                        type: newRecord.type as 'expense' | 'income'
+                    } : t));
+                    refreshAccounts();
                 }
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts', filter: `user_id=eq.${user.id}` }, (payload) => {
-                if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-                    supabase.from('accounts').select('*').eq('user_id', user.id).then(({ data }) => {
-                        if (data) setAccounts(data.map(a => ({ id: a.id, name: a.name, type: a.type as AccountType, balance: parseFloat(a.balance), currency: a.currency, color: a.color || 'bg-ink' })));
-                    });
+            // 2. Accounts: Handle Balance Updates
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts', filter: `user_id=eq.${user.id}` }, () => {
+                refreshAccounts();
+            })
+            // 3. Budgets: Keep limits in sync
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'budgets', filter: `user_id=eq.${user.id}` }, () => {
+                supabase.from('budgets').select('*').eq('user_id', user.id).then(({ data }) => {
+                    if (data) setBudgets(data.map(b => ({
+                        id: b.id,
+                        category: b.category as Category,
+                        limit: parseFloat(b.limit_amount)
+                    })));
+                });
+            })
+            // 4. Goals: Sync target/saved amounts
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'goals', filter: `user_id=eq.${user.id}` }, () => {
+                supabase.from('goals').select('*').eq('user_id', user.id).then(({ data }) => {
+                    if (data) setGoals(data.map(g => ({
+                        id: g.id,
+                        title: g.title,
+                        targetAmount: parseFloat(g.target_amount),
+                        savedAmount: parseFloat(g.saved_amount),
+                        deadline: g.deadline
+                    })));
+                });
+            })
+            // 5. Profiles: Sync XP, Level, Streak
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, (payload) => {
+                if (payload.new) {
+                    const p = payload.new as any; // Fix TS type error
+                    setUserState(prev => ({
+                        ...prev,
+                        totalXp: p.total_xp,
+                        level: p.level,
+                        streakDays: p.streak_days,
+                        hasCompletedOnboarding: p.has_completed_onboarding
+                    }));
                 }
             })
-            .subscribe();
+            // 6. Bill Splitter Sync: Listen for balance changes in groups
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'split_members', filter: `user_id=eq.${user.id}` }, () => {
+                // When my balance changes in ANY group (or I'm added/removed), refresh all groups
+                refreshGroups();
+            })
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Realtime Sync Active');
+                }
+            });
+
+        // Helper to refresh accounts
+        const refreshAccounts = () => {
+            supabase.from('accounts').select('*').eq('user_id', user.id).then(({ data }) => {
+                if (data) setAccounts(data.map(a => ({ id: a.id, name: a.name, type: a.type as AccountType, balance: parseFloat(a.balance), currency: a.currency, color: a.color || 'bg-ink' })));
+            });
+        };
+
+        // Helper to refresh Groups
+        const refreshGroups = () => {
+            getGroups(supabase, user.id).then(({ groups: loadedGroups }) => {
+                if (loadedGroups) setGroups(loadedGroups);
+            });
+        };
 
         return () => { supabase.removeChannel(channel); };
     }, [user]);
