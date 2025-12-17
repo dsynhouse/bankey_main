@@ -18,7 +18,7 @@ interface ReceiptScannerProps {
 
 const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccountId }) => {
     const { addTransaction, accounts } = useBanky();
-    const { currency } = usePreferences();
+    const { currency = { code: 'USD', symbol: '$', name: 'US Dollar' } } = usePreferences() || {};
     const { isPremium } = usePremium();
 
     // Compute initial state

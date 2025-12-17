@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useBanky } from '../context/useBanky';
+import { usePreferences } from '../context/PreferencesContext';
 import { EducationModule, LessonOption, RegionCode, LessonStep, AllocatorCategory } from '../types';
 import { BASE_MODULES } from '../data/educationData';
 import { getRealTimeLearnContext } from '../services/geminiService';
@@ -173,7 +174,8 @@ const LOOT_TABLE = [
 ];
 
 const Education: React.FC = () => {
-    const { userState, addXp, unlockReward, markUnitComplete, region, setRegion } = useBanky();
+    const { userState, addXp, unlockReward, markUnitComplete } = useBanky();
+    const { region, setRegion } = usePreferences();
 
     // Generate Localized Content on render
     const modules = React.useMemo(() => getLocalizedModules(region), [region]);

@@ -40,7 +40,7 @@ const callGeminiWithFallback = async (
 
   // 1. Try Direct Method with Timeout
   try {
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 15000));
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 30000));
 
     // Execute the direct SDK call
     const response = await Promise.race([

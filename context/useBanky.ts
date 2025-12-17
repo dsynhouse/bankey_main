@@ -4,6 +4,7 @@ import { Transaction, Account, Budget, Category, UserProfile, Currency, Goal, Th
 export interface BankyContextType {
     user: UserProfile | null;
     isLoading: boolean;
+    isAuthenticated: boolean;
     transactions: Transaction[];
     accounts: Account[];
     budgets: Budget[];
@@ -29,11 +30,13 @@ export interface BankyContextType {
     addExpense: (groupId: string, expense: Omit<Expense, 'id'>) => Promise<void>;
     deleteGroup: (groupId: string) => Promise<void>;
     deleteExpense: (groupId: string, expenseId: string) => Promise<void>;
+    settleDebt: (groupId: string, fromId: string, toId: string, amount: number) => void;
     showDailyBonus: boolean;
     closeDailyBonus: () => void;
     checkDailyBonus: (userId: string, lastBonusDate: string | null, streak: number) => Promise<void>;
     refreshProfile: () => Promise<void>;
 }
+
 
 export const BankyContext = createContext<BankyContextType | undefined>(undefined);
 
