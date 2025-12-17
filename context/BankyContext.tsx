@@ -15,6 +15,7 @@ import { supabase } from '../services/supabase';
 import confetti from 'canvas-confetti';
 
 import { BankyContext } from './useBanky';
+import { useOptimisticUpdate, useOptimisticDelete } from '../hooks/useOptimisticUpdate';
 
 export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // --- AUTH STATE ---
@@ -554,15 +555,12 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
-    const createAccount = async (acc: Omit<Account, 'id'>, preferredCurrency?: Currency) => {
-        const optimisticId = crypto.randomUUID();
-        const newAcc: Account = { ...acc, id: optimisticId };
-        setAccounts(prev => [...prev, newAcc]);
+    const createAccountOptimistic = useOptimisticUpdate<Account>({
+        state: [accounts, setAccounts],
+        onUpdate: async (newAcc) => {
+            if (!supabase || !user) return { error: null };
 
-        // Preferred currency now handled by PreferencesContext
-
-        if (supabase && user) {
-            // 1. Ensure Profile Exists (Critical for Foreign Key)
+            // 1. Ensure Profile
             const { error: profileError } = await supabase.from('profiles').upsert({
                 id: user.id,
                 total_xp: userState.totalXp || 0,
@@ -570,30 +568,28 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 streak_days: userState.streakDays || 1,
                 has_completed_onboarding: userState.hasCompletedOnboarding || false
             });
-
             if (profileError) {
                 handleSupabaseError(profileError, 'createAccount:ensureProfile');
                 return { error: profileError };
             }
 
-            // 2. Create Account
+            // 2. Insert Account
             const { error } = await supabase.from('accounts').insert({
-                id: optimisticId,
+                id: newAcc.id,
                 user_id: user.id,
-                name: acc.name,
-                type: acc.type,
-                balance: acc.balance,
-                currency: acc.currency,
-                color: acc.color
+                name: newAcc.name,
+                type: newAcc.type,
+                balance: newAcc.balance,
+                currency: newAcc.currency,
+                color: newAcc.color
             });
+            return { error };
+        },
+        onError: (error) => handleSupabaseError(error, 'createAccount')
+    });
 
-            if (error) {
-                handleSupabaseError(error, 'createAccount');
-                // Rollback optimistic update if needed, or just let the user retry
-                return { error };
-            }
-        }
-        return { error: null };
+    const createAccount = async (acc: Omit<Account, 'id'>, preferredCurrency?: Currency) => {
+        return createAccountOptimistic.execute(acc as any); // Cast as any to satisfy Omit constraint if needed or strict typing
     };
 
     const deleteAccount = async (id: string) => {
@@ -629,21 +625,26 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
-    const addGoal = async (goal: Omit<Goal, 'id'>) => {
-        const optimisticId = crypto.randomUUID();
-        setGoals(prev => [...prev, { ...goal, id: optimisticId }]);
-
-        if (supabase && user) {
-            await supabase.from('goals').insert({
-                id: optimisticId,
+    const addGoalOptimistic = useOptimisticUpdate<Goal>({
+        state: [goals, setGoals],
+        onUpdate: async (newGoal) => {
+            if (!supabase || !user) return { error: null };
+            const { error } = await supabase.from('goals').insert({
+                id: newGoal.id,
                 user_id: user.id,
-                title: goal.title,
-                target_amount: goal.targetAmount,
-                saved_amount: goal.savedAmount,
-                emoji: goal.emoji,
-                deadline: goal.deadline
+                title: newGoal.title,
+                target_amount: newGoal.targetAmount,
+                saved_amount: newGoal.savedAmount,
+                emoji: newGoal.emoji,
+                deadline: newGoal.deadline
             });
-        }
+            return { error };
+        },
+        onError: (error) => handleSupabaseError(error, 'addGoal')
+    });
+
+    const addGoal = async (goal: Omit<Goal, 'id'>) => {
+        return addGoalOptimistic.execute(goal as any);
     };
 
     const updateGoal = async (id: string, savedAmount: number) => {
@@ -651,9 +652,18 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (supabase) await supabase.from('goals').update({ saved_amount: savedAmount }).eq('id', id);
     };
 
+    const deleteGoalOptimistic = useOptimisticDelete<Goal>({
+        state: [goals, setGoals],
+        onDelete: async (id) => {
+            if (!supabase) return { error: null };
+            const { error } = await supabase.from('goals').delete().eq('id', id);
+            return { error };
+        },
+        onError: (error) => handleSupabaseError(error, 'deleteGoal')
+    });
+
     const deleteGoal = async (id: string) => {
-        setGoals(prev => prev.filter(g => g.id !== id));
-        if (supabase) await supabase.from('goals').delete().eq('id', id);
+        return deleteGoalOptimistic.execute(id);
     };
 
     const addXp = async (amount: number) => {
