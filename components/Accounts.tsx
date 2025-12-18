@@ -124,9 +124,14 @@ const Accounts: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {accounts.map(acc => {
+          // Defensive checks for account data
+          if (!acc || !acc.id || !acc.type) return null;
+
           const Icon = getIcon(acc.type);
           const colorClass = getColorClass(acc.type);
           const isDark = acc.type === AccountType.BUSINESS;
+          const balance = typeof acc.balance === 'number' ? acc.balance : 0;
+          const accountName = acc.name || 'Unnamed Wallet';
 
           return (
             <div key={acc.id} className={`${colorClass} p-6 border-2 border-ink shadow-neo hover:-translate-y-2 hover:shadow-neo-lg transition-all duration-300 relative group min-h-[220px] flex flex-col justify-between`}>
@@ -149,8 +154,8 @@ const Accounts: React.FC = () => {
               </div>
 
               <div className="mt-8 relative z-10">
-                <p className={`text-sm font-bold uppercase tracking-wide mb-1 font-display ${isDark ? 'text-gray-400' : 'text-ink/60'}`}>{acc.name}</p>
-                <h3 className={`text-4xl font-black tracking-tight font-display ${isDark ? 'text-white' : 'text-ink'}`}>{currency.symbol}{acc.balance.toLocaleString()}</h3>
+                <p className={`text-sm font-bold uppercase tracking-wide mb-1 font-display ${isDark ? 'text-gray-400' : 'text-ink/60'}`}>{accountName}</p>
+                <h3 className={`text-4xl font-black tracking-tight font-display ${isDark ? 'text-white' : 'text-ink'}`}>{currency?.symbol || '₹'}{balance.toLocaleString()}</h3>
               </div>
 
               {/* Decorative Pattern */}
