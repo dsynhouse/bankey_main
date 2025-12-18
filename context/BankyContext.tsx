@@ -558,7 +558,8 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const createAccountOptimistic = useOptimisticUpdate<Account>({
         state: [accounts, setAccounts],
         onUpdate: async (newAcc) => {
-            if (!supabase || !user) return { error: null };
+            if (!supabase) return { error: new Error('Database not connected') };
+            if (!user) return { error: new Error('User not authenticated') };
 
             // 1. Ensure Profile
             const { error: profileError } = await supabase.from('profiles').upsert({
