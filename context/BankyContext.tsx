@@ -629,7 +629,8 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const addGoalOptimistic = useOptimisticUpdate<Goal>({
         state: [goals, setGoals],
         onUpdate: async (newGoal) => {
-            if (!supabase || !user) return { error: null };
+            if (!supabase) return { error: new Error('Database not connected') };
+            if (!user) return { error: new Error('User not authenticated') };
             const { error } = await supabase.from('goals').insert({
                 id: newGoal.id,
                 user_id: user.id,
@@ -656,7 +657,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const deleteGoalOptimistic = useOptimisticDelete<Goal>({
         state: [goals, setGoals],
         onDelete: async (id) => {
-            if (!supabase) return { error: null };
+            if (!supabase) return { error: new Error('Database not connected') };
             const { error } = await supabase.from('goals').delete().eq('id', id);
             return { error };
         },
