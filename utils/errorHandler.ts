@@ -4,6 +4,10 @@ import * as Sentry from '@sentry/react';
  * Centralized error handler for Supabase operations
  */
 export function handleSupabaseError(error: any, context: string): void {
+    // Extract message from various error formats
+    const errorMessage = error?.message || error?.hint || error?.details ||
+        (typeof error === 'string' ? error : JSON.stringify(error));
+
     // Log to console in development
     if (import.meta.env.DEV) {
         console.error(`[${context}]:`, error);
@@ -11,13 +15,23 @@ export function handleSupabaseError(error: any, context: string): void {
 
     // Send to Sentry in production
     if (import.meta.env.PROD) {
-        Sentry.captureException(error, {
+        // Create a proper Error object for Sentry (Supabase errors aren't Error instances)
+        const sentryError = error instanceof Error
+            ? error
+            : new Error(`[${context}] ${errorMessage}`);
+
+        Sentry.captureException(sentryError, {
             tags: {
                 context,
-                type: 'supabase_error'
+                type: 'supabase_error',
+                error_code: error?.code || 'unknown'
             },
             extra: {
-                errorDetails: error
+                originalError: error,
+                supabaseCode: error?.code,
+                supabaseHint: error?.hint,
+                supabaseDetails: error?.details,
+                supabaseMessage: error?.message
             }
         });
     }
