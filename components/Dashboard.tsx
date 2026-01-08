@@ -228,14 +228,14 @@ const Dashboard: React.FC = () => {
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border-2 border-ink px-4 py-3 rounded-xl hover:bg-banky-purple hover:text-white transition-all shadow-neo hover:shadow-neo-lg hover:-translate-y-1 group"
                     >
                         <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        <span className="font-black uppercase text-xs">Voice</span>
+                        <span className="font-black uppercase text-xs">Voice Add</span>
                     </button>
                     <button
                         onClick={() => setShowReceiptScanner(true)}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border-2 border-ink px-4 py-3 rounded-xl hover:bg-banky-green hover:text-white transition-all shadow-neo hover:shadow-neo-lg hover:-translate-y-1 group"
                     >
                         <Camera className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        <span className="font-black uppercase text-xs">Scan</span>
+                        <span className="font-black uppercase text-xs">Bill Scan</span>
                     </button>
 
                     {activeTab === 'widgets' && (
