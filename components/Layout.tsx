@@ -73,12 +73,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className={`flex items - center gap - 3 px - 4 py - 3 font - black uppercase text - sm transition - all border - 2 rounded - xl mb - 2 ${isActive
-                        ? 'bg-ink text-white border-ink shadow-neo translate-x-2'
-                        : 'border-transparent text-ink/70 hover:bg-banky-yellow hover:border-ink hover:shadow-neo-sm hover:translate-x-1'
+                    className={`flex items-center gap-3 px-4 py-3 font-black uppercase text-sm transition-all border-2 rounded-xl mb-2 ${isActive
+                      ? 'bg-ink text-white border-ink shadow-neo translate-x-2'
+                      : 'border-transparent text-ink/70 hover:bg-banky-yellow hover:border-ink hover:shadow-neo-sm hover:translate-x-1'
                       } `}
                   >
-                    <item.icon className={`w - 5 h - 5 ${isActive ? 'text-banky-blue' : ''} `} />
+                    <item.icon className={`w-5 h-5 ${isActive ? 'text-banky-blue' : ''} `} />
                     <span>{item.label}</span>
                   </Link>
                 </li>
@@ -142,10 +142,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex - col items - center gap - 1 px - 3 py - 2 transition - all ${isActive ? 'text-ink' : 'text-gray-400'
+                className={`flex flex-col items-center gap-1 px-3 py-2 transition-all ${isActive ? 'text-ink' : 'text-gray-400'
                   } `}
               >
-                <item.icon className={`w - 6 h - 6 ${isActive ? 'text-banky-blue' : ''} `} />
+                <item.icon className={`w-6 h-6 ${isActive ? 'text-banky-blue' : ''} `} />
                 <span className="text-[10px] font-black uppercase">{item.label}</span>
               </Link>
             );
