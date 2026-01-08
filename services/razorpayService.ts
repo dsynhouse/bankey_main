@@ -102,18 +102,27 @@ export const initiateSubscription = async (
         if (error) {
             console.error('Error creating subscription:', error);
 
+            // Parse error message
+            const errorMsg = typeof error === 'object' && error.message ? error.message : String(error);
+            const errorContext = typeof error === 'object' && error.context ? JSON.stringify(error.context) : '';
+
+            console.error('Full Error Details:', { errorMsg, errorContext, error });
+
+            // Check for network/Edge Function deployment issues
+            if (errorMsg.includes('Failed to send') || errorMsg.includes('FunctionsHttpError') || errorMsg.includes('FunctionsFetchError')) {
+                alert(`🔧 Edge Function Issue\n\nThe subscription service couldn't be reached. This usually means:\n\n1. Edge Functions may not be deployed\n2. Network connectivity issue\n\nPlease contact support or try again later.`);
+            }
             // Check if it's a configuration error from Edge Function
-            const errorMsg = error.message || '';
-            if (errorMsg.includes('Configuration') || errorMsg.includes('Missing')) {
+            else if (errorMsg.includes('Configuration') || errorMsg.includes('Missing') || errorMsg.includes('Razorpay')) {
                 alert(`⚙️ Razorpay Setup Required\n\nRazorpay secrets are not configured in Supabase yet.\n\nPlease contact the administrator to configure:\n- RAZORPAY_KEY_ID\n- RAZORPAY_SECRET\n- RAZORPAY_PLAN_ID\n\nIn Supabase Project Settings → Edge Functions → Secrets`);
             } else {
-                alert(`Subscription Error: ${errorMsg || 'Failed to initialize subscription.'}`);
+                alert(`Subscription Error: ${errorMsg || 'Failed to create subscription. Please try again.'}`);
             }
             throw new Error('Failed to create subscription. Please try again.');
         }
 
         if (!data?.subscriptionId) {
-            alert('Error: Invalid response from subscription server.');
+            alert('Error: Invalid response from subscription server. Please contact support.');
             throw new Error('Invalid subscription response');
         }
 
