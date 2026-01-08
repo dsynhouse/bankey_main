@@ -287,18 +287,18 @@ const Dashboard: React.FC = () => {
                         <div className="p-6 space-y-8">
 
                             {/* Stats Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-banky-green/10 border-2 border-banky-green p-4 rounded-xl flex flex-col items-center text-center shadow-sm">
-                                    <span className="text-xs font-black uppercase text-banky-green-darker tracking-widest mb-1">In</span>
-                                    <span className="text-2xl font-black text-banky-green-darker font-mono">+{currency.symbol}{totalIncome.toLocaleString()}</span>
+                            <div className="grid grid-cols-3 gap-2 md:gap-4">
+                                <div className="bg-banky-green/10 border-2 border-banky-green p-2 md:p-4 rounded-xl flex flex-col items-center text-center shadow-sm">
+                                    <span className="text-[10px] md:text-xs font-black uppercase text-banky-green-darker tracking-widest mb-1">In</span>
+                                    <span className="text-lg md:text-2xl font-black text-banky-green-darker font-mono">+{currency.symbol}{totalIncome.toLocaleString()}</span>
                                 </div>
-                                <div className="bg-red-50 border-2 border-red-200 p-4 rounded-xl flex flex-col items-center text-center shadow-sm">
-                                    <span className="text-xs font-black uppercase text-red-400 tracking-widest mb-1">Out</span>
-                                    <span className="text-2xl font-black text-red-500 font-mono">-{currency.symbol}{totalExpense.toLocaleString()}</span>
+                                <div className="bg-red-50 border-2 border-red-200 p-2 md:p-4 rounded-xl flex flex-col items-center text-center shadow-sm">
+                                    <span className="text-[10px] md:text-xs font-black uppercase text-red-400 tracking-widest mb-1">Out</span>
+                                    <span className="text-lg md:text-2xl font-black text-red-500 font-mono">-{currency.symbol}{totalExpense.toLocaleString()}</span>
                                 </div>
-                                <div className={`border-2 p-4 rounded-xl flex flex-col items-center text-center shadow-sm ${netFlow >= 0 ? 'bg-ink text-banky-yellow border-ink' : 'bg-white text-red-500 border-red-500'}`}>
-                                    <span className="text-xs font-black uppercase tracking-widest mb-1 opacity-80">Net</span>
-                                    <span className="text-2xl font-black font-mono">{netFlow >= 0 ? '+' : ''}{currency.symbol}{netFlow.toLocaleString()}</span>
+                                <div className={`border-2 p-2 md:p-4 rounded-xl flex flex-col items-center text-center shadow-sm ${netFlow >= 0 ? 'bg-ink text-banky-yellow border-ink' : 'bg-white text-red-500 border-red-500'}`}>
+                                    <span className="text-[10px] md:text-xs font-black uppercase tracking-widest mb-1 opacity-80">Net</span>
+                                    <span className="text-lg md:text-2xl font-black font-mono">{netFlow >= 0 ? '+' : ''}{currency.symbol}{netFlow.toLocaleString()}</span>
                                 </div>
                             </div>
 
