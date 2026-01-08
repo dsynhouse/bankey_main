@@ -116,10 +116,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-1 overflow-y-auto pb-24 md:pb-0 relative bg-[radial-gradient(var(--color-ink)_1px,transparent_1px)] [background-size:24px_24px] opacity-100 transition-colors duration-300">
         <div className="p-6 md:p-8 max-w-7xl mx-auto">
           {/* Mobile Header */}
-          <div className="md:hidden flex items-center justify-between mb-6 bg-white border-4 border-ink shadow-neo p-4">
+          <div className="md:hidden flex items-center justify-between mb-6 bg-white border-4 border-ink shadow-neo p-3">
             <Link to="/dashboard" className="flex items-center gap-2">
-              <Mascot className="w-10 h-10" isStatic={false} mood="cool" />
-              <span className="text-3xl font-black tracking-tighter text-ink italic font-display">bankey.</span>
+              <Mascot className="w-8 h-8" isStatic={false} mood="cool" />
+              <span className="text-2xl font-black tracking-tighter text-ink italic font-display">bankey.</span>
             </Link>
             <button
               onClick={logout}
