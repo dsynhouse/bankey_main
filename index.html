@@ -76,18 +76,26 @@
       --color-surface: #1A1A1A;
     }
 
+    html {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      height: 100%;
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: var(--color-paper);
       color: var(--color-ink);
       overflow-x: hidden;
+      overflow-y: auto;
       transition: background-color 0.3s ease, color 0.3s ease;
-      overscroll-behavior: none;
-      /* Disables pull-to-refresh effect on native */
+      overscroll-behavior-x: none;
+      /* Allows natural scroll on Y, prevents horizontal overscroll */
       padding-top: var(--sat);
       padding-bottom: var(--sab);
       padding-left: var(--sal);
       padding-right: var(--sar);
+      min-height: 100%;
     }
 
     h1,

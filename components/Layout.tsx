@@ -113,7 +113,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-24 md:pb-0 relative bg-[radial-gradient(var(--color-ink)_1px,transparent_1px)] [background-size:24px_24px] opacity-100 transition-colors duration-300">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-24 md:pb-0 relative bg-[radial-gradient(var(--color-ink)_1px,transparent_1px)] [background-size:24px_24px] opacity-100 transition-colors duration-300 scroll-smooth [-webkit-overflow-scrolling:touch]">
         <div className="p-6 md:p-8 max-w-7xl mx-auto">
           {/* Mobile Header */}
           <div className="md:hidden flex items-center justify-between mb-6 bg-white border-4 border-ink shadow-neo p-3">
