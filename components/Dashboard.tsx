@@ -160,16 +160,13 @@ const Dashboard: React.FC = () => {
             }
 
             days.push(
-                <div key={day} onClick={() => setSelectedDateLog(dayTransactions)} className={`h-24 border border-ink p-2 relative cursor-pointer transition-colors ${bgClass}`}>
-                    <span className="font-bold text-xs absolute top-2 left-2">{day}</span>
+                <div key={day} onClick={() => setSelectedDateLog(dayTransactions)} className={`h-14 md:h-20 border border-ink p-1 md:p-2 relative cursor-pointer transition-colors ${bgClass}`}>
+                    <span className="font-bold text-xs absolute top-1 left-1">{day}</span>
                     {hasActivity && (
-                        <>
-                            <div className="absolute bottom-2 right-2 text-xs font-black">{dayTransactions.length} Log{dayTransactions.length > 1 ? 's' : ''}</div>
-                            <div className="flex flex-col items-end mt-4 gap-0.5">
-                                {dailyIncome > 0 && <span className="text-[10px] text-banky-green font-black">+{currency.symbol}{dailyIncome}</span>}
-                                {dailyExpense > 0 && <span className="text-[10px] text-red-500 font-black">-{currency.symbol}{dailyExpense}</span>}
-                            </div>
-                        </>
+                        <div className="absolute bottom-1 right-1 flex items-center gap-0.5">
+                            <span className="text-[8px] md:text-[10px] font-black text-gray-600">{dayTransactions.length}</span>
+                            <div className={`w-2 h-2 rounded-full ${net > 0 ? 'bg-banky-green' : net < 0 ? 'bg-red-400' : 'bg-banky-yellow'}`}></div>
+                        </div>
                     )}
                 </div>
             );
@@ -543,41 +540,51 @@ const Dashboard: React.FC = () => {
                                     </div>
 
                                     {/* Selected Date Logs Modal/Overlay */}
-                                    {selectedDateLog && (
-                                        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/20 backdrop-blur-sm" onClick={() => setSelectedDateLog(null)}>
-                                            <div className="bg-white border-4 border-ink shadow-neo rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col animate-slide-up" onClick={e => e.stopPropagation()}>
-                                                <div className="bg-banky-yellow border-b-4 border-ink p-4 flex justify-between items-center">
-                                                    <div>
-                                                        <h3 className="font-black uppercase text-lg">Daily Log</h3>
-                                                        <p className="text-xs font-bold opacity-70">
-                                                            {selectedDateLog.length > 0 && new Date(selectedDateLog[0].date).toLocaleDateString()}
-                                                        </p>
-                                                    </div>
-                                                    <button onClick={() => setSelectedDateLog(null)} className="p-2 hover:bg-white rounded-lg border-2 border-transparent hover:border-ink transition-all">
-                                                        <X className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                                <div className="p-4 overflow-y-auto space-y-3">
-                                                    {selectedDateLog.map(t => (
-                                                        <div key={t.id} className="flex items-center justify-between p-3 border-2 border-gray-100 hover:border-ink rounded-xl bg-gray-50">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 border-ink ${t.type === 'income' ? 'bg-banky-green' : 'bg-white'}`}>
-                                                                    <CategoryIcon category={t.category} className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="font-bold text-sm text-ink">{t.description}</p>
-                                                                    <p className="text-[10px] font-black uppercase text-gray-400">{t.category}</p>
-                                                                </div>
-                                                            </div>
-                                                            <span className={`font-mono font-black ${t.type === 'income' ? 'text-banky-green-darker' : 'text-ink'}`}>
-                                                                {t.type === 'income' ? '+' : '-'}{currency.symbol}{t.amount.toFixed(2)}
-                                                            </span>
+                                    {selectedDateLog && (() => {
+                                        const dayIncome = selectedDateLog.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+                                        const dayExpense = selectedDateLog.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                                        const dayNet = dayIncome - dayExpense;
+                                        return (
+                                            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 pb-24 md:pb-4 bg-black/20 backdrop-blur-sm" onClick={() => setSelectedDateLog(null)}>
+                                                <div className="bg-white border-4 border-ink shadow-neo rounded-2xl w-full max-w-md max-h-[60vh] md:max-h-[80vh] overflow-hidden flex flex-col animate-slide-up" onClick={e => e.stopPropagation()}>
+                                                    <div className="bg-banky-yellow border-b-4 border-ink p-4 flex justify-between items-center shrink-0">
+                                                        <div>
+                                                            <h3 className="font-black uppercase text-lg">Daily Log</h3>
+                                                            <p className="text-xs font-bold opacity-70">
+                                                                {selectedDateLog.length > 0 && new Date(selectedDateLog[0].date).toLocaleDateString()}
+                                                            </p>
                                                         </div>
-                                                    ))}
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`px-3 py-1 rounded-lg border-2 border-ink font-mono font-black text-sm ${dayNet >= 0 ? 'bg-banky-green text-ink' : 'bg-red-100 text-red-600'}`}>
+                                                                {dayNet >= 0 ? '+' : ''}{currency.symbol}{dayNet.toFixed(0)}
+                                                            </div>
+                                                            <button onClick={() => setSelectedDateLog(null)} className="p-2 hover:bg-white rounded-lg border-2 border-transparent hover:border-ink transition-all">
+                                                                <X className="w-5 h-5" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-4 overflow-y-auto flex-1 space-y-3">
+                                                        {selectedDateLog.map(t => (
+                                                            <div key={t.id} className="flex items-center justify-between p-3 border-2 border-gray-100 hover:border-ink rounded-xl bg-gray-50">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 border-ink ${t.type === 'income' ? 'bg-banky-green' : 'bg-white'}`}>
+                                                                        <CategoryIcon category={t.category} className="w-4 h-4" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="font-bold text-sm text-ink">{t.description}</p>
+                                                                        <p className="text-[10px] font-black uppercase text-gray-400">{t.category}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <span className={`font-mono font-black ${t.type === 'income' ? 'text-banky-green-darker' : 'text-ink'}`}>
+                                                                    {t.type === 'income' ? '+' : '-'}{currency.symbol}{t.amount.toFixed(2)}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        );
+                                    })()}
                                 </div>
                             )}
                         </div>
