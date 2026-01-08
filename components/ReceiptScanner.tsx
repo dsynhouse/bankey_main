@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X, Loader2, Check, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
 import { useBanky } from '../context/useBanky';
 import { usePreferences } from '../context/PreferencesContext';
@@ -23,8 +23,7 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
 
     // Compute initial state
     const getInitialState = (): ScanState => {
-        // TEMPORARY: Premium gate disabled for testing
-        // if (!isPremium) return 'premium-gate';
+        if (!isPremium) return 'premium-gate';
         return 'idle';
     };
 
@@ -41,6 +40,14 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
     const [editAmount, setEditAmount] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [editCategory, setEditCategory] = useState<Category>(Category.OTHER);
+
+    // CRITICAL: React to premium status changes (e.g., after payment)
+    useEffect(() => {
+        if (isPremium && state === 'premium-gate') {
+            // User just became premium, unlock the feature
+            setState('idle');
+        }
+    }, [isPremium, state]);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

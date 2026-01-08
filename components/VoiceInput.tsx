@@ -28,8 +28,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
 
     // Compute initial state based on premium status and voice support
     const getInitialState = (): VoiceState => {
-        // TEMPORARY: Premium gate disabled for testing
-        // if (!isPremium) return 'premium-gate';
+        if (!isPremium) return 'premium-gate';
         if (!isVoiceSupported()) return 'error';
 
         return 'idle';
@@ -51,6 +50,14 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
     const [editDescription, setEditDescription] = useState('');
     const [editCategory, setEditCategory] = useState<Category>(Category.OTHER);
     const [editType, setEditType] = useState<'expense' | 'income'>('expense');
+
+    // CRITICAL: React to premium status changes (e.g., after payment)
+    useEffect(() => {
+        if (isPremium && state === 'premium-gate') {
+            // User just became premium, unlock the feature
+            setState(isVoiceSupported() ? 'idle' : 'error');
+        }
+    }, [isPremium, state]);
 
     // Deterministic waveform heights for animation (memoized to avoid re-computation)
     const waveformHeights = useMemo(() => [35, 48, 28, 55, 42, 30, 50, 38, 45, 32, 52, 40], []);
