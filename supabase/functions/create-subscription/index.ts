@@ -33,8 +33,17 @@ serve(async (req) => {
 
         if (!keyId || !keySecret || !planId) {
             return new Response(
-                JSON.stringify({ error: 'Configuration Error: RAZORPAY_KEY_ID, RAZORPAY_SECRET, or RAZORPAY_PLAN_ID is missing in Supabase secrets.' }),
-                { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+                JSON.stringify({
+                    error: 'Razorpay Configuration Missing',
+                    details: 'Please configure Razorpay secrets in Supabase Project Settings → Edge Functions → Secrets',
+                    missing: {
+                        RAZORPAY_KEY_ID: !keyId,
+                        RAZORPAY_SECRET: !keySecret,
+                        RAZORPAY_PLAN_ID: !planId
+                    },
+                    help: 'Visit https://dashboard.razorpay.com to get your credentials'
+                }),
+                { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
             )
         }
 

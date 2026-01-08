@@ -101,7 +101,14 @@ export const initiateSubscription = async (
 
         if (error) {
             console.error('Error creating subscription:', error);
-            alert(`Subscription Error: ${error.message || 'Failed to initialize subscription.'}`);
+
+            // Check if it's a configuration error from Edge Function
+            const errorMsg = error.message || '';
+            if (errorMsg.includes('Configuration') || errorMsg.includes('Missing')) {
+                alert(`⚙️ Razorpay Setup Required\n\nRazorpay secrets are not configured in Supabase yet.\n\nPlease contact the administrator to configure:\n- RAZORPAY_KEY_ID\n- RAZORPAY_SECRET\n- RAZORPAY_PLAN_ID\n\nIn Supabase Project Settings → Edge Functions → Secrets`);
+            } else {
+                alert(`Subscription Error: ${errorMsg || 'Failed to initialize subscription.'}`);
+            }
             throw new Error('Failed to create subscription. Please try again.');
         }
 
