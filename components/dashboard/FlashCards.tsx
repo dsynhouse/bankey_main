@@ -133,6 +133,8 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                                 </span>
                                 <input
                                     type="number"
+                                    inputMode="decimal"
+                                    enterKeyHint="go"
                                     step="0.01"
                                     value={flashSpendAmount}
                                     onChange={(e) => setFlashSpendAmount(e.target.value)}
@@ -225,6 +227,8 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                                 </span>
                                 <input
                                     type="number"
+                                    inputMode="decimal"
+                                    enterKeyHint="go"
                                     step="0.01"
                                     value={flashEarnAmount}
                                     onChange={(e) => setFlashEarnAmount(e.target.value)}
