@@ -267,7 +267,7 @@ const Dashboard: React.FC = () => {
 
             {/* Main Content Area */}
             <div className="min-h-0 animate-slide-up">
-                {activeTab === 'widgets' && <WidgetGrid onAddWidget={() => setShowWidgetLibrary(true)} />}
+                {activeTab === 'widgets' && <WidgetGrid onAddWidget={() => setShowWidgetLibrary(true)} onViewHistory={() => setActiveTab('tracker')} />}
 
                 {activeTab === 'tracker' && (
                     <div className="bg-white border-4 border-ink shadow-neo rounded-xl overflow-hidden animate-fade-in pb-8">

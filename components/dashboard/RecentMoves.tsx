@@ -7,13 +7,14 @@ interface RecentMovesProps {
     transactions: Transaction[];
     currency: Currency;
     onDelete?: (id: string) => void;
+    onViewHistory?: () => void;
 }
 
 /**
  * RecentMoves component displays the most recent transactions.
  * Extracted from Dashboard for better maintainability.
  */
-const RecentMoves: React.FC<RecentMovesProps> = ({ transactions, currency, onDelete }) => {
+const RecentMoves: React.FC<RecentMovesProps> = ({ transactions, currency, onDelete, onViewHistory }) => {
     const recentTransactions = transactions.slice(0, 4);
 
     const formatCurrency = (value: number) => {
@@ -77,12 +78,12 @@ const RecentMoves: React.FC<RecentMovesProps> = ({ transactions, currency, onDel
                     ))
                 )}
             </div>
-            <Link
-                to="/tracker"
+            <button
+                onClick={onViewHistory}
                 className="w-full mt-6 py-2 border-2 border-dashed border-gray-300 text-gray-400 font-bold uppercase hover:border-ink hover:text-ink transition-colors text-sm text-center block"
             >
                 View All History
-            </Link>
+            </button>
         </div>
     );
 };

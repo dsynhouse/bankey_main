@@ -12,9 +12,10 @@ import { usePreferences } from '../../context/PreferencesContext';
  */
 interface WidgetGridProps {
     onAddWidget?: () => void;
+    onViewHistory?: () => void;
 }
 
-const WidgetGrid: React.FC<WidgetGridProps> = ({ onAddWidget }) => {
+const WidgetGrid: React.FC<WidgetGridProps> = ({ onAddWidget, onViewHistory }) => {
     const { enabledWidgets } = useWidgets();
     const { accounts, transactions, addTransaction, deleteTransaction, userState } = useBanky();
     const { currency } = usePreferences();
@@ -40,6 +41,7 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ onAddWidget }) => {
                         transactions={transactions}
                         currency={currency}
                         onDelete={deleteTransaction}
+                        onViewHistory={onViewHistory}
                     />
                 );
 
