@@ -94,7 +94,7 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
     return (
         <div className="bg-white border-4 border-ink shadow-neo h-full flex flex-col">
             {/* Header with Segmented Control */}
-            <div className="p-4 md:p-6 border-b-4 border-ink bg-gray-50/50">
+            <div className="p-4 md:p-6 bg-gray-50/50">
                 <div className="flex bg-white p-1.5 border-2 border-ink rounded-xl shadow-neo-sm max-w-md mx-auto relative">
                     {/* Animated pill background could be added here for extra polish */}
                     <button
@@ -146,7 +146,7 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                         </div>
 
                         {/* Grid Inputs */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                        <div className="grid grid-cols-2 gap-3 md:gap-4">
                             <div className="bg-gray-50 p-3 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-pink">
                                 <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
                                     <Tag className="w-3 h-3" /> Category
@@ -240,7 +240,7 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                         </div>
 
                         {/* Grid Inputs */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                        <div className="grid grid-cols-2 gap-3 md:gap-4">
                             <div className="bg-gray-50 p-3 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-green">
                                 <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
                                     <Tag className="w-3 h-3" /> Source
