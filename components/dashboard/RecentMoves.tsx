@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Clock, ArrowUpRight, ArrowDownRight, Trash2 } from 'lucide-react';
 import { Transaction, Currency } from '../../types';
 

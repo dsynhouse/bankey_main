@@ -6,7 +6,7 @@ import DreamBoard from './DreamBoard.tsx';
 import WidgetGrid from './widgets/WidgetGrid';
 import WidgetLibrary from './widgets/WidgetLibrary';
 import { SEO } from './SEO';
-import { Sparkles, Grid3x3, Mic, Camera, Plus, Loader2, ChevronLeft, ChevronRight, Trash2, ArrowUpDown, X } from 'lucide-react';
+import { Sparkles, Mic, Camera, Plus, Loader2, ChevronLeft, ChevronRight, Trash2, ArrowUpDown, X } from 'lucide-react';
 import VoiceInput from './VoiceInput';
 import ReceiptScanner from './ReceiptScanner';
 import ForecastWidget from './widgets/ForecastWidget';
