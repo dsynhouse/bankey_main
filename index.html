@@ -89,8 +89,8 @@
       overflow-x: hidden;
       overflow-y: auto;
       transition: background-color 0.3s ease, color 0.3s ease;
-      overscroll-behavior-x: none;
-      /* Allows natural scroll on Y, prevents horizontal overscroll */
+      overscroll-behavior: contain;
+      /* 'contain' allows normal scrolling but prevents pull-to-refresh from interfering */
       padding-top: var(--sat);
       padding-bottom: var(--sab);
       padding-left: var(--sal);
