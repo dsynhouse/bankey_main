@@ -10,6 +10,7 @@ import { SettingsProvider } from './context/SettingsContext';
 import { GamificationProvider } from './context/GamificationContext';
 import { BillSplitterProvider } from './context/BillSplitterContext';
 import { PreferencesProvider } from './context/PreferencesContext';
+import { WidgetProvider } from './context/WidgetContext';
 import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabase';
 import { HelmetProvider } from 'react-helmet-async';
@@ -155,49 +156,55 @@ const App: React.FC = () => {
         <BankyProvider>
           <FeatureFlagProvider>
             <DomainContextsWrapper>
-              <Router>
-                <Layout>
-                  <React.Suspense fallback={
-                    <div className="h-screen w-full flex items-center justify-center bg-paper">
-                      <Loader2 className="w-10 h-10 animate-spin text-banky-blue" />
-                    </div>
-                  }>
-                    <ErrorBoundary>
-                      <Routes>
-                        {/* Public Routes */}
-                        <Route path="/" element={<PublicRouteWrapper><LandingPage /></PublicRouteWrapper>} />
-                        <Route path="/login" element={<PublicRouteWrapper><Login /></PublicRouteWrapper>} />
-                        <Route path="/register" element={<PublicRouteWrapper><Register /></PublicRouteWrapper>} />
-                        <Route path="/health" element={<HealthCheck />} />
-                        <Route path="/ios-install" element={<IOSInstallInstructions />} />
-                        <Route path="/payment-success" element={<RequireAuth><PaymentSuccess /></RequireAuth>} />
+              <WidgetProvider>
+                <Router>
+                  <Layout>
+                    <React.Suspense fallback={
+                      <div className="h-screen w-full flex items-center justify-center bg-paper">
+                        <Loader2 className="w-10 h-10 animate-spin text-banky-blue" />
+                      </div>
+                    }>
+                      <ErrorBoundary>
+                        <Routes>
+                          {/* Public Routes */}
+                          <Route path="/" element={<PublicRouteWrapper><LandingPage /></PublicRouteWrapper>} />
+                          <Route path="/login" element={<PublicRouteWrapper><Login /></PublicRouteWrapper>} />
+                          <Route path="/register" element={<PublicRouteWrapper><Register /></PublicRouteWrapper>} />
+                          <Route path="/health" element={<HealthCheck />} />
+                          <Route path="/ios-install" element={<IOSInstallInstructions />} />
+                          <Route path="/payment-success" element={<RequireAuth><PaymentSuccess /></RequireAuth>} />
 
 
-                        <Route path="/privacy" element={<PrivacyPolicy />} />
-                        <Route path="/terms" element={<TermsOfService />} />
-                        <Route path="/data-protection" element={<DataProtection />} />
-                        <Route path="/cancellation" element={<CancellationPolicy />} />
-                        <Route path="/disclaimers" element={<Disclaimers />} />
-                        <Route path="/contact" element={<ContactUs />} />
-                        <Route path="/shipping" element={<ShippingPolicy />} />
-                        <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
-                        <Route path="/tracker" element={<RequireAuth><Tracker /></RequireAuth>} />
-                        <Route path="/budget" element={<RequireAuth><BudgetPlanner /></RequireAuth>} />
-                        {/* <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} /> */}
-                        <Route path="/knowledge-bank" element={<RequireAuth><KnowledgeBank /></RequireAuth>} />
-                        <Route path="/knowledge-bank/module/:moduleId" element={<RequireAuth><ModuleView /></RequireAuth>} />
-                        <Route path="/knowledge-bank/lesson/:lessonId" element={<RequireAuth><LessonView /></RequireAuth>} />
-                        <Route path="/education" element={<RequireAuth><Education /></RequireAuth>} />
-                        <Route path="/advisor" element={<RequireAuth><Advisor /></RequireAuth>} />
-                        <Route path="/accounts" element={<RequireAuth><Accounts /></RequireAuth>} />
-                        <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+                          <Route path="/privacy" element={<PrivacyPolicy />} />
+                          <Route path="/terms" element={<TermsOfService />} />
+                          <Route path="/data-protection" element={<DataProtection />} />
+                          <Route path="/cancellation" element={<CancellationPolicy />} />
+                          <Route path="/disclaimers" element={<Disclaimers />} />
+                          <Route path="/contact" element={<ContactUs />} />
+                          <Route path="/shipping" element={<ShippingPolicy />} />
+                          <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+                          <Route path="/wallet" element={<RequireAuth><Accounts /></RequireAuth>} />
+                          <Route path="/budget" element={<RequireAuth><BudgetPlanner /></RequireAuth>} />
+                          <Route path="/advisor" element={<RequireAuth><Advisor /></RequireAuth>} />
+                          <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
 
-                        <Route path="*" element={<Navigate to="/" />} />
-                      </Routes>
-                    </ErrorBoundary>
-                  </React.Suspense>
-                </Layout>
-              </Router>
+                          {/* Legacy redirects for backwards compatibility */}
+                          <Route path="/tracker" element={<Navigate to="/wallet" replace />} />
+                          <Route path="/accounts" element={<Navigate to="/wallet" replace />} />
+
+                          {/* Hidden routes - Education to be added as future feature */}
+                          {/* <Route path="/education" element={<RequireAuth><Education /></RequireAuth>} /> */}
+                          {/* <Route path="/knowledge-bank" element={<RequireAuth><KnowledgeBank /></RequireAuth>} /> */}
+                          {/* <Route path="/knowledge-bank/module/:moduleId" element={<RequireAuth><ModuleView /></RequireAuth>} /> */}
+                          {/* <Route path="/knowledge-bank/lesson/:lessonId" element={<RequireAuth><LessonView /></RequireAuth>} /> */}
+
+                          <Route path="*" element={<Navigate to="/" />} />
+                        </Routes>
+                      </ErrorBoundary>
+                    </React.Suspense>
+                  </Layout>
+                </Router>
+              </WidgetProvider>
             </DomainContextsWrapper>
           </FeatureFlagProvider>
         </BankyProvider>

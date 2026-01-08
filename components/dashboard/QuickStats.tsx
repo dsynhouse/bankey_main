@@ -28,9 +28,9 @@ const QuickStats: React.FC<QuickStatsProps> = ({
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             {/* Net Worth Card */}
-            <div className="lg:col-span-2 bg-white border-4 border-ink p-6 shadow-neo relative overflow-hidden group">
+            <div className="xl:col-span-1 border-4 border-ink p-6 shadow-neo relative overflow-hidden group bg-white">
                 <div className="absolute top-0 right-0 bg-banky-green px-4 py-1 border-l-4 border-b-4 border-ink font-black uppercase text-xs tracking-widest">
                     Total Balance
                 </div>

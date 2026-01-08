@@ -39,6 +39,10 @@ export default {
                 '3': '3px',
                 '4': '4px',
             },
+            spacing: {
+                '18': '4.5rem', // 72px
+                '22': '5.5rem', // 88px
+            },
             animation: {
                 'marquee': 'marquee 25s linear infinite',
                 'bounce-slow': 'bounce 3s infinite',

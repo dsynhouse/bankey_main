@@ -92,22 +92,31 @@ const Advisor: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col pb-4 font-sans">
-      <div className="mb-6 border-b-4 border-ink pb-4 flex flex-wrap gap-4 items-center justify-between">
-        <div>
-          <h1 className="text-4xl sm:text-5xl font-black text-ink uppercase italic tracking-tighter font-display">Learning Hub</h1>
-          <p className="text-gray-500 font-bold">Educational insights. Real-time facts.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white border-4 border-ink p-6 md:p-8 shadow-neo rounded-xl relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-banky-blue rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 bg-banky-blue border-2 border-ink rounded-lg flex items-center justify-center shadow-sm">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+            <p className="font-black text-ink/40 uppercase tracking-widest text-sm font-display">AI Advisor</p>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black italic text-ink font-display leading-[0.9] mb-2">
+            Learning Hub
+          </h1>
+          <p className="font-bold text-gray-500">Educational insights. Real-time facts.</p>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3">
+
+        <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={handleAnalysis}
-            disabled={isTyping}
-            className="bg-banky-purple text-white border-2 border-ink py-2 px-3 sm:px-4 shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all font-black uppercase text-xs sm:text-sm flex items-center gap-1 sm:gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            className="px-4 py-2 bg-banky-yellow border-2 border-ink rounded-xl font-black uppercase text-xs flex items-center gap-2 shadow-neo hover:translate-y-0.5 hover:shadow-none transition-all group"
           >
-            <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Quick</span> Analysis
+            <BarChart3 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            <span>Deep Dive</span>
           </button>
-          <div className="bg-banky-yellow border-2 border-ink p-2 shadow-neo hidden md:block rotate-6">
-            <Sparkles className="w-8 h-8 text-ink" />
-          </div>
+          <PremiumUpgradeCTA variant="minimal" context="advisor" />
         </div>
       </div>
 

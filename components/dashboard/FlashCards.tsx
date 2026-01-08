@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, TrendingUp, Mic, Camera } from 'lucide-react';
+import { Zap, TrendingUp, Mic, Camera, ArrowRight, Wallet, Tag } from 'lucide-react';
 import { Account, Category, Currency, Transaction } from '../../types';
 import VoiceInput from '../VoiceInput';
 import ReceiptScanner from '../ReceiptScanner';
@@ -12,7 +12,7 @@ interface FlashCardsProps {
 
 /**
  * FlashCards component handles quick spend/earn transaction entry.
- * Extracted from Dashboard for better maintainability.
+ * Redesigned for spaciousness and better visual hierarchy.
  */
 const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransaction }) => {
     const [quickAddTab, setQuickAddTab] = useState<'spend' | 'earn'>('spend');
@@ -92,181 +92,236 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
     };
 
     return (
-        <div className="bg-white border-4 border-ink shadow-neo overflow-hidden h-full">
-            {/* Tabs */}
-            <div className="flex border-b-4 border-ink">
-                <button
-                    onClick={() => setQuickAddTab('spend')}
-                    className={`flex-1 py-4 font-black uppercase flex items-center justify-center gap-2 transition-colors ${quickAddTab === 'spend'
-                        ? 'bg-banky-pink text-white'
-                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                        }`}
-                >
-                    <Zap className="w-5 h-5" /> Flash Spend
-                </button>
-                <button
-                    onClick={() => setQuickAddTab('earn')}
-                    className={`flex-1 py-4 font-black uppercase flex items-center justify-center gap-2 transition-colors ${quickAddTab === 'earn'
-                        ? 'bg-banky-green text-ink'
-                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                        }`}
-                >
-                    <TrendingUp className="w-5 h-5" /> Flash Earn
-                </button>
+        <div className="bg-white border-4 border-ink shadow-neo h-full flex flex-col">
+            {/* Header with Segmented Control */}
+            <div className="p-6 md:p-8 border-b-4 border-ink bg-gray-50/50">
+                <div className="flex bg-white p-1.5 border-2 border-ink rounded-xl shadow-neo-sm max-w-md mx-auto relative">
+                    {/* Animated pill background could be added here for extra polish */}
+                    <button
+                        onClick={() => setQuickAddTab('spend')}
+                        className={`flex-1 py-3 px-4 rounded-lg font-black uppercase text-sm flex items-center justify-center gap-2 transition-all ${quickAddTab === 'spend'
+                                ? 'bg-banky-pink text-ink shadow-sm transform scale-105'
+                                : 'text-gray-400 hover:text-ink hover:bg-gray-50'
+                            }`}
+                    >
+                        <Zap className="w-4 h-4 ml-[-4px]" />
+                        <span>Spend</span>
+                    </button>
+                    <button
+                        onClick={() => setQuickAddTab('earn')}
+                        className={`flex-1 py-3 px-4 rounded-lg font-black uppercase text-sm flex items-center justify-center gap-2 transition-all ${quickAddTab === 'earn'
+                                ? 'bg-banky-green text-ink shadow-sm transform scale-105'
+                                : 'text-gray-400 hover:text-ink hover:bg-gray-50'
+                            }`}
+                    >
+                        <TrendingUp className="w-4 h-4 ml-[-4px]" />
+                        <span>Earn</span>
+                    </button>
+                </div>
             </div>
 
-            {/* Forms */}
-            <div className="p-6">
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col">
                 {quickAddTab === 'spend' ? (
-                    <form onSubmit={handleFlashSpend} className="flex flex-col gap-4">
-                        <div className="flex gap-4 items-end">
-                            <div className="flex-1">
-                                <label className="block text-xs font-black uppercase mb-1 text-gray-500">Amount</label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-3 font-bold text-gray-400">{currencySymbol}</span>
-                                    <input
-                                        type="number"
-                                        value={flashSpendAmount}
-                                        onChange={(e) => setFlashSpendAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        className="w-full border-2 border-ink p-3 pl-8 font-mono font-bold outline-none focus:shadow-neo-sm transition-shadow"
-                                    />
-                                </div>
+                    <form onSubmit={handleFlashSpend} className="p-6 md:p-8 space-y-8 flex-1 flex flex-col">
+                        {/* Hero Amount Input */}
+                        <div className="text-center relative">
+                            <label className="block text-xs font-black uppercase text-ink/40 mb-2 tracking-widest">Amount</label>
+                            <div className="relative inline-block w-full max-w-xs">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={flashSpendAmount}
+                                    onChange={(e) => setFlashSpendAmount(e.target.value)}
+                                    placeholder="0.00"
+                                    className="w-full text-center text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
+                                    autoFocus
+                                />
+                                <span className="absolute top-1/2 -translate-y-1/2 -left-8 text-4xl text-ink/20 font-black">
+                                    {currencySymbol}
+                                </span>
                             </div>
-                            <div className="flex-1">
-                                <label className="block text-xs font-black uppercase mb-1 text-gray-500">Category</label>
+                        </div>
+
+                        {/* Grid Inputs */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                            <div className="bg-gray-50 p-4 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-pink">
+                                <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
+                                    <Tag className="w-3 h-3" /> Category
+                                </label>
                                 <select
                                     value={flashSpendCategory}
                                     onChange={(e) => setFlashSpendCategory(e.target.value)}
-                                    className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow bg-white"
+                                    className="w-full bg-transparent font-bold text-lg md:text-xl appearance-none cursor-pointer focus:outline-none text-ink truncate"
                                 >
-                                    <option value="Food">Food</option>
-                                    <option value="Transport">Transport</option>
-                                    <option value="Leisure">Leisure</option>
-                                    <option value="Shopping">Shopping</option>
-                                    <option value="Bills">Bills</option>
-                                    <option value="Investment">Investment</option>
-                                    <option value="Other">Other</option>
+                                    <option>Food</option>
+                                    <option>Transport</option>
+                                    <option>Shopping</option>
+                                    <option>Entertainment</option>
+                                    <option>Bills</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+
+                            <div className="bg-gray-50 p-4 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-pink">
+                                <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
+                                    <Wallet className="w-3 h-3" /> Wallet
+                                </label>
+                                <select
+                                    value={flashSpendWalletId || (accounts[0]?.id || '')}
+                                    onChange={(e) => setFlashSpendWalletId(e.target.value)}
+                                    className="w-full bg-transparent font-bold text-lg md:text-xl appearance-none cursor-pointer focus:outline-none text-ink truncate"
+                                >
+                                    {accounts.map((acc) => (
+                                        <option key={acc.id} value={acc.id}>
+                                            {acc.name} ({currencySymbol}{acc.balance.toFixed(2)})
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-black uppercase mb-1 text-gray-500">Wallet</label>
-                            <select
-                                value={flashSpendWalletId || (accounts[0]?.id || '')}
-                                onChange={(e) => setFlashSpendWalletId(e.target.value)}
-                                className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow bg-white"
-                            >
-                                {accounts.map(acc => (
-                                    <option key={acc.id} value={acc.id}>
-                                        {acc.name} ({currencySymbol}{acc.balance.toFixed(2)})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="flex gap-2">
+
+                        {/* Spacer to push buttons to bottom if needed */}
+                        <div className="flex-1"></div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col md:flex-row gap-4 pt-4">
                             <button
                                 type="submit"
-                                className="flex-1 bg-ink text-white p-3 border-2 border-transparent hover:bg-banky-pink hover:border-ink hover:text-white font-black uppercase transition-all shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1"
+                                disabled={!flashSpendAmount}
+                                className="flex-[2] bg-ink text-white border-2 border-ink rounded-xl px-6 py-4 shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all font-black uppercase text-base md:text-lg flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                             >
-                                Blast It!
+                                <span>Blast It!</span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowVoiceInput(true)}
-                                className="w-12 bg-gradient-to-br from-banky-purple to-banky-pink text-white p-3 border-2 border-ink font-black transition-all shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 flex items-center justify-center"
-                                title="Voice Input"
-                            >
-                                <Mic className="w-5 h-5" />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowReceiptScanner(true)}
-                                className="w-12 bg-gradient-to-br from-banky-green to-banky-blue text-ink p-3 border-2 border-ink font-black transition-all shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 flex items-center justify-center"
-                                title="Scan Receipt"
-                            >
-                                <Camera className="w-5 h-5" />
-                            </button>
+
+                            <div className="flex gap-3 flex-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowVoiceInput(true)}
+                                    className="flex-1 bg-white border-2 border-ink rounded-xl shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all flex items-center justify-center p-3 group text-banky-purple"
+                                    title="Voice Input"
+                                >
+                                    <Mic className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReceiptScanner(true)}
+                                    className="flex-1 bg-white border-2 border-ink rounded-xl shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all flex items-center justify-center p-3 group text-banky-green"
+                                    title="Scan Receipt"
+                                >
+                                    <Camera className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                </button>
+                            </div>
                         </div>
                     </form>
                 ) : (
-                    <form onSubmit={handleFlashEarn} className="flex flex-col gap-4">
-                        <div className="flex gap-4 items-end">
-                            <div className="flex-1">
-                                <label className="block text-xs font-black uppercase mb-1 text-gray-500">Amount</label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-3 font-bold text-gray-400">{currencySymbol}</span>
-                                    <input
-                                        type="number"
-                                        value={flashEarnAmount}
-                                        onChange={(e) => setFlashEarnAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        className="w-full border-2 border-ink p-3 pl-8 font-mono font-bold outline-none focus:shadow-neo-sm transition-shadow"
-                                    />
-                                </div>
+                    <form onSubmit={handleFlashEarn} className="p-6 md:p-8 space-y-8 flex-1 flex flex-col">
+                        {/* Hero Amount Input */}
+                        <div className="text-center relative">
+                            <label className="block text-xs font-black uppercase text-ink/40 mb-2 tracking-widest">Amount</label>
+                            <div className="relative inline-block w-full max-w-xs">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={flashEarnAmount}
+                                    onChange={(e) => setFlashEarnAmount(e.target.value)}
+                                    placeholder="0.00"
+                                    className="w-full text-center text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
+                                    autoFocus
+                                />
+                                <span className="absolute top-1/2 -translate-y-1/2 -left-8 text-4xl text-ink/20 font-black">
+                                    {currencySymbol}
+                                </span>
                             </div>
-                            <div className="flex-1">
-                                <label className="block text-xs font-black uppercase mb-1 text-gray-500">Source</label>
+                        </div>
+
+                        {/* Grid Inputs */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                            <div className="bg-gray-50 p-4 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-green">
+                                <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
+                                    <Tag className="w-3 h-3" /> Source
+                                </label>
                                 <select
                                     value={flashEarnSource}
                                     onChange={(e) => setFlashEarnSource(e.target.value)}
-                                    className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow bg-white"
+                                    className="w-full bg-transparent font-bold text-lg md:text-xl appearance-none cursor-pointer focus:outline-none text-ink truncate"
                                 >
-                                    <option value="Salary">Salary</option>
-                                    <option value="Freelance">Freelance</option>
-                                    <option value="Investment">Investment Returns</option>
-                                    <option value="Gift">Gift</option>
-                                    <option value="Other">Other</option>
+                                    <option>Salary</option>
+                                    <option>Freelance</option>
+                                    <option>Investment</option>
+                                    <option>Gift</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+
+                            <div className="bg-gray-50 p-4 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-green">
+                                <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
+                                    <Wallet className="w-3 h-3" /> Wallet
+                                </label>
+                                <select
+                                    value={flashEarnWalletId || (accounts[0]?.id || '')}
+                                    onChange={(e) => setFlashEarnWalletId(e.target.value)}
+                                    className="w-full bg-transparent font-bold text-lg md:text-xl appearance-none cursor-pointer focus:outline-none text-ink truncate"
+                                >
+                                    {accounts.map((acc) => (
+                                        <option key={acc.id} value={acc.id}>
+                                            {acc.name} ({currencySymbol}{acc.balance.toFixed(2)})
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-black uppercase mb-1 text-gray-500">Wallet</label>
-                            <select
-                                value={flashEarnWalletId || (accounts[0]?.id || '')}
-                                onChange={(e) => setFlashEarnWalletId(e.target.value)}
-                                className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow bg-white"
-                            >
-                                {accounts.map(acc => (
-                                    <option key={acc.id} value={acc.id}>
-                                        {acc.name} ({currencySymbol}{acc.balance.toFixed(2)})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="flex gap-2">
+
+                        {/* Spacer */}
+                        <div className="flex-1"></div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col md:flex-row gap-4 pt-4">
                             <button
                                 type="submit"
-                                className="flex-1 bg-ink text-white p-3 border-2 border-transparent hover:bg-banky-green hover:border-ink hover:text-ink font-black uppercase transition-all shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1"
+                                disabled={!flashEarnAmount}
+                                className="flex-[2] bg-banky-green text-ink border-2 border-ink rounded-xl px-6 py-4 shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all font-black uppercase text-base md:text-lg flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                             >
-                                Secure It!
+                                <span>Income!</span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowVoiceInput(true)}
-                                className="w-12 bg-gradient-to-br from-banky-purple to-banky-pink text-white p-3 border-2 border-ink font-black transition-all shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 flex items-center justify-center"
-                                title="Voice Input"
-                            >
-                                <Mic className="w-5 h-5" />
-                            </button>
+
+                            <div className="flex gap-3 flex-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowVoiceInput(true)}
+                                    className="flex-1 bg-white border-2 border-ink rounded-xl shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all flex items-center justify-center p-3 group text-banky-purple"
+                                    title="Voice Input"
+                                >
+                                    <Mic className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReceiptScanner(true)}
+                                    className="flex-1 bg-white border-2 border-ink rounded-xl shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all flex items-center justify-center p-3 group text-banky-green"
+                                    title="Scan Receipt"
+                                >
+                                    <Camera className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                </button>
+                            </div>
                         </div>
                     </form>
                 )}
             </div>
 
-            {/* Voice Input Modal */}
+            {/* Modals */}
             {showVoiceInput && (
                 <VoiceInput
                     onClose={() => setShowVoiceInput(false)}
-                    defaultAccountId={quickAddTab === 'spend' ? flashSpendWalletId || accounts[0]?.id : flashEarnWalletId || accounts[0]?.id}
+                    defaultAccountId={accounts[0]?.id}
                 />
             )}
 
-            {/* Receipt Scanner Modal */}
             {showReceiptScanner && (
                 <ReceiptScanner
                     onClose={() => setShowReceiptScanner(false)}
-                    defaultAccountId={quickAddTab === 'spend' ? flashSpendWalletId || accounts[0]?.id : flashEarnWalletId || accounts[0]?.id}
+                    defaultAccountId={accounts[0]?.id}
                 />
             )}
         </div>

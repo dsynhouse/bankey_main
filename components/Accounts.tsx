@@ -57,15 +57,28 @@ const Accounts: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20 font-sans">
-      <div className="flex flex-wrap gap-4 justify-between items-end border-b-4 border-ink pb-4">
-        <div>
-          <h1 className="text-4xl sm:text-5xl font-black text-ink uppercase italic tracking-tighter font-display">Wallets</h1>
-          <p className="text-gray-500 font-bold mt-2">Stash your cash.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white border-4 border-ink p-6 md:p-8 shadow-neo rounded-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-banky-green rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 bg-banky-green border-2 border-ink rounded-lg flex items-center justify-center shadow-sm">
+              <Wallet className="w-5 h-5 text-ink" />
+            </div>
+            <p className="font-black text-ink/40 uppercase tracking-widest text-sm font-display">Accounts</p>
+          </div>
+          <h1 className="text-5xl font-black italic text-ink font-display leading-[0.9] mb-2">
+            Wallets
+          </h1>
+          <p className="font-bold text-gray-500">Stash your cash.</p>
         </div>
-        <button onClick={() => setShowAdd(!showAdd)} className={`border-2 border-ink px-4 sm:px-6 py-2 sm:py-3 font-black uppercase flex items-center gap-2 shadow-neo transition-all font-display text-xs sm:text-sm ${showAdd ? 'bg-red-500 text-white' : 'bg-banky-yellow text-ink hover:-translate-y-1'}`}>
-          {showAdd ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Plus className="w-4 h-4 sm:w-5 sm:h-5" />}
-          {showAdd ? 'Cancel' : 'Add Wallet'}
-        </button>
+
+        <div className="relative z-10">
+          <button onClick={() => setShowAdd(!showAdd)} className={`border-2 border-ink px-6 py-3 font-black uppercase flex items-center gap-2 shadow-neo transition-all font-display text-sm rounded-xl ${showAdd ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-banky-yellow text-ink hover:bg-yellow-400 hover:-translate-y-1 hover:shadow-neo-lg'}`}>
+            {showAdd ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+            {showAdd ? 'Cancel' : 'Add Wallet'}
+          </button>
+        </div>
       </div>
 
       {showAdd && (

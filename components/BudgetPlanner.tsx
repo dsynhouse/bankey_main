@@ -59,13 +59,24 @@ const BudgetPlanner: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20 font-sans">
-      <div className="flex flex-col md:flex-row justify-between items-end border-b-4 border-ink pb-4 gap-4">
-        <div>
-          <h1 className="text-5xl font-black text-ink uppercase italic tracking-tighter font-display">The Limit</h1>
-          <p className="text-gray-500 font-bold mt-2">Don't blow the bag in one place.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white border-4 border-ink p-6 md:p-8 shadow-neo rounded-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-banky-pink rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 bg-banky-pink border-2 border-ink rounded-lg flex items-center justify-center shadow-sm">
+              <TrendingUp className="w-5 h-5 text-ink" />
+            </div>
+            <p className="font-black text-ink/40 uppercase tracking-widest text-sm font-display">Budgets</p>
+          </div>
+          <h1 className="text-5xl font-black italic text-ink font-display leading-[0.9] mb-2">
+            The Limit
+          </h1>
+          <p className="font-bold text-gray-500">Don't blow the bag in one place.</p>
         </div>
-        <div className="hidden md:block">
-          <Mascot className="w-20 h-20" mood={mascotMood} />
+
+        <div className="relative z-10 hidden md:block">
+          <Mascot className="w-24 h-24" mood={mascotMood} />
         </div>
       </div>
 

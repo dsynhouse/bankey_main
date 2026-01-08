@@ -3,7 +3,7 @@ import { useBanky } from '../context/useBanky';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateNetBalances, simplifyDebts } from '../services/billSplitterService';
 import AddExpenseModal from './AddExpenseModal';
-import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus, Trash2 } from 'lucide-react';
+import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus, Trash2, X } from 'lucide-react';
 import { Member } from '../types';
 
 const BillSplitter: React.FC = () => {
@@ -11,25 +11,6 @@ const BillSplitter: React.FC = () => {
     const { currency } = usePreferences();
     const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
     const [showAddExpense, setShowAddExpense] = useState(false);
-
-    // ... (state)
-
-    // ... (handlers)
-
-    const handleDeleteGroup = async () => {
-        if (!activeGroup) return;
-        if (confirm(`Are you sure you want to delete the group "${activeGroup.name}"? This cannot be undone.`)) {
-            await deleteGroup(activeGroup.id);
-            setActiveGroupId(null); // Reset selection
-        }
-    };
-
-    const handleDeleteExpense = async (expenseId: string) => {
-        if (!activeGroup) return;
-        if (confirm("Are you sure you want to delete this expense?")) {
-            await deleteExpense(activeGroup.id, expenseId);
-        }
-    };
 
     // Group Creation State
     const [newGroupName, setNewGroupName] = useState('');
@@ -46,9 +27,6 @@ const BillSplitter: React.FC = () => {
     const activeGroup = groups.find(g => g.id === effectiveActiveGroupId);
     const netBalances = activeGroup ? calculateNetBalances(activeGroup.members, activeGroup.expenses) : {};
     const simplifiedDebts = activeGroup ? simplifyDebts(netBalances) : [];
-
-    // Auto-select first group or prompt to create
-    // Auto-select first group or prompt to create - Logic handled via derived state below
 
     const handleAddCustomMember = () => {
         if (!newMemberName) return;
@@ -103,17 +81,32 @@ const BillSplitter: React.FC = () => {
         }
     };
 
+    const handleDeleteGroup = async () => {
+        if (!activeGroup) return;
+        if (confirm(`Are you sure you want to delete the group "${activeGroup.name}"? This cannot be undone.`)) {
+            await deleteGroup(activeGroup.id);
+            setActiveGroupId(null); // Reset selection
+        }
+    };
+
+    const handleDeleteExpense = async (expenseId: string) => {
+        if (!activeGroup) return;
+        if (confirm("Are you sure you want to delete this expense?")) {
+            await deleteExpense(activeGroup.id, expenseId);
+        }
+    };
+
     if (groups.length === 0 && !isCreatingGroup) {
         return (
-            <div className="bg-white border-2 border-ink shadow-neo p-8 text-center animate-fade-in">
-                <div className="bg-banky-purple text-white w-16 h-16 mx-auto flex items-center justify-center border-2 border-ink shadow-neo-sm mb-4 transform -rotate-3">
+            <div className="bg-white border-2 border-ink shadow-neo p-8 text-center animate-fade-in rounded-xl">
+                <div className="bg-banky-purple text-white w-16 h-16 mx-auto flex items-center justify-center border-2 border-ink shadow-neo-sm mb-4 transform -rotate-3 rounded-xl">
                     <Users className="w-8 h-8" />
                 </div>
                 <h2 className="text-2xl font-black uppercase font-display text-ink mb-2">Squad Goals</h2>
                 <p className="text-gray-600 font-bold mb-6">Split bills, track IOUs, and keep the friendship drama-free.</p>
                 <button
                     onClick={() => setIsCreatingGroup(true)}
-                    className="bg-banky-green border-2 border-ink px-6 py-3 font-black uppercase shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                    className="bg-banky-green border-2 border-ink px-6 py-3 font-black uppercase shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all rounded-xl"
                 >
                     Start a Group
                 </button>
@@ -123,80 +116,102 @@ const BillSplitter: React.FC = () => {
 
     if (isCreatingGroup) {
         return (
-            <div className="bg-white border-2 border-ink shadow-neo p-6 animate-fade-in max-w-2xl mx-auto">
-                <h3 className="text-xl font-black uppercase font-display mb-4 border-b-2 border-gray-100 pb-2">Create New Squad</h3>
+            <div className="bg-white border-4 border-ink shadow-neo p-8 animate-fade-in max-w-3xl mx-auto relative rounded-xl">
+                <button
+                    onClick={() => setIsCreatingGroup(false)}
+                    className="absolute top-4 right-4 p-2 text-gray-400 hover:text-ink hover:bg-gray-100 rounded-full transition-colors"
+                >
+                    <X className="w-6 h-6" />
+                </button>
 
-                <div className="space-y-6">
-                    <div>
-                        <label className="block text-xs font-black uppercase mb-1 text-gray-500">Group Name</label>
+                <div className="text-center mb-10">
+                    <div className="w-16 h-16 bg-banky-purple text-white mx-auto flex items-center justify-center border-2 border-ink shadow-neo-sm transform -rotate-3 mb-4 rounded-xl">
+                        <Users className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-2xl font-black uppercase font-display tracking-widest text-ink">New Squad</h3>
+                    <p className="text-gray-500 font-bold mt-2">Create a space to split bills & track IOUs.</p>
+                </div>
+
+                <div className="space-y-8">
+                    {/* Group Name input */}
+                    <div className="bg-gray-50 p-6 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-purple">
+                        <label className="block text-xs font-black uppercase mb-3 text-ink/50 tracking-wider">Squad Name</label>
                         <input
                             autoFocus
                             value={newGroupName}
                             onChange={e => setNewGroupName(e.target.value)}
-                            placeholder="e.g. Roommates, Trip to Vegas"
-                            className="w-full border-2 border-ink p-3 font-bold outline-none focus:shadow-neo-sm transition-shadow text-lg"
+                            placeholder="e.g. Vegas Trip 🎲"
+                            className="w-full bg-transparent font-black text-3xl outline-none text-ink placeholder-gray-300"
                         />
                     </div>
 
-                    <div className="bg-gray-50 p-4 border-2 border-gray-200 rounded-lg">
-                        <h4 className="font-black uppercase text-sm mb-3 flex items-center gap-2">
-                            <UserPlus className="w-4 h-4" /> Add Members
+                    {/* Members Section */}
+                    <div className="bg-white p-6 border-2 border-ink rounded-xl">
+                        <h4 className="font-black uppercase text-sm mb-6 flex items-center gap-2 text-ink/70 border-b-2 border-gray-100 pb-2">
+                            <UserPlus className="w-4 h-4" /> Squad Members
                         </h4>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+                        {/* Add Member Inputs */}
+                        <div className="flex flex-col md:flex-row gap-3 mb-6">
                             <input
                                 value={newMemberName}
                                 onChange={e => setNewMemberName(e.target.value)}
                                 placeholder="Name"
-                                className="border-2 border-gray-300 p-2 font-bold text-sm focus:border-ink outline-none"
+                                className="flex-[2] border-2 border-gray-200 p-3 font-bold focus:border-ink outline-none rounded-xl focus:shadow-sm"
                             />
                             <input
                                 value={newMemberEmail}
                                 onChange={e => setNewMemberEmail(e.target.value)}
                                 placeholder="Email (Optional)"
-                                className="border-2 border-gray-300 p-2 font-bold text-sm focus:border-ink outline-none"
+                                className="flex-[2] border-2 border-gray-200 p-3 font-bold focus:border-ink outline-none rounded-xl focus:shadow-sm"
                             />
                             <button
                                 type="button"
                                 onClick={handleAddCustomMember}
                                 disabled={!newMemberName}
-                                className="bg-white border-2 border-ink font-black uppercase text-xs hover:bg-banky-yellow disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 bg-ink text-white font-black uppercase text-xs hover:bg-banky-yellow hover:text-ink hover:border-ink transition-all px-4 py-3 rounded-xl border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Add Member
+                                Add +
                             </button>
                         </div>
 
                         {/* Member List Preview */}
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm font-bold text-gray-500">
-                                <div className="w-6 h-6 bg-banky-green text-white flex items-center justify-center rounded-full text-xs">Y</div>
-                                You (Admin)
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="flex items-center gap-3 bg-banky-green/10 p-3 border-2 border-banky-green rounded-lg">
+                                <div className="w-8 h-8 bg-banky-green text-white flex items-center justify-center rounded-full text-xs font-black border border-ink">Y</div>
+                                <span className="font-black text-sm">You (Admin)</span>
                             </div>
                             {customMembers.map((m, idx) => (
-                                <div key={idx} className="flex items-center justify-between bg-white p-2 border border-gray-200">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 bg-banky-purple text-white flex items-center justify-center rounded-full text-xs">{m.name[0]}</div>
-                                        <span className="font-bold text-sm">{m.name}</span>
+                                <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 border-2 border-gray-200 rounded-lg group hover:border-ink transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-banky-purple text-white flex items-center justify-center rounded-full text-xs font-black border border-ink">{m.name[0]}</div>
+                                        <div>
+                                            <span className="font-bold text-sm block leading-none">{m.name}</span>
+                                            {m.email && <span className="text-[10px] text-gray-400 font-mono">{m.email}</span>}
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2 text-xs text-gray-400">
-                                        {m.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {m.email}</span>}
-                                    </div>
+                                    <button
+                                        onClick={() => setCustomMembers(customMembers.filter((_, i) => i !== idx))}
+                                        className="text-gray-300 hover:text-red-500 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-4 pt-4 border-t-2 border-gray-100">
                         <button
                             onClick={handleCreateGroup}
                             disabled={!newGroupName}
-                            className="flex-1 bg-ink text-white py-3 font-black uppercase border-2 border-transparent hover:bg-banky-green hover:text-ink hover:border-ink transition-colors disabled:opacity-50"
+                            className="flex-[2] bg-ink text-white py-4 font-black text-lg uppercase border-2 border-ink shadow-neo hover:bg-banky-green hover:text-ink hover:translate-x-1 transition-all disabled:opacity-50 disabled:shadow-none rounded-xl"
                         >
                             Create Squad
                         </button>
                         <button
                             onClick={() => setIsCreatingGroup(false)}
-                            className="px-6 font-bold text-gray-500 hover:text-ink uppercase"
+                            className="flex-1 py-4 font-bold text-gray-400 hover:text-ink uppercase border-2 border-transparent hover:bg-gray-50 rounded-xl transition-all"
                         >
                             Cancel
                         </button>
@@ -209,7 +224,7 @@ const BillSplitter: React.FC = () => {
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header / Group Selector */}
-            <div className="flex flex-wrap gap-3 justify-between items-center bg-white border-2 border-ink p-3 sm:p-4 shadow-neo">
+            <div className="flex flex-wrap gap-3 justify-between items-center bg-white border-2 border-ink p-3 sm:p-4 shadow-neo rounded-xl">
                 <div className="flex items-center gap-2 min-w-0">
                     <Users className="w-5 h-5 sm:w-6 sm:h-6 text-banky-purple flex-shrink-0" />
                     <select
@@ -224,7 +239,7 @@ const BillSplitter: React.FC = () => {
                     {activeGroup && (
                         <button
                             onClick={handleDeleteGroup}
-                            className="bg-white border-2 border-red-500 text-red-500 px-2 sm:px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-xs flex items-center justify-center"
+                            className="bg-white border-2 border-red-500 text-red-500 px-2 sm:px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-xs flex items-center justify-center rounded-xl"
                             title="Delete Group"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -232,13 +247,13 @@ const BillSplitter: React.FC = () => {
                     )}
                     <button
                         onClick={() => setIsCreatingGroup(true)}
-                        className="bg-white border-2 border-ink px-2 sm:px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-[10px] sm:text-xs whitespace-nowrap"
+                        className="bg-white border-2 border-ink px-2 sm:px-3 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-[10px] sm:text-xs whitespace-nowrap rounded-xl"
                     >
                         New Group
                     </button>
                     <button
                         onClick={() => setShowAddExpense(true)}
-                        className="bg-banky-yellow border-2 border-ink px-2 sm:px-4 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm whitespace-nowrap"
+                        className="bg-banky-yellow border-2 border-ink px-2 sm:px-4 py-2 font-black uppercase shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm whitespace-nowrap rounded-xl"
                     >
                         <Plus className="w-3 h-3 sm:w-4 sm:h-4" /> Add Expense
                     </button>
@@ -255,7 +270,7 @@ const BillSplitter: React.FC = () => {
                         const owes = bal < -0.01;
 
                         return (
-                            <div key={member.id} className="flex justify-between items-center bg-white border-2 border-ink p-3 shadow-sm group">
+                            <div key={member.id} className="flex justify-between items-center bg-white border-2 border-ink p-3 shadow-sm group rounded-xl">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-8 h-8 flex items-center justify-center font-black text-white border-2 border-ink ${isOwed ? 'bg-banky-green' : owes ? 'bg-banky-pink' : 'bg-gray-300'}`}>
                                         {member.name[0]}
@@ -292,7 +307,7 @@ const BillSplitter: React.FC = () => {
                                 const toName = activeGroup?.members.find(m => m.id === debt.to)?.name;
 
                                 return (
-                                    <div key={idx} className="bg-white border-2 border-ink p-4 shadow-neo-sm flex justify-between items-center relative overflow-hidden group">
+                                    <div key={idx} className="bg-white border-2 border-ink p-4 shadow-neo-sm flex justify-between items-center relative overflow-hidden group rounded-xl">
                                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-banky-pink"></div>
                                         <div>
                                             <p className="font-bold text-sm text-gray-500 mb-1">
@@ -302,7 +317,7 @@ const BillSplitter: React.FC = () => {
                                         </div>
                                         <button
                                             onClick={() => handleSettle(debt)}
-                                            className="bg-ink text-white px-3 py-1 text-xs font-black uppercase border-2 border-transparent hover:bg-banky-green hover:text-ink hover:border-ink transition-colors"
+                                            className="bg-ink text-white px-3 py-1 text-xs font-black uppercase border-2 border-transparent hover:bg-banky-green hover:text-ink hover:border-ink transition-colors rounded-lg"
                                         >
                                             Settle
                                         </button>
@@ -314,26 +329,28 @@ const BillSplitter: React.FC = () => {
                 </div>
             </div>
 
-            {/* Recent Expenses List */}
+            {/* Recent Expenses List - Floating Cards */}
             <div className="mt-8">
-                <h3 className="text-lg font-black uppercase font-display text-gray-500 border-b-2 border-gray-200 pb-2 mb-4">Recent Expenses</h3>
-                <div className="space-y-2">
+                <h3 className="text-lg font-black uppercase font-display text-gray-500 border-b-2 border-gray-200 pb-2 mb-6">Recent Expenses</h3>
+                <div className="space-y-4">
                     {activeGroup?.expenses.slice().reverse().map(exp => (
-                        <div key={exp.id} className="flex justify-between items-center bg-gray-50 border-b border-gray-200 p-3 hover:bg-white transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-white border-2 border-ink p-1 shadow-sm">
-                                    <Receipt className="w-4 h-4 text-gray-500" />
+                        <div key={exp.id} className="flex justify-between items-center bg-white border-2 border-ink p-4 shadow-neo hover:shadow-neo-lg hover:-translate-y-0.5 transition-all rounded-xl group">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-banky-yellow border-2 border-ink p-3 shadow-neo-sm transform -rotate-2 group-hover:rotate-0 transition-transform rounded-xl">
+                                    <Receipt className="w-5 h-5 text-ink" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-ink">{exp.description}</p>
-                                    <p className="text-xs text-gray-500">Paid by {activeGroup.members.find(m => m.id === exp.paidBy)?.name}</p>
+                                    <p className="font-black text-ink text-lg">{exp.description}</p>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
+                                        Paid by <span className="text-banky-purple">{activeGroup.members.find(m => m.id === exp.paidBy)?.name}</span>
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <span className="font-mono font-bold text-ink">{currency.symbol}{exp.amount.toFixed(2)}</span>
+                            <div className="flex items-center gap-4">
+                                <span className="font-black text-2xl text-ink font-display">{currency.symbol}{exp.amount.toFixed(2)}</span>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleDeleteExpense(exp.id); }}
-                                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                    className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100"
                                     title="Delete Expense"
                                 >
                                     <Trash2 className="w-4 h-4" />
@@ -342,7 +359,13 @@ const BillSplitter: React.FC = () => {
                         </div>
                     ))}
                     {activeGroup?.expenses.length === 0 && (
-                        <p className="text-center text-gray-400 text-sm italic py-4">No expenses yet.</p>
+                        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 flex flex-col items-center gap-3">
+                            <Receipt className="w-12 h-12 text-gray-300" />
+                            <p className="text-gray-400 font-bold">No expenses yet.</p>
+                            <button onClick={() => setShowAddExpense(true)} className="text-banky-purple font-black uppercase text-xs hover:underline">
+                                + Add First Expense
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
