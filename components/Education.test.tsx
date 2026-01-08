@@ -3,8 +3,7 @@
  * Tests lesson handlers, processResult logic, and mercy rule
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react'; ",
-    < parameter name = "StartLine" > 6
+import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 
