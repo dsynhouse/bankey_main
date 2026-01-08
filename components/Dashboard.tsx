@@ -200,14 +200,14 @@ const Dashboard: React.FC = () => {
             <SEO title="Home" />
 
             {/* Redesigned Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white border-4 border-ink p-6 md:p-8 shadow-neo rounded-xl relative overflow-hidden">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white border-4 border-ink p-5 md:p-6 shadow-neo rounded-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-banky-yellow rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
                 <div className="relative z-10">
-                    <p className="font-black text-ink/40 uppercase tracking-widest text-sm mb-2 font-display">
+                    <p className="font-black text-ink/40 uppercase tracking-widest text-xs mb-2 font-display">
                         {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                     </p>
-                    <h1 className="text-3xl md:text-6xl font-black italic text-ink font-display leading-[0.9]">
+                    <h1 className="text-2xl md:text-5xl font-black italic text-ink font-display leading-[0.9]">
                         Good Afternoon, <span className="text-transparent bg-clip-text bg-gradient-to-r from-banky-purple to-banky-pink">
                             {user?.name?.split(' ')[0] || 'Saver'}
                         </span>
