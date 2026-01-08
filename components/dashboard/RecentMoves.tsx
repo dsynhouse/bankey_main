@@ -1,23 +1,31 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Clock, ArrowUpRight, ArrowDownRight, Trash2 } from 'lucide-react';
 import { Transaction, Currency } from '../../types';
 
 interface RecentMovesProps {
     transactions: Transaction[];
     currency: Currency;
+    onDelete?: (id: string) => void;
 }
 
 /**
  * RecentMoves component displays the most recent transactions.
  * Extracted from Dashboard for better maintainability.
  */
-const RecentMoves: React.FC<RecentMovesProps> = ({ transactions, currency }) => {
+const RecentMoves: React.FC<RecentMovesProps> = ({ transactions, currency, onDelete }) => {
     const recentTransactions = transactions.slice(0, 4);
 
     const formatCurrency = (value: number) => {
         return `${currency.symbol}${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };
+
+    const handleDelete = (e: React.MouseEvent, id: string) => {
+        e.preventDefault(); // Prevent default if wrapped in something, though div isn't a link
+        if (confirm("Are you sure you want to delete this transaction?")) {
+            onDelete?.(id);
+        }
+    }
 
     return (
         <div className="bg-white border-4 border-ink p-6 shadow-neo h-full flex flex-col">
@@ -33,7 +41,7 @@ const RecentMoves: React.FC<RecentMovesProps> = ({ transactions, currency }) => 
                     recentTransactions.map(t => (
                         <div
                             key={t.id}
-                            className="flex items-center justify-between p-3 border-2 border-gray-100 hover:border-ink hover:bg-gray-50 transition-colors group"
+                            className="flex items-center justify-between p-3 border-2 border-gray-100 hover:border-ink hover:bg-gray-50 transition-colors group relative pr-10"
                         >
                             <div className="flex items-center gap-3">
                                 <div className={`p-2 rounded-full border-2 border-ink ${t.type === 'expense' ? 'bg-banky-pink text-white' : 'bg-banky-green text-ink'
@@ -50,10 +58,21 @@ const RecentMoves: React.FC<RecentMovesProps> = ({ transactions, currency }) => 
                                     </p>
                                 </div>
                             </div>
-                            <span className={`font-black font-mono ${t.type === 'expense' ? 'text-banky-pink' : 'text-banky-green'
-                                }`}>
-                                {t.type === 'expense' ? '-' : '+'}{formatCurrency(t.amount)}
-                            </span>
+                            <div className="flex items-center gap-3">
+                                <span className={`font-black font-mono ${t.type === 'expense' ? 'text-banky-pink' : 'text-banky-green'
+                                    }`}>
+                                    {t.type === 'expense' ? '-' : '+'}{formatCurrency(t.amount)}
+                                </span>
+                                {onDelete && (
+                                    <button
+                                        onClick={(e) => handleDelete(e, t.id)}
+                                        className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                                        title="Delete Transaction"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     ))
                 )}
