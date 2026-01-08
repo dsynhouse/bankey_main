@@ -94,7 +94,7 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
     return (
         <div className="bg-white border-4 border-ink shadow-neo h-full flex flex-col">
             {/* Header with Segmented Control */}
-            <div className="p-6 md:p-8 border-b-4 border-ink bg-gray-50/50">
+            <div className="p-4 md:p-6 border-b-4 border-ink bg-gray-50/50">
                 <div className="flex bg-white p-1.5 border-2 border-ink rounded-xl shadow-neo-sm max-w-md mx-auto relative">
                     {/* Animated pill background could be added here for extra polish */}
                     <button
@@ -123,12 +123,12 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col">
                 {quickAddTab === 'spend' ? (
-                    <form onSubmit={handleFlashSpend} className="p-6 md:p-8 space-y-8 flex-1 flex flex-col">
+                    <form onSubmit={handleFlashSpend} className="p-5 md:p-6 space-y-6 flex-1 flex flex-col">
                         {/* Hero Amount Input */}
                         <div className="text-center relative">
                             <label className="block text-xs font-black uppercase text-ink/40 mb-2 tracking-widest">Amount</label>
                             <div className="flex items-center justify-center gap-1">
-                                <span className="text-4xl text-ink/40 font-black mb-2">
+                                <span className="text-3xl text-ink/40 font-black mb-2">
                                     {currencySymbol}
                                 </span>
                                 <input
@@ -139,22 +139,22 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                                     value={flashSpendAmount}
                                     onChange={(e) => setFlashSpendAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className="text-left text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
+                                    className="text-left text-4xl md:text-5xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
                                     style={{ width: `${Math.max(5, flashSpendAmount.length + 1)}ch` }}
                                 />
                             </div>
                         </div>
 
                         {/* Grid Inputs */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                            <div className="bg-gray-50 p-4 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-pink">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                            <div className="bg-gray-50 p-3 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-pink">
                                 <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
                                     <Tag className="w-3 h-3" /> Category
                                 </label>
                                 <select
                                     value={flashSpendCategory}
                                     onChange={(e) => setFlashSpendCategory(e.target.value)}
-                                    className="w-full bg-transparent font-bold text-lg md:text-xl appearance-none cursor-pointer focus:outline-none text-ink truncate"
+                                    className="w-full bg-transparent font-bold text-base md:text-lg appearance-none cursor-pointer focus:outline-none text-ink truncate"
                                 >
                                     <option>Food</option>
                                     <option>Transport</option>
@@ -165,14 +165,14 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                                 </select>
                             </div>
 
-                            <div className="bg-gray-50 p-4 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-pink">
+                            <div className="bg-gray-50 p-3 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-pink">
                                 <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
                                     <Wallet className="w-3 h-3" /> Wallet
                                 </label>
                                 <select
                                     value={flashSpendWalletId || (accounts[0]?.id || '')}
                                     onChange={(e) => setFlashSpendWalletId(e.target.value)}
-                                    className="w-full bg-transparent font-bold text-lg md:text-xl appearance-none cursor-pointer focus:outline-none text-ink truncate"
+                                    className="w-full bg-transparent font-bold text-base md:text-lg appearance-none cursor-pointer focus:outline-none text-ink truncate"
                                 >
                                     {accounts.map((acc) => (
                                         <option key={acc.id} value={acc.id}>
@@ -186,11 +186,11 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
 
 
                         {/* Action Buttons */}
-                        <div className="flex flex-col md:flex-row gap-4 pt-4">
+                        <div className="flex flex-col md:flex-row gap-3 pt-3">
                             <button
                                 type="submit"
                                 disabled={!flashSpendAmount}
-                                className="flex-[2] bg-ink text-white border-2 border-ink rounded-xl px-6 py-4 shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all font-black uppercase text-base md:text-lg flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                className="flex-[2] bg-ink text-white border-2 border-ink rounded-xl px-5 py-3 shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all font-black uppercase text-sm md:text-base flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                             >
                                 <span>Blast It!</span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -217,12 +217,12 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                         </div>
                     </form>
                 ) : (
-                    <form onSubmit={handleFlashEarn} className="p-6 md:p-8 space-y-8 flex-1 flex flex-col">
+                    <form onSubmit={handleFlashEarn} className="p-5 md:p-6 space-y-6 flex-1 flex flex-col">
                         {/* Hero Amount Input */}
                         <div className="text-center relative">
                             <label className="block text-xs font-black uppercase text-ink/40 mb-2 tracking-widest">Amount</label>
                             <div className="flex items-center justify-center gap-1">
-                                <span className="text-4xl text-ink/40 font-black mb-2">
+                                <span className="text-3xl text-ink/40 font-black mb-2">
                                     {currencySymbol}
                                 </span>
                                 <input
@@ -233,22 +233,22 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                                     value={flashEarnAmount}
                                     onChange={(e) => setFlashEarnAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className="text-left text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
+                                    className="text-left text-4xl md:text-5xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
                                     style={{ width: `${Math.max(5, flashEarnAmount.length + 1)}ch` }}
                                 />
                             </div>
                         </div>
 
                         {/* Grid Inputs */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                            <div className="bg-gray-50 p-4 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-green">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                            <div className="bg-gray-50 p-3 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-green">
                                 <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
                                     <Tag className="w-3 h-3" /> Source
                                 </label>
                                 <select
                                     value={flashEarnSource}
                                     onChange={(e) => setFlashEarnSource(e.target.value)}
-                                    className="w-full bg-transparent font-bold text-lg md:text-xl appearance-none cursor-pointer focus:outline-none text-ink truncate"
+                                    className="w-full bg-transparent font-bold text-base md:text-lg appearance-none cursor-pointer focus:outline-none text-ink truncate"
                                 >
                                     <option>Salary</option>
                                     <option>Freelance</option>
@@ -258,14 +258,14 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                                 </select>
                             </div>
 
-                            <div className="bg-gray-50 p-4 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-green">
+                            <div className="bg-gray-50 p-3 border-2 border-ink shadow-neo-sm rounded-xl hover:shadow-neo transition-all group focus-within:ring-2 focus-within:ring-banky-green">
                                 <label className="flex items-center gap-2 text-xs font-black uppercase text-ink/50 mb-2">
                                     <Wallet className="w-3 h-3" /> Wallet
                                 </label>
                                 <select
                                     value={flashEarnWalletId || (accounts[0]?.id || '')}
                                     onChange={(e) => setFlashEarnWalletId(e.target.value)}
-                                    className="w-full bg-transparent font-bold text-lg md:text-xl appearance-none cursor-pointer focus:outline-none text-ink truncate"
+                                    className="w-full bg-transparent font-bold text-base md:text-lg appearance-none cursor-pointer focus:outline-none text-ink truncate"
                                 >
                                     {accounts.map((acc) => (
                                         <option key={acc.id} value={acc.id}>
@@ -279,11 +279,11 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
 
 
                         {/* Action Buttons */}
-                        <div className="flex flex-col md:flex-row gap-4 pt-4">
+                        <div className="flex flex-col md:flex-row gap-3 pt-3">
                             <button
                                 type="submit"
                                 disabled={!flashEarnAmount}
-                                className="flex-[2] bg-banky-green text-ink border-2 border-ink rounded-xl px-6 py-4 shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all font-black uppercase text-base md:text-lg flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                className="flex-[2] bg-banky-green text-ink border-2 border-ink rounded-xl px-5 py-3 shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all font-black uppercase text-sm md:text-base flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                             >
                                 <span>Income!</span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
