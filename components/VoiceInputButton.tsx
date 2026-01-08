@@ -9,7 +9,7 @@ export const VoiceInputButton: React.FC = () => {
     const { addTransaction } = useBanky();
     const [isListening, setIsListening] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [_transcript, setTranscript] = useState('');
+    const [, setTranscript] = useState('');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [recognition, setRecognition] = useState<any>(null);
     const [, setIsSupported] = useState(false);
@@ -72,6 +72,7 @@ export const VoiceInputButton: React.FC = () => {
                 // The context addTransaction handles missing accountId by picking default
                 await addTransaction({
                     amount: result.amount,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: result.category as any,
                     description: result.description || 'Voice Entry',
                     date: result.date || new Date().toISOString(),

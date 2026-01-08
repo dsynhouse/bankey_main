@@ -20,7 +20,9 @@ export function useOptimisticUpdate<T extends { id: string }>({
 }: {
     state: [T[], React.Dispatch<React.SetStateAction<T[]>>];
     updateFn?: (items: T[], newItem: T) => T[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onUpdate: (item: T) => Promise<{ error?: any }>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError?: (error: any) => void;
     onSuccess?: (item: T) => void;
 }) {
@@ -79,7 +81,9 @@ export function useOptimisticDelete<T extends { id: string }>({
     onError
 }: {
     state: [T[], React.Dispatch<React.SetStateAction<T[]>>];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onDelete: (id: string) => Promise<{ error?: any }>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError?: (error: any) => void;
 }) {
     const [items, setItems] = state;

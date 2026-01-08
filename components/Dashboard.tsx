@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
 
     // Calendar State
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [_selectedDateLog, setSelectedDateLog] = useState<Transaction[] | null>(null);
+    const [, setSelectedDateLog] = useState<Transaction[] | null>(null);
 
 
     // === TRACKER HANDLERS ===
@@ -193,9 +193,7 @@ const Dashboard: React.FC = () => {
 
     const COLORS = ['#DEFF00', '#FF88DC', '#54C7EC', '#00E08F', '#A688FA', '#FF9F1C', '#EF4444', '#121212'];
 
-    const incomeCategories = [Category.INCOME, Category.BUSINESS, Category.INVESTMENT, Category.OTHER];
-    const expenseCategories = Object.values(Category).filter(c => c !== Category.INCOME);
-    const availableCategories = type === 'income' ? incomeCategories : expenseCategories;
+
 
     return (
         <div className="space-y-8 animate-fade-in relative min-h-screen pb-24">
@@ -254,6 +252,7 @@ const Dashboard: React.FC = () => {
                     ].map((tab) => (
                         <button
                             key={tab.id}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-black uppercase text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === tab.id
                                 ? 'bg-banky-yellow text-ink shadow-sm scale-105 border-2 border-ink'

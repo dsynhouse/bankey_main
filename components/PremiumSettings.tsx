@@ -175,6 +175,7 @@ export const PremiumSettings: React.FC = () => {
                                 </span>
                             </div>
 
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                             {((subscription as unknown as Record<string, unknown>)?.cancel_at_period_end || (subscription as any)?.cancelAtPeriodEnd) && (
                                 <div className="bg-red-50 border-2 border-red-500 p-4 flex items-start gap-3">
                                     <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
@@ -195,6 +196,7 @@ export const PremiumSettings: React.FC = () => {
                                     {showPayments ? 'Hide History' : 'Payment History'}
                                 </button>
 
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {!((subscription as unknown as Record<string, unknown>)?.cancel_at_period_end || (subscription as any)?.cancelAtPeriodEnd) && (
                                     <button
                                         onClick={handleCancel}

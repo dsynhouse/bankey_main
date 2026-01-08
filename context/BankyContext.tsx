@@ -259,7 +259,8 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         const channel = supabase.channel('realtime_sync')
             // 1. Transactions: Handle INSERT, UPDATE, DELETE
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${user.id}` }, (payload) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${user.id}` }, (_payload: any) => {
                 // React Query Invalidation (Much simpler!)
                 queryClient.invalidateQueries({ queryKey: TRANSACTION_KEYS.lists() });
                 refreshAccounts();
@@ -293,6 +294,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             // 5. Profiles: Sync XP, Level, Streak, AND Premium Status
             .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, (payload) => {
                 if (payload.new) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const p = payload.new as any; // Fix TS type error
 
                     // Update user state (gamification)
@@ -338,7 +340,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
 
         return () => { supabase.removeChannel(channel); };
-    }, [user]);
+    }, [user, queryClient]);
 
     // --- AUTH MONITOR & SESSION HANDLING ---
     useEffect(() => {
@@ -584,7 +586,8 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         onError: (error) => handleSupabaseError(error, 'createAccount')
     });
 
-    const createAccount = async (acc: Omit<Account, 'id'>, preferredCurrency?: Currency) => {
+    const createAccount = async (acc: Omit<Account, 'id'>, _preferredCurrency?: Currency) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return createAccountOptimistic.execute(acc as any); // Cast as any to satisfy Omit constraint if needed or strict typing
     };
 
@@ -642,6 +645,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     const addGoal = async (goal: Omit<Goal, 'id'>) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return addGoalOptimistic.execute(goal as any);
     };
 

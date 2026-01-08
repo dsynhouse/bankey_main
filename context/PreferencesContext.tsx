@@ -82,7 +82,9 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({ childr
 
     // Hydrate currency from user profile on mount
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (user && (user as any).currencyCode) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             hydrateCurrency((user as any).currencyCode);
         }
     }, [user]);

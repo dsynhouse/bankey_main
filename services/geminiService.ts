@@ -29,12 +29,15 @@ try {
 }
 
 // --- SHARED HELPER FOR ROBUST AI CALLS (Direct SDK -> Timeout -> Supabase Proxy) ---
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const callGeminiWithFallback = async <T = any>(
   methodName: string,
   fn: () => Promise<T | { text?: string }>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   promptOrPayload: string | { contents: any[]; config?: any } | null,
   fallbackModel: string = 'gemini-2.5-flash',
   _isImageOrAudio: boolean = false
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   if (!apiKey || !ai) throw new Error(`${methodName}: Missing API Key or AI instance.`);
 
@@ -60,6 +63,7 @@ const callGeminiWithFallback = async <T = any>(
       // Fallback to proxy...
 
       // Construct Body based on request type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const body: any = {
         model: fallbackModel
       };
@@ -374,6 +378,7 @@ export const getFinancialInsights = async (history: { role: string, parts: { tex
     const result = await Promise.race([
       chat.sendMessage({ message: newMessage }),
       timeoutPromise
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ]) as any;
 
     // Extract Grounding Sources

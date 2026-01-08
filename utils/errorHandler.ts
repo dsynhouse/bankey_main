@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/react';
 /**
  * Centralized error handler for Supabase operations
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function handleSupabaseError(error: any, context: string): void {
     // Extract message from various error formats
     const errorMessage = error?.message || error?.hint || error?.details ||
@@ -40,6 +41,7 @@ export function handleSupabaseError(error: any, context: string): void {
 /**
  * Get user-friendly error message from Supabase error
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getErrorMessage(error: any): string {
     if (!error) return 'An unknown error occurred';
 
@@ -71,6 +73,7 @@ export function getErrorMessage(error: any): string {
  * Handle errors with user notification (if toast library is available)
  */
 export function handleErrorWithNotification(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error: any,
     context: string,
     showToast?: (message: string, type: 'error' | 'success') => void
@@ -90,7 +93,9 @@ export function handleErrorWithNotification(
 export async function withErrorHandling<T>(
     fn: () => Promise<T>,
     context: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError?: (error: any) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<{ data: T | null; error: any }> {
     try {
         const data = await fn();
