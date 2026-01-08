@@ -2,6 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Category, ReportData, ReportAnalysis, Transaction } from "../types";
 import { isApiLikelyAvailable, checkGeminiStatus } from "./geminiMonitor";
 import { geminiUsage } from "./geminiUsage";
+import { supabase } from "./supabase";
 
 // Safe API Key Retrieval for different build environments (Vite vs Webpack/CRA)
 const getApiKey = () => {
@@ -59,7 +60,6 @@ const callGeminiWithFallback = async <T = any>(
 
     // 2. Fallback to Supabase Proxy
     try {
-      const { supabase } = await import('./supabase');
       // Fallback to proxy...
 
       // Construct Body based on request type

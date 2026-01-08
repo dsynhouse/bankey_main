@@ -145,7 +145,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
                 // 3. Update State & DB if mismatch
                 if (calculatedXp !== profile.total_xp || calculatedLevel !== profile.level) {
-                    logger.warn(`XP Mismatch! Fixing... Old: ${profile.total_xp} (Lvl ${profile.level}) -> New: ${calculatedXp} (Lvl ${calculatedLevel})`);
+                    if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
+                        logger.warn(`XP Mismatch! Fixing... Old: ${profile.total_xp} (Lvl ${profile.level}) -> New: ${calculatedXp} (Lvl ${calculatedLevel})`);
+                    }
 
                     setUserState(prev => ({ ...prev, totalXp: calculatedXp, level: calculatedLevel }));
 
