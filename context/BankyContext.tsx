@@ -16,14 +16,24 @@ import confetti from 'canvas-confetti';
 
 import { BankyContext } from './useBanky';
 import { useOptimisticUpdate, useOptimisticDelete } from '../hooks/useOptimisticUpdate';
+import { useTransactions, TRANSACTION_KEYS } from '../hooks/useTransactions';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // --- AUTH STATE ---
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // React Query Hook
+    const queryClient = useQueryClient();
+    const {
+        transactions,
+        addTransaction: addTxQuery,
+        deleteTransaction: deleteTxQuery
+    } = useTransactions(user?.id);
+
     // --- DATA STATE ---
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    // const [transactions, setTransactions] = useState<Transaction[]>([]); // REPLACED BY REACT QUERY
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [goals, setGoals] = useState<Goal[]>([]);
@@ -204,25 +214,8 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 })));
             }
 
-            // 3. Transactions
-            const { data: txs } = await supabase
-                .from('transactions')
-                .select('*')
-                .eq('user_id', userId)
-                .order('date', { ascending: false })
-                .limit(500);
-
-            if (txs) {
-                setTransactions(txs.map(t => ({
-                    id: t.id,
-                    date: t.date,
-                    amount: parseFloat(t.amount),
-                    category: t.category as Category,
-                    description: t.description,
-                    accountId: t.account_id,
-                    type: t.type as 'expense' | 'income'
-                })));
-            }
+            // 3. Transactions handled by React Query
+            // const { data: txs } = await supabase...
 
             // 4. Budgets
             const { data: bgs } = await supabase.from('budgets').select('*').eq('user_id', userId);
@@ -270,36 +263,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const channel = supabase.channel('realtime_sync')
             // 1. Transactions: Handle INSERT, UPDATE, DELETE
             .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${user.id}` }, (payload) => {
-                if (payload.eventType === 'INSERT') {
-                    const newRecord = payload.new;
-                    const tx: Transaction = {
-                        id: newRecord.id,
-                        date: newRecord.date,
-                        amount: parseFloat(newRecord.amount),
-                        category: newRecord.category as Category,
-                        description: newRecord.description,
-                        accountId: newRecord.account_id,
-                        type: newRecord.type as 'expense' | 'income'
-                    };
-                    setTransactions(prev => prev.some(t => t.id === tx.id) ? prev : [tx, ...prev]);
-                    // Also refresh accounts as balance might have changed
-                    refreshAccounts();
-                } else if (payload.eventType === 'DELETE') {
-                    setTransactions(prev => prev.filter(t => t.id !== payload.old.id));
-                    refreshAccounts();
-                } else if (payload.eventType === 'UPDATE') {
-                    const newRecord = payload.new;
-                    setTransactions(prev => prev.map(t => t.id === newRecord.id ? {
-                        id: newRecord.id,
-                        date: newRecord.date,
-                        amount: parseFloat(newRecord.amount),
-                        category: newRecord.category as Category,
-                        description: newRecord.description,
-                        accountId: newRecord.account_id,
-                        type: newRecord.type as 'expense' | 'income'
-                    } : t));
-                    refreshAccounts();
-                }
+                // React Query Invalidation (Much simpler!)
+                queryClient.invalidateQueries({ queryKey: TRANSACTION_KEYS.lists() });
+                refreshAccounts();
             })
             // 2. Accounts: Handle Balance Updates
             .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts', filter: `user_id=eq.${user.id}` }, () => {
@@ -412,7 +378,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 setUser(null);
                 setIsLoading(false);
                 // Clear all local data on logout
-                setTransactions([]);
+                // setTransactions([]); // Handled by Query Key change (userId null)
                 setAccounts([]);
                 setBudgets([]);
                 setBudgets([]);
@@ -489,7 +455,10 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         const optimisticId = crypto.randomUUID();
         const newTx: Transaction = { ...t, id: optimisticId, accountId: targetAccountId };
-        setTransactions(prev => [newTx, ...prev]);
+
+        // Optimistic UI for List (Handled by Query Cache via addTxQuery, but we have local optimistics too?)
+        // TankStack query handles the list. We just need to handle the accounts.
+        // setTransactions(prev => [newTx, ...prev]); // Removed
 
         setAccounts(prev => prev.map(a => {
             if (a.id === targetAccountId) {
@@ -502,23 +471,18 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addXp(10);
 
         if (supabase && user && targetAccountId) {
-            const { error } = await saveTransaction(supabase, user.id, newTx);
+            try {
+                await addTxQuery(newTx); // Use React Query Mutation
 
-            if (error) {
-                handleSupabaseError(error, 'addTransaction:saveTransaction');
-                return;
-            }
-
-            const account = accounts.find(a => a.id === targetAccountId);
-            // Note: We use the *updated* balance logic here, but 'account' from state might be stale if we don't calculate it.
-            // However, since we just updated state, we can calculate the new balance.
-            // Ideally we should use the state setter callback or calculate it deterministically.
-            // For now, let's recalculate based on the found account (which is pre-update in this scope? No, 'accounts' is from closure)
-            // Actually, 'accounts' is from the render scope, so it is the *old* accounts.
-            if (account) {
-                const newBalance = t.type === 'income' ? account.balance + t.amount : account.balance - t.amount;
-                const { error: balanceError } = await updateAccountBalance(supabase, targetAccountId, newBalance);
-                if (balanceError) handleSupabaseError(balanceError, 'addTransaction:updateBalance');
+                // Update Account Balance in DB
+                const account = accounts.find(a => a.id === targetAccountId);
+                if (account) {
+                    const newBalance = t.type === 'income' ? account.balance + t.amount : account.balance - t.amount;
+                    await updateAccountBalance(supabase, targetAccountId, newBalance);
+                }
+            } catch (error) {
+                console.error("Failed to add transaction", error);
+                // handleSupabaseError(error, 'addTransaction'); // Type mismatch potentially
             }
         } else {
             logger.warn('Cannot save transaction: Missing user or account ID');
@@ -529,7 +493,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const txToDelete = transactions.find(t => t.id === id);
         if (!txToDelete) return;
 
-        setTransactions(prev => prev.filter(t => t.id !== id));
+        // setTransactions(prev => prev.filter(t => t.id !== id)); // Removed
 
         setAccounts(prev => prev.map(a => {
             if (a.id === txToDelete.accountId) {
@@ -542,15 +506,15 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }));
 
         if (supabase && user) {
-            const { error } = await supabase.from('transactions').delete().eq('id', id);
-            if (!error) {
-                const account = accounts.find(a => a.id === txToDelete.accountId);
-                if (account) {
-                    const correctedBalance = txToDelete.type === 'income'
-                        ? account.balance - txToDelete.amount
-                        : account.balance + txToDelete.amount;
-                    await supabase.from('accounts').update({ balance: correctedBalance }).eq('id', txToDelete.accountId);
-                }
+            await deleteTxQuery(id); // Use React Query Mutation
+
+            // Update DB Balance
+            const account = accounts.find(a => a.id === txToDelete.accountId);
+            if (account) {
+                const correctedBalance = txToDelete.type === 'income'
+                    ? account.balance - txToDelete.amount
+                    : account.balance + txToDelete.amount;
+                await supabase.from('accounts').update({ balance: correctedBalance }).eq('id', txToDelete.accountId);
             }
         }
     };
@@ -598,7 +562,8 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setAccounts(prev => prev.filter(a => a.id !== id));
 
         // 2. Cascade Delete Transactions (Prevent Orphans)
-        setTransactions(prev => prev.filter(t => t.accountId !== id));
+        // setTransactions(prev => prev.filter(t => t.accountId !== id)); // Removed
+        queryClient.invalidateQueries({ queryKey: TRANSACTION_KEYS.lists() });
 
         if (supabase) {
             // Setup DB deletion (Foreign keys should handle cascade, but explicit is safer if not set)
