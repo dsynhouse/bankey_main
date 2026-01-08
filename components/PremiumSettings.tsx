@@ -7,7 +7,7 @@ import {
     getUserSubscription,
     getPaymentHistory
 } from '../services/razorpayService';
-import { PremiumBadge, ComingSoonBadge } from './PremiumBadge';
+import { PremiumBadge } from './PremiumBadge';
 import {
     Sparkles,
     CreditCard,

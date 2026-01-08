@@ -9,19 +9,22 @@ export const VoiceInputButton: React.FC = () => {
     const { addTransaction } = useBanky();
     const [isListening, setIsListening] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [transcript, setTranscript] = useState('');
+    const [_transcript, setTranscript] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [recognition, setRecognition] = useState<any>(null);
-    const [_isSupported, setIsSupported] = useState(false);
+    const [, setIsSupported] = useState(false);
 
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             setIsSupported(true);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
             const recognitionInstance = new SpeechRecognition();
             recognitionInstance.continuous = false;
             recognitionInstance.interimResults = false;
             recognitionInstance.lang = 'en-US';
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             recognitionInstance.onresult = (event: any) => {
                 const text = event.results[0][0].transcript;
                 setTranscript(text);
@@ -29,6 +32,7 @@ export const VoiceInputButton: React.FC = () => {
                 handleProcessing(text);
             };
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             recognitionInstance.onerror = (event: any) => {
                 console.error('Speech recognition error', event.error);
                 setIsListening(false);

@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
 
     // Calendar State
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDateLog, setSelectedDateLog] = useState<Transaction[] | null>(null);
+    const [_selectedDateLog, setSelectedDateLog] = useState<Transaction[] | null>(null);
 
 
     // === TRACKER HANDLERS ===
