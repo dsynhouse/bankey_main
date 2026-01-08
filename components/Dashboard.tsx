@@ -40,6 +40,7 @@ const Dashboard: React.FC = () => {
     // AI Input State
     const [aiInput, setAiInput] = useState('');
     const [isAiLoading, setIsAiLoading] = useState(false);
+    const [aiAccountId, setAiAccountId] = useState('');
 
     // Manual Form State
     const [showManualForm, setShowManualForm] = useState(false);
@@ -208,7 +209,7 @@ const Dashboard: React.FC = () => {
                     <p className="font-black text-ink/40 uppercase tracking-widest text-sm mb-2 font-display">
                         {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                     </p>
-                    <h1 className="text-4xl md:text-6xl font-black italic text-ink font-display leading-[0.9]">
+                    <h1 className="text-3xl md:text-6xl font-black italic text-ink font-display leading-[0.9]">
                         Good Afternoon, <span className="text-transparent bg-clip-text bg-gradient-to-r from-banky-purple to-banky-pink">
                             {user?.name?.split(' ')[0] || 'Saver'}
                         </span>
@@ -247,7 +248,6 @@ const Dashboard: React.FC = () => {
             <div className="flex justify-center -mt-4 relative z-20">
                 <div className="inline-flex bg-white p-2 border-2 border-ink rounded-2xl shadow-neo overflow-x-auto max-w-full no-scrollbar">
                     {[
-                        { id: 'widgets', label: 'Home', icon: Grid3x3 },
                         { id: 'tracker', label: 'Tracker', icon: ArrowUpDown },
                         { id: 'dreamboard', label: 'Dreams', icon: Sparkles },
                         { id: 'bills', label: 'Squads', icon: Plus }

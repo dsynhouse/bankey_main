@@ -100,8 +100,8 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                     <button
                         onClick={() => setQuickAddTab('spend')}
                         className={`flex-1 py-3 px-4 rounded-lg font-black uppercase text-sm flex items-center justify-center gap-2 transition-all ${quickAddTab === 'spend'
-                                ? 'bg-banky-pink text-ink shadow-sm transform scale-105'
-                                : 'text-gray-400 hover:text-ink hover:bg-gray-50'
+                            ? 'bg-banky-pink text-ink shadow-sm transform scale-105'
+                            : 'text-gray-400 hover:text-ink hover:bg-gray-50'
                             }`}
                     >
                         <Zap className="w-4 h-4 ml-[-4px]" />
@@ -110,8 +110,8 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                     <button
                         onClick={() => setQuickAddTab('earn')}
                         className={`flex-1 py-3 px-4 rounded-lg font-black uppercase text-sm flex items-center justify-center gap-2 transition-all ${quickAddTab === 'earn'
-                                ? 'bg-banky-green text-ink shadow-sm transform scale-105'
-                                : 'text-gray-400 hover:text-ink hover:bg-gray-50'
+                            ? 'bg-banky-green text-ink shadow-sm transform scale-105'
+                            : 'text-gray-400 hover:text-ink hover:bg-gray-50'
                             }`}
                     >
                         <TrendingUp className="w-4 h-4 ml-[-4px]" />
@@ -127,19 +127,19 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                         {/* Hero Amount Input */}
                         <div className="text-center relative">
                             <label className="block text-xs font-black uppercase text-ink/40 mb-2 tracking-widest">Amount</label>
-                            <div className="relative inline-block w-full max-w-xs">
+                            <div className="flex items-center justify-center gap-1">
+                                <span className="text-4xl text-ink/40 font-black mb-2">
+                                    {currencySymbol}
+                                </span>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={flashSpendAmount}
                                     onChange={(e) => setFlashSpendAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className="w-full text-center text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
+                                    className="w-48 text-left text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
                                     autoFocus
                                 />
-                                <span className="absolute top-1/2 -translate-y-1/2 -left-8 text-4xl text-ink/20 font-black">
-                                    {currencySymbol}
-                                </span>
                             </div>
                         </div>
 
@@ -181,8 +181,7 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                             </div>
                         </div>
 
-                        {/* Spacer to push buttons to bottom if needed */}
-                        <div className="flex-1"></div>
+
 
                         {/* Action Buttons */}
                         <div className="flex flex-col md:flex-row gap-4 pt-4">
@@ -220,19 +219,19 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                         {/* Hero Amount Input */}
                         <div className="text-center relative">
                             <label className="block text-xs font-black uppercase text-ink/40 mb-2 tracking-widest">Amount</label>
-                            <div className="relative inline-block w-full max-w-xs">
+                            <div className="flex items-center justify-center gap-1">
+                                <span className="text-4xl text-ink/40 font-black mb-2">
+                                    {currencySymbol}
+                                </span>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={flashEarnAmount}
                                     onChange={(e) => setFlashEarnAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className="w-full text-center text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
+                                    className="w-48 text-left text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
                                     autoFocus
                                 />
-                                <span className="absolute top-1/2 -translate-y-1/2 -left-8 text-4xl text-ink/20 font-black">
-                                    {currencySymbol}
-                                </span>
                             </div>
                         </div>
 
@@ -273,8 +272,7 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                             </div>
                         </div>
 
-                        {/* Spacer */}
-                        <div className="flex-1"></div>
+
 
                         {/* Action Buttons */}
                         <div className="flex flex-col md:flex-row gap-4 pt-4">
