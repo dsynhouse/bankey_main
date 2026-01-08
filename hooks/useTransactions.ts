@@ -19,7 +19,20 @@ const fetchTransactions = async (userId: string | undefined) => {
         .order('date', { ascending: false });
 
     if (error) throw new Error(error.message);
-    return data as Transaction[];
+
+    // Transform database format (snake_case) to frontend format (camelCase)
+    if (!data) return [];
+
+    return data.map((tx: any) => ({
+        id: tx.id,
+        userId: tx.user_id,
+        accountId: tx.account_id,
+        amount: parseFloat(tx.amount),
+        type: tx.type as 'income' | 'expense',
+        category: tx.category,
+        description: tx.description || '',
+        date: tx.date
+    })) as Transaction[];
 };
 
 export const useTransactions = (userId: string | undefined) => {
