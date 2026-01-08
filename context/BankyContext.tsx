@@ -255,7 +255,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     useEffect(() => {
         if (!user || !supabase) return;
 
-        console.log('🔌 Connecting to Realtime Sync Channel...');
 
         const channel = supabase.channel('realtime_sync')
             // 1. Transactions: Handle INSERT, UPDATE, DELETE
@@ -321,7 +320,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             })
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
-                    console.log('✅ Realtime Sync Active');
+                    // Realtime sync active
                 }
             });
 
@@ -492,13 +491,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (supabase && user && targetAccountId) {
             try {
-                console.log('[addTransaction] Saving transaction:', {
-                    id: newTx.id,
-                    amount: newTx.amount,
-                    type: newTx.type,
-                    category: newTx.category,
-                    accountId: targetAccountId
-                });
 
                 const { error: saveError } = await saveTransaction(supabase, user.id, newTx);
 
@@ -508,7 +500,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     return;
                 }
 
-                console.log('[addTransaction] Transaction saved successfully, invalidating cache...');
 
                 // CRITICAL: Invalidate React Query cache to trigger UI update
                 queryClient.invalidateQueries({ queryKey: TRANSACTION_KEYS.lists() });
@@ -523,7 +514,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     }
                 }
 
-                console.log('[addTransaction] Complete!');
             } catch (error) {
                 console.error("[addTransaction] Unexpected error:", error);
                 alert(`Transaction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -739,7 +729,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // DEV MODE: Directly set user state for test account
         if (devUser && import.meta.env?.DEV) {
-            console.log('🔧 DEV MODE: Setting user state directly');
             setUser({
                 id: devUser.id,
                 email: devUser.email,
@@ -960,7 +949,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 }
 
                 if (profile) {
-                    console.log('[refreshProfile] Syncing premium status:', profile.is_premium);
                     setUser(prev => prev ? {
                         ...prev,
                         name: profile.name || prev.name,
