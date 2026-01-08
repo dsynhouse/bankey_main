@@ -6,7 +6,7 @@ import DreamBoard from './DreamBoard.tsx';
 import WidgetGrid from './widgets/WidgetGrid';
 import WidgetLibrary from './widgets/WidgetLibrary';
 import { SEO } from './SEO';
-import { Sparkles, Grid3x3, Mic, Camera, Plus, Loader2, ChevronLeft, ChevronRight, Trash2, ArrowUpDown } from 'lucide-react';
+import { Sparkles, Grid3x3, Mic, Camera, Plus, Loader2, ChevronLeft, ChevronRight, Trash2, ArrowUpDown, X } from 'lucide-react';
 import VoiceInput from './VoiceInput';
 import ReceiptScanner from './ReceiptScanner';
 import ForecastWidget from './widgets/ForecastWidget';
@@ -71,7 +71,10 @@ const Dashboard: React.FC = () => {
 
     // Calendar State
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [, setSelectedDateLog] = useState<Transaction[] | null>(null);
+    const [selectedDateLog, setSelectedDateLog] = useState<Transaction[] | null>(null);
+
+    // Stats View State
+    const [statsType, setStatsType] = useState<'expense' | 'income'>('expense');
 
 
     // === TRACKER HANDLERS ===
@@ -199,7 +202,7 @@ const Dashboard: React.FC = () => {
         const total = transactions.filter(t => {
             const tDate = new Date(t.date);
             const isSameMonth = tDate.getMonth() === currentDate.getMonth() && tDate.getFullYear() === currentDate.getFullYear();
-            return t.category === cat && t.type === 'expense' && isSameMonth;
+            return t.category === cat && t.type === statsType && isSameMonth;
         }).reduce((sum, t) => sum + t.amount, 0);
         return { name: cat, value: total };
     }).filter(d => d.value > 0);
@@ -458,6 +461,24 @@ const Dashboard: React.FC = () => {
                                         </div>
                                     </div>
 
+                                    {/* Stats Type Toggles */}
+                                    <div className="flex justify-center mb-6">
+                                        <div className="bg-gray-100 p-1 rounded-xl flex gap-1">
+                                            <button
+                                                onClick={() => setStatsType('expense')}
+                                                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${statsType === 'expense' ? 'bg-white text-red-500 shadow-sm' : 'text-gray-400 hover:text-ink'}`}
+                                            >
+                                                Expenses
+                                            </button>
+                                            <button
+                                                onClick={() => setStatsType('income')}
+                                                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${statsType === 'income' ? 'bg-white text-banky-green shadow-sm' : 'text-gray-400 hover:text-ink'}`}
+                                            >
+                                                Income
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div className="h-64 bg-gray-50 rounded-xl border-2 border-gray-200 flex items-center justify-center relative">
                                         {dataByCategory.length > 0 ? (
                                             <ResponsiveContainer width="100%" height="100%">
@@ -480,7 +501,10 @@ const Dashboard: React.FC = () => {
                                                 </PieChart>
                                             </ResponsiveContainer>
                                         ) : (
-                                            <p className="font-bold text-gray-400">No data yet.</p>
+                                            <div className="text-center">
+                                                <p className="font-bold text-gray-400 mb-2">No {statsType} data for this month.</p>
+                                                <p className="text-xs text-gray-300">Try changing the filter or adding a transaction.</p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -488,7 +512,7 @@ const Dashboard: React.FC = () => {
 
                             {/* Calendar View */}
                             {trackerSubTab === 'calendar' && (
-                                <div className="space-y-6 animate-fade-in">
+                                <div className="space-y-6 animate-fade-in relative">
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="font-black uppercase">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
                                         <div className="flex gap-2">
@@ -504,6 +528,43 @@ const Dashboard: React.FC = () => {
                                             {renderCalendar()}
                                         </div>
                                     </div>
+
+                                    {/* Selected Date Logs Modal/Overlay */}
+                                    {selectedDateLog && (
+                                        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/20 backdrop-blur-sm" onClick={() => setSelectedDateLog(null)}>
+                                            <div className="bg-white border-4 border-ink shadow-neo rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col animate-slide-up" onClick={e => e.stopPropagation()}>
+                                                <div className="bg-banky-yellow border-b-4 border-ink p-4 flex justify-between items-center">
+                                                    <div>
+                                                        <h3 className="font-black uppercase text-lg">Daily Log</h3>
+                                                        <p className="text-xs font-bold opacity-70">
+                                                            {selectedDateLog.length > 0 && new Date(selectedDateLog[0].date).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                    <button onClick={() => setSelectedDateLog(null)} className="p-2 hover:bg-white rounded-lg border-2 border-transparent hover:border-ink transition-all">
+                                                        <X className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                                <div className="p-4 overflow-y-auto space-y-3">
+                                                    {selectedDateLog.map(t => (
+                                                        <div key={t.id} className="flex items-center justify-between p-3 border-2 border-gray-100 hover:border-ink rounded-xl bg-gray-50">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 border-ink ${t.type === 'income' ? 'bg-banky-green' : 'bg-white'}`}>
+                                                                    <CategoryIcon category={t.category} className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-bold text-sm text-ink">{t.description}</p>
+                                                                    <p className="text-[10px] font-black uppercase text-gray-400">{t.category}</p>
+                                                                </div>
+                                                            </div>
+                                                            <span className={`font-mono font-black ${t.type === 'income' ? 'text-banky-green-darker' : 'text-ink'}`}>
+                                                                {t.type === 'income' ? '+' : '-'}{currency.symbol}{t.amount.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
