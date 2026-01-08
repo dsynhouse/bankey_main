@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBanky } from '../context/useBanky';
 import { usePreferences } from '../context/PreferencesContext';
 import BillSplitter from './BillSplitter';
@@ -24,8 +24,16 @@ const Dashboard: React.FC = () => {
     const { user, accounts, transactions, addTransaction, deleteTransaction } = useBanky();
     const { currency } = usePreferences();
 
-    // Main tab state
-    const [activeTab, setActiveTab] = useState<'widgets' | 'dreamboard' | 'bills' | 'tracker'>('widgets');
+    // Main tab state (with localStorage persistence)
+    const [activeTab, setActiveTab] = useState<'widgets' | 'dreamboard' | 'bills' | 'tracker'>(() => {
+        const saved = localStorage.getItem('bankey_active_tab');
+        return (saved as 'widgets' | 'dreamboard' | 'bills' | 'tracker') || 'widgets';
+    });
+
+    // Save activeTab to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('bankey_active_tab', activeTab);
+    }, [activeTab]);
 
     // Widget-related state
     const [showWidgetLibrary, setShowWidgetLibrary] = useState(false);
@@ -246,6 +254,7 @@ const Dashboard: React.FC = () => {
             <div className="flex justify-center -mt-4 relative z-20">
                 <div className="inline-flex bg-white p-2 border-2 border-ink rounded-2xl shadow-neo overflow-x-auto max-w-full no-scrollbar">
                     {[
+                        { id: 'widgets', label: 'Home', icon: Plus },
                         { id: 'tracker', label: 'Tracker', icon: ArrowUpDown },
                         { id: 'dreamboard', label: 'Dreams', icon: Sparkles },
                         { id: 'bills', label: 'Squads', icon: Plus }
