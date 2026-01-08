@@ -189,12 +189,6 @@ const App: React.FC = () => {
                           <Route path="/tracker" element={<Navigate to="/wallet" replace />} />
                           <Route path="/accounts" element={<Navigate to="/wallet" replace />} />
 
-                          {/* Hidden routes - Education to be added as future feature */}
-                          {/* <Route path="/education" element={<RequireAuth><Education /></RequireAuth>} /> */}
-                          {/* <Route path="/knowledge-bank" element={<RequireAuth><KnowledgeBank /></RequireAuth>} /> */}
-                          {/* <Route path="/knowledge-bank/module/:moduleId" element={<RequireAuth><ModuleView /></RequireAuth>} /> */}
-                          {/* <Route path="/knowledge-bank/lesson/:lessonId" element={<RequireAuth><LessonView /></RequireAuth>} /> */}
-
                           <Route path="*" element={<Navigate to="/" />} />
                         </Routes>
                       </ErrorBoundary>

@@ -6,7 +6,6 @@ import { INITIAL_USER_STATE, DEFAULT_CURRENCY } from '../constants';
 
 import { handleSupabaseError } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
-import { BASE_MODULES } from '../data/educationData';
 import { addXpService } from '../services/gamificationService';
 import { createDefaultAccount, saveTransaction, updateAccountBalance } from '../services/transactionService';
 import {
@@ -130,12 +129,9 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 });
 
                 // --- RECALCULATE XP & LEVEL (Self-Healing) ---
-                // 1. Calculate XP from Modules
+                // Module XP calculation removed (Education feature disabled)
                 const completedIds = profile.completed_unit_ids || [];
-                const moduleXp = completedIds.reduce((acc: number, id: string) => {
-                    const mod = BASE_MODULES.find(m => m.id === id);
-                    return acc + (mod ? mod.xpReward : 0);
-                }, 0);
+                const moduleXp = completedIds.length * 50; // Simplified XP calculation
 
                 // 2. Calculate XP from Transactions (Async fetch count)
                 const { count: txCount } = await supabase
