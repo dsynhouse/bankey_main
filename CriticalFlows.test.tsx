@@ -5,7 +5,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 
 // Import just the Landing and Login components, not full App
@@ -53,7 +53,7 @@ describe('E2E Critical User Flows', () => {
 
         // Mock IntersectionObserver for jsdom
         global.IntersectionObserver = class IntersectionObserver {
-            constructor(callback: IntersectionObserverCallback) { }
+            constructor(_callback: IntersectionObserverCallback) { }
             observe() { return null; }
             unobserve() { return null; }
             disconnect() { return null; }

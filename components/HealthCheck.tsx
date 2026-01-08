@@ -88,7 +88,7 @@ const HealthCheck: React.FC = () => {
         }
 
         // 5. Edge Functions check (Static inference)
-        const sbUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ruvjgktheazdfhwptelp.supabase.co';
+        const sbUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nauoinujfduhsahdbdbp.supabase.co';
         if (sbUrl) {
             const functionsUrl = sbUrl.replace('.co', '.co/functions/v1');
             updateCheck('Edge Functions Config', 'success', 'URL Inferred', functionsUrl);

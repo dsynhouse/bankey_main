@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { getFinancialInsights, getPersonalizedAnalysis } from '../services/geminiService';
 import { ChatMessage } from '../types';
-import { Send, Bot, User, Sparkles, ExternalLink, Globe, BarChart3, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, ExternalLink, Globe, BarChart3, AlertCircle } from 'lucide-react';
 import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
 import { useBanky } from '../context/useBanky';
 import { usePremium } from '../context/usePremium';

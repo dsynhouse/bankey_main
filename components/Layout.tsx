@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useBanky } from '../context/useBanky';
-import { Sparkles, LayoutDashboard, Wallet, Calculator, Settings, LogOut, X } from 'lucide-react';
+import { Sparkles, LayoutDashboard, Wallet, Calculator, Settings, LogOut } from 'lucide-react';
 import Mascot from './Mascot';
-import DsynLabsLogo from './DsynLabsLogo';
+import { VoiceInputButton } from './VoiceInputButton';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -72,12 +73,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 font-black uppercase text-sm transition-all border-2 rounded-xl mb-2 ${isActive
-                      ? 'bg-ink text-white border-ink shadow-neo translate-x-2'
-                      : 'border-transparent text-ink/70 hover:bg-banky-yellow hover:border-ink hover:shadow-neo-sm hover:translate-x-1'
-                      }`}
+                    className={`flex items - center gap - 3 px - 4 py - 3 font - black uppercase text - sm transition - all border - 2 rounded - xl mb - 2 ${isActive
+                        ? 'bg-ink text-white border-ink shadow-neo translate-x-2'
+                        : 'border-transparent text-ink/70 hover:bg-banky-yellow hover:border-ink hover:shadow-neo-sm hover:translate-x-1'
+                      } `}
                   >
-                    <item.icon className={`w-5 h-5 ${isActive ? 'text-banky-blue' : ''}`} />
+                    <item.icon className={`w - 5 h - 5 ${isActive ? 'text-banky-blue' : ''} `} />
                     <span>{item.label}</span>
                   </Link>
                 </li>
@@ -102,7 +103,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="w-full bg-gray-800 h-4 border border-white/20">
               <div
                 className="bg-banky-green h-full border-r border-white/20 relative overflow-hidden transition-all duration-1000"
-                style={{ width: `${(userState.totalXp % 500) / 5}%` }}
+                style={{ width: `${(userState.totalXp % 500) / 5}% ` }}
               >
                 <div className="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhZWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')] opacity-20"></div>
               </div>
@@ -135,22 +136,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-4 border-ink z-50 safe-area-bottom">
         <div className="flex items-center justify-around p-2">
-          {navItems.slice(0, 4).map((item) => {
+          {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center gap-1 px-3 py-2 transition-all ${isActive ? 'text-ink' : 'text-gray-400'
-                  }`}
+                className={`flex flex - col items - center gap - 1 px - 3 py - 2 transition - all ${isActive ? 'text-ink' : 'text-gray-400'
+                  } `}
               >
-                <item.icon className={`w-6 h-6 ${isActive ? 'text-banky-blue' : ''}`} />
+                <item.icon className={`w - 6 h - 6 ${isActive ? 'text-banky-blue' : ''} `} />
                 <span className="text-[10px] font-black uppercase">{item.label}</span>
               </Link>
             );
           })}
         </div>
       </nav>
+
+      {/* Global Voice Input */}
+      <VoiceInputButton />
     </div>
   );
 };

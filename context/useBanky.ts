@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { Transaction, Account, Budget, Category, UserProfile, Currency, Goal, Theme, RegionCode, Group, Member, Expense, UserState } from '../types';
+import { Transaction, Account, Budget, Category, UserProfile, Currency, Goal, Group, Member, Expense, UserState } from '../types';
 
 export interface BankyContextType {
     user: UserProfile | null;

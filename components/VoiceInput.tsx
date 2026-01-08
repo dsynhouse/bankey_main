@@ -30,6 +30,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
     const getInitialState = (): VoiceState => {
         if (!isPremium) return 'premium-gate';
         if (!isVoiceSupported()) return 'error';
+
         return 'idle';
     };
 
@@ -38,6 +39,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
     const [error, setError] = useState<string>(() => {
         if (!isPremium) return '';
         if (!isVoiceSupported()) return 'Voice recording is not supported in this browser';
+
         return '';
     });
     const [recordingDuration, setRecordingDuration] = useState(0);

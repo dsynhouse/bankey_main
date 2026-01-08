@@ -1,40 +1,110 @@
-import React, { useState } from 'react';
-import { Mic } from 'lucide-react';
-import VoiceInput from './VoiceInput';
 
-interface VoiceInputButtonProps {
-    className?: string;
-    accountId?: string;
-}
+import React, { useState, useEffect } from 'react';
+import { Mic, Square, Loader2 } from 'lucide-react';
+import { useBanky } from '../context/useBanky';
+import { parseNaturalLanguageTransaction } from '../services/geminiService';
+import { logger } from '../utils/logger';
 
-/**
- * Floating voice input button (FAB)
- * Opens the voice input modal when clicked
- */
-const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({ className = '', accountId }) => {
-    const [showVoiceInput, setShowVoiceInput] = useState(false);
+export const VoiceInputButton: React.FC = () => {
+    const { addTransaction } = useBanky();
+    const [isListening, setIsListening] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [transcript, setTranscript] = useState('');
+    const [recognition, setRecognition] = useState<any>(null);
+    const [_isSupported, setIsSupported] = useState(false);
+
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            setIsSupported(true);
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            const recognitionInstance = new SpeechRecognition();
+            recognitionInstance.continuous = false;
+            recognitionInstance.interimResults = false;
+            recognitionInstance.lang = 'en-US';
+
+            recognitionInstance.onresult = (event: any) => {
+                const text = event.results[0][0].transcript;
+                setTranscript(text);
+                setIsListening(false);
+                handleProcessing(text);
+            };
+
+            recognitionInstance.onerror = (event: any) => {
+                console.error('Speech recognition error', event.error);
+                setIsListening(false);
+            };
+
+            recognitionInstance.onend = () => {
+                setIsListening(false);
+            };
+
+            setRecognition(recognitionInstance);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const toggleListening = () => {
+        if (!recognition) {
+            alert("Voice input not supported in this browser.");
+            return;
+        }
+
+        if (isListening) {
+            recognition.stop();
+            setIsListening(false);
+        } else {
+            setTranscript('');
+            recognition.start();
+            setIsListening(true);
+        }
+    };
+
+    const handleProcessing = async (text: string) => {
+        setIsProcessing(true);
+        try {
+            const result = await parseNaturalLanguageTransaction(text);
+            if (result && result.amount && result.category && result.type) {
+                // Determine account ID (default to first available or leave undefined for context to handle)
+                // The context addTransaction handles missing accountId by picking default
+                await addTransaction({
+                    amount: result.amount,
+                    category: result.category as any,
+                    description: result.description || 'Voice Entry',
+                    date: result.date || new Date().toISOString(),
+                    type: result.type as 'expense' | 'income',
+                    accountId: '' // Context will auto-assign
+                });
+
+                // Haptic feedback if available
+                if (navigator.vibrate) navigator.vibrate(200);
+            } else {
+                alert(`Couldn't understand: "${text}". Try "Spent 50 on Food"`);
+            }
+        } catch (error) {
+            logger.error('Voice Processing Failed', error);
+            alert("Failed to process voice command.");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    if (!recognition) return null;
 
     return (
-        <>
-            <button
-                onClick={() => setShowVoiceInput(true)}
-                className={`fixed bottom-24 md:bottom-8 right-6 z-40 w-16 h-16 bg-gradient-to-br from-banky-purple to-banky-pink text-white border-4 border-ink shadow-neo rounded-full flex items-center justify-center hover:-translate-y-1 transition-transform group ${className}`}
-                title="Voice Input"
-            >
-                <Mic className="w-7 h-7 group-hover:scale-110 transition-transform" />
-
-                {/* Pulse ring animation */}
-                <span className="absolute inset-0 rounded-full border-4 border-banky-purple animate-ping opacity-30" />
-            </button>
-
-            {showVoiceInput && (
-                <VoiceInput
-                    onClose={() => setShowVoiceInput(false)}
-                    defaultAccountId={accountId}
-                />
+        <button
+            onClick={toggleListening}
+            disabled={isProcessing}
+            className={`fixed bottom-24 right-6 z-50 p-4 rounded-full shadow-neo transition-all duration-300 ${isListening ? 'bg-red-500 animate-pulse' : isProcessing ? 'bg-gray-400' : 'bg-banky-blue'
+                } border-2 border-ink text-white`}
+            aria-label="Voice Command"
+        >
+            {isProcessing ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+            ) : isListening ? (
+                <Square className="w-6 h-6 fill-current" />
+            ) : (
+                <Mic className="w-6 h-6" />
             )}
-        </>
+        </button>
     );
 };
-
-export default VoiceInputButton;

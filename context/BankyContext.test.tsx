@@ -1,10 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BankyProvider } from './BankyContext';
 import { useBanky } from './useBanky';
 import { supabase } from '../services/supabase';
 import confetti from 'canvas-confetti';
+
+// Create a fresh QueryClient for each test
+const createTestQueryClient = () => new QueryClient({
+    defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+    },
+});
+
 
 // Mock Supabase
 vi.mock('../services/supabase', () => ({
@@ -51,8 +61,14 @@ describe('BankyContext Logic', () => {
     });
 
     it('login with rememberMe=false sets sessionStorage flag', async () => {
-        const wrapper = ({ children }: { children: React.ReactNode }) => <BankyProvider>{children}</BankyProvider>;
+        const queryClient = createTestQueryClient();
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <QueryClientProvider client={queryClient}>
+                <BankyProvider>{children}</BankyProvider>
+            </QueryClientProvider>
+        );
         const { result } = renderHook(() => useBanky(), { wrapper });
+
 
         await act(async () => {
             await result.current.login(false);
@@ -63,8 +79,14 @@ describe('BankyContext Logic', () => {
 
     it('login with rememberMe=true removes sessionStorage flag', async () => {
         sessionStorage.setItem('banky_no_persist', 'true');
-        const wrapper = ({ children }: { children: React.ReactNode }) => <BankyProvider>{children}</BankyProvider>;
+        const queryClient = createTestQueryClient();
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <QueryClientProvider client={queryClient}>
+                <BankyProvider>{children}</BankyProvider>
+            </QueryClientProvider>
+        );
         const { result } = renderHook(() => useBanky(), { wrapper });
+
 
         await act(async () => {
             await result.current.login(true);
@@ -112,8 +134,14 @@ describe('BankyContext Logic', () => {
             };
         });
 
-        const wrapper = ({ children }: { children: React.ReactNode }) => <BankyProvider>{children}</BankyProvider>;
+        const queryClient = createTestQueryClient();
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <QueryClientProvider client={queryClient}>
+                <BankyProvider>{children}</BankyProvider>
+            </QueryClientProvider>
+        );
         const { result } = renderHook(() => useBanky(), { wrapper });
+
 
         // Wait for initial load
         await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -172,8 +200,14 @@ describe('BankyContext Logic', () => {
             };
         });
 
-        const wrapper = ({ children }: { children: React.ReactNode }) => <BankyProvider>{children}</BankyProvider>;
+        const queryClient = createTestQueryClient();
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <QueryClientProvider client={queryClient}>
+                <BankyProvider>{children}</BankyProvider>
+            </QueryClientProvider>
+        );
         const { result } = renderHook(() => useBanky(), { wrapper });
+
 
         await waitFor(() => expect(result.current.isLoading).toBe(false));
 

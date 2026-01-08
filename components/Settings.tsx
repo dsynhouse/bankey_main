@@ -13,17 +13,17 @@ import {
     Download,
     Edit2,
     Save,
-    Loader2,
-    AlertTriangle,
     HelpCircle,
-    Bug,
-    Send,
-    Bot,
-    Smartphone,
-
-    Check,
+    Sparkles,
+    Settings as SettingsIcon,
+    Loader2,
     LogOut,
-    Sparkles
+    Check,
+    Smartphone,
+    AlertTriangle,
+    Bot,
+    Send,
+    Bug
 } from 'lucide-react';
 import { SEO } from './SEO';
 
@@ -179,11 +179,21 @@ const Settings: React.FC = () => {
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in font-sans pb-20">
             <SEO title="Settings" />
 
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-end border-b-4 border-ink pb-4 gap-4">
-                <div>
-                    <h1 className="text-5xl font-black text-ink uppercase italic tracking-tighter font-display">Settings</h1>
-                    <p className="text-gray-500 font-bold mt-2">Config your setup.</p>
+            {/* Hero Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white border-4 border-ink p-6 md:p-8 shadow-neo rounded-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-banky-yellow rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-banky-yellow border-2 border-ink rounded-lg flex items-center justify-center shadow-sm">
+                            <SettingsIcon className="w-5 h-5 text-ink" />
+                        </div>
+                        <p className="font-black text-ink/40 uppercase tracking-widest text-sm font-display">Configuration</p>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black italic text-ink font-display leading-[0.9] mb-2">
+                        Settings
+                    </h1>
+                    <p className="font-bold text-gray-500">Manage your account and preferences.</p>
                 </div>
             </div>
 
@@ -204,13 +214,13 @@ const Settings: React.FC = () => {
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id as typeof activeTab)}
-                                className={`text-left px-4 py-4 border-2 border-ink font-bold flex items-center gap-3 transition-all ${isActive
-                                    ? 'bg-banky-yellow shadow-neo translate-x-1 -translate-y-1'
-                                    : 'bg-white hover:bg-gray-50'
+                                className={`text-left px-5 py-4 border-2 border-ink font-black uppercase tracking-wide text-sm flex items-center gap-3 transition-all duration-200 group ${isActive
+                                    ? 'bg-banky-yellow shadow-neo -translate-y-1 text-ink'
+                                    : 'bg-white hover:bg-gray-50 hover:translate-x-1'
                                     } `}
                             >
-                                <Icon className="w-5 h-5" />
-                                <span className="font-display uppercase tracking-wide text-sm">{item.label}</span>
+                                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'rotate-[-10deg]' : 'group-hover:rotate-12'}`} />
+                                <span className="font-display">{item.label}</span>
                             </button>
                         )
                     })}

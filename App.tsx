@@ -19,8 +19,8 @@ import { App as CapacitorApp } from '@capacitor/app';
 // Lazy Load Pages
 const LandingPage = React.lazy(() => import('./components/LandingPage'));
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
-const Tracker = React.lazy(() => import('./components/Tracker'));
-const Education = React.lazy(() => import('./components/Education'));
+
+
 const Advisor = React.lazy(() => import('./components/Advisor'));
 const Accounts = React.lazy(() => import('./components/Accounts'));
 const BudgetPlanner = React.lazy(() => import('./components/BudgetPlanner'));
@@ -28,9 +28,6 @@ const BudgetPlanner = React.lazy(() => import('./components/BudgetPlanner'));
 const Login = React.lazy(() => import('./components/Login'));
 const Register = React.lazy(() => import('./components/Register'));
 const Settings = React.lazy(() => import('./components/Settings'));
-const KnowledgeBank = React.lazy(() => import('./components/knowledge-bank/KnowledgeBank'));
-const ModuleView = React.lazy(() => import('./components/knowledge-bank/ModuleView'));
-const LessonView = React.lazy(() => import('./components/knowledge-bank/LessonView'));
 
 const PrivacyPolicy = React.lazy(() => import('./components/legal/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./components/legal/TermsOfService'));

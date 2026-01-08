@@ -15,7 +15,9 @@ import {
     ScanText,
     Mic,
     Landmark,
-    Bot
+    Bot,
+    Check,
+    Loader2
 } from 'lucide-react';
 import type { Subscription, Payment, PremiumFeature } from '../types';
 
@@ -124,198 +126,215 @@ export const PremiumSettings: React.FC = () => {
     // Premium Active View
     if (isPremium) {
         return (
-            <div className="premium-settings">
-                <div className="premium-header">
-                    <Sparkles className="text-yellow-500" size={48} />
-                    <h2 className="text-3xl font-bold mt-4">Premium Active</h2>
-                    <PremiumBadge size="medium" />
+            <div className="premium-settings animate-fade-in space-y-8">
+                {/* Hero Status Card */}
+                {/* Hero Status Card */}
+                <div className="bg-banky-yellow border-4 border-ink p-8 shadow-neo rounded-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                        <Sparkles size={200} />
+                    </div>
+
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <PremiumBadge size="medium" />
+                                <span className="bg-ink text-white px-2 py-0.5 text-xs font-black uppercase tracking-wider rounded-sm">Active</span>
+                            </div>
+                            <h2 className="text-4xl font-black uppercase italic font-display text-ink">Premium Member</h2>
+                            <p className="font-bold text-ink/80 mt-1">You're automating your financial life.</p>
+                        </div>
+
+                        {/* Stats Crystal Balls */}
+                        <div className="flex gap-4">
+                            <div className="bg-white border-2 border-ink p-4 shadow-neo-sm min-w-[120px] text-center">
+                                <p className="text-[10px] font-black uppercase text-gray-500 mb-1">Renews In</p>
+                                <p className="text-3xl font-black font-display text-ink">{daysRemaining}</p>
+                                <p className="text-[10px] font-bold uppercase text-ink">Days</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="subscription-info bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-6 rounded-lg mt-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Next Billing Date</p>
-                            <p className="text-lg font-semibold">
-                                {expiresAt ? new Date(expiresAt).toLocaleDateString('en-IN', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric'
-                                }) : 'Lifetime'}
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Days Remaining</p>
-                            <p className="text-2xl font-bold text-yellow-600">{daysRemaining}</p>
+                {/* Subscription Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Info Card */}
+                    <div className="bg-white border-2 border-ink p-6 shadow-neo">
+                        <h3 className="text-xl font-black uppercase font-display mb-6 flex items-center gap-2">
+                            <CreditCard className="w-5 h-5" /> Subscription
+                        </h3>
+
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center p-3 bg-gray-50 border-2 border-ink">
+                                <span className="font-bold text-gray-600 uppercase text-xs">Next Billing</span>
+                                <span className="font-black text-ink">
+                                    {expiresAt ? new Date(expiresAt).toLocaleDateString('en-IN', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                    }) : 'Lifetime'}
+                                </span>
+                            </div>
+
+                            {((subscription as unknown as Record<string, unknown>)?.cancel_at_period_end || (subscription as any)?.cancelAtPeriodEnd) && (
+                                <div className="bg-red-50 border-2 border-red-500 p-4 flex items-start gap-3">
+                                    <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+                                    <div>
+                                        <p className="font-black text-red-600 uppercase text-sm">Cancellation Scheduled</p>
+                                        <p className="text-xs font-bold text-red-500">
+                                            Access ends on {expiresAt ? new Date(expiresAt).toLocaleDateString() : 'N/A'}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    onClick={() => setShowPayments(!showPayments)}
+                                    className="flex-1 py-3 border-2 border-ink font-black uppercase text-xs hover:bg-gray-50 transition-colors"
+                                >
+                                    {showPayments ? 'Hide History' : 'Payment History'}
+                                </button>
+
+                                {!((subscription as unknown as Record<string, unknown>)?.cancel_at_period_end || (subscription as any)?.cancelAtPeriodEnd) && (
+                                    <button
+                                        onClick={handleCancel}
+                                        disabled={loading}
+                                        className="flex-1 py-3 border-2 border-red-500 text-red-500 font-black uppercase text-xs hover:bg-red-50 transition-colors disabled:opacity-50"
+                                    >
+                                        {loading ? 'Processing...' : 'Cancel Plan'}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    {((subscription as unknown as Record<string, unknown>)?.cancel_at_period_end || subscription?.cancelAtPeriodEnd) && (
-                        <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-lg flex items-start gap-3">
-                            <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
-                            <div>
-                                <p className="font-semibold text-yellow-800 dark:text-yellow-200">Subscription Cancelled</p>
-                                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                                    Premium access will end on {expiresAt ? new Date(expiresAt).toLocaleDateString() : 'N/A'}
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <div className="features-grid grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                    {PREMIUM_FEATURES.map((feature) => (
-                        <div key={feature.id} className="feature-card p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div>{feature.icon}</div>
-                                    <div>
-                                        <h4 className="font-semibold">{feature.name}</h4>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">{feature.description}</p>
+                    {/* Features List */}
+                    <div className="bg-white border-2 border-ink p-6 shadow-neo">
+                        <h3 className="text-xl font-black uppercase font-display mb-6 flex items-center gap-2">
+                            <Sparkles className="w-5 h-5" /> Enabled Features
+                        </h3>
+                        <div className="space-y-3">
+                            {PREMIUM_FEATURES.map((feature) => (
+                                <div key={feature.id} className={`flex items-center gap-3 p-3 border-2 border-transparent ${feature.available ? 'bg-banky-green/20 border-banky-green/50' : 'opacity-50 grayscale'}`}>
+                                    <div className="p-1.5 bg-white border border-ink rounded-full shadow-sm">
+                                        {React.cloneElement(feature.icon as React.ReactElement, { className: "w-4 h-4" })}
                                     </div>
+                                    <div className="flex-1">
+                                        <p className="font-bold text-sm leading-tight">{feature.name}</p>
+                                    </div>
+                                    {!feature.available && <span className="text-[10px] font-black uppercase bg-gray-200 px-1 border border-gray-400">Soon</span>}
                                 </div>
-                                {!feature.available && <ComingSoonBadge />}
-                            </div>
+                            ))}
                         </div>
-                    ))}
+                    </div>
                 </div>
 
-                <div className="actions mt-6 flex gap-4">
-                    <button
-                        onClick={() => setShowPayments(!showPayments)}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
-                        <CreditCard size={18} />
-                        {showPayments ? 'Hide' : 'View'} Payment History
-                    </button>
-
-                    {!((subscription as unknown as Record<string, unknown>)?.cancel_at_period_end || subscription?.cancelAtPeriodEnd) && (
-                        <button
-                            onClick={handleCancel}
-                            disabled={loading}
-                            className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                        >
-                            {loading ? 'Processing...' : 'Cancel Subscription'}
-                        </button>
-                    )}
-                </div>
-
+                {/* Payment History Table */}
                 {showPayments && (
-                    <div className="payment-history mt-6">
-                        <h3 className="text-lg font-semibold mb-3">Payment History</h3>
+                    <div className="bg-white border-2 border-ink p-6 shadow-neo animate-fade-in">
+                        <h3 className="text-xl font-black uppercase font-display mb-4">Payment History</h3>
                         {payments.length > 0 ? (
-                            <div className="space-y-2">
-                                {payments.map((payment) => (
-                                    <div key={payment.id} className="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                                        <div>
-                                            <p className="font-medium">₹{payment.amount.toFixed(2)}</p>
-                                            <p className="text-sm text-gray-500">
-                                                {new Date(payment.createdAt).toLocaleDateString('en-IN')}
-                                            </p>
-                                        </div>
-                                        <span className={`text-sm px-2 py-1 rounded ${payment.status === 'captured'
-                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                                            }`}>
-                                            {payment.status}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b-2 border-ink text-xs uppercase text-gray-500">
+                                        <th className="py-2">Date</th>
+                                        <th className="py-2">Amount</th>
+                                        <th className="py-2 text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm font-bold">
+                                    {payments.map((payment) => (
+                                        <tr key={payment.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                                            <td className="py-3">{new Date(payment.createdAt).toLocaleDateString('en-IN')}</td>
+                                            <td className="py-3">₹{payment.amount.toFixed(2)}</td>
+                                            <td className="py-3 text-right">
+                                                <span className={`inline-block px-2 py-0.5 text-[10px] uppercase border border-current rounded ${payment.status === 'captured' ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'
+                                                    }`}>
+                                                    {payment.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         ) : (
-                            <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">
-                                <p>No payment records found.</p>
-                                <p className="text-xs mt-1">(Records start from 10th Dec 2025 update)</p>
+                            <div className="p-8 text-center border-2 border-dashed border-gray-300">
+                                <p className="font-bold text-gray-400">No payment records found yet.</p>
                             </div>
                         )}
                     </div>
                 )}
-
-                {/* Debug Info (Only visible if issues persist) */}
-                <div className="mt-8 pt-4 border-t border-gray-100 text-[10px] text-gray-400 font-mono">
-                    <p>DEBUG ID: {(subscription as unknown as Record<string, unknown>)?.razorpay_subscription_id as string || subscription?.razorpaySubscriptionId || 'NONE'}</p>
-                    <p>STATUS: {(subscription as unknown as Record<string, unknown>)?.status as string || subscription?.status || 'UNKNOWN'}</p>
-                    <p>V: 2.3.1 (Hotfix)</p>
-                </div>
             </div>
         );
     }
 
-    // Upgrade to Premium View
+    // Upgrade to Premium View (Sales Page)
     return (
-        <div className="premium-upgrade max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-                <Sparkles className="text-yellow-500 mx-auto mb-4" size={64} />
-                <h1 className="text-4xl font-bold mb-2">Upgrade to Premium</h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                    Automate your finances. Save 30+ minutes daily.
+        <div className="premium-upgrade max-w-2xl mx-auto py-8">
+            {/* Value Prop */}
+            <div className="text-center mb-10">
+                <div className="inline-block relative">
+                    <div className="absolute inset-0 bg-banky-yellow blur-xl opacity-50"></div>
+                    <Sparkles className="text-ink relative z-10 w-16 h-16 mx-auto mb-4" />
+                </div>
+                <h1 className="text-5xl font-black uppercase italic font-display mb-3 tracking-tighter">
+                    Go Premium
+                </h1>
+                <p className="text-xl font-bold text-gray-600">
+                    Stop manually tracking. Start living.
                 </p>
             </div>
 
-            <div className="pricing-card bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-8 rounded-2xl shadow-lg mb-8">
-                <div className="text-center">
-                    <div className="pricing-amount mb-4">
-                        <span className="text-5xl font-bold">₹149</span>
-                        <span className="text-2xl text-gray-600 dark:text-gray-400">/month</span>
-                    </div>
-                    <p className="text-sm text-gray-500 mb-6">
-                        Cancel anytime • No commitment • Instant access
-                    </p>
-                    <button
-                        onClick={handleSubscribe}
-                        disabled={loading}
-                        className="
-              w-full px-8 py-4 
-              bg-gradient-to-r from-yellow-400 to-orange-500 
-              text-white text-lg font-semibold rounded-xl
-              hover:from-yellow-500 hover:to-orange-600 
-              transition-all transform hover:scale-105
-              shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
-            "
-                    >
-                        {loading ? 'Processing...' : 'Subscribe Now'}
-                    </button>
+            {/* Pricing Card */}
+            <div className="bg-white border-4 border-ink shadow-neo-xl p-8 mb-10 rounded-xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div className="absolute top-0 right-0 bg-banky-yellow text-ink text-xs font-black uppercase px-3 py-1 border-l-2 border-b-2 border-ink z-20">
+                    Best Value
                 </div>
-            </div>
 
-            <div className="features-section">
-                <h2 className="text-2xl font-bold mb-4 text-center">Premium Features</h2>
-                <div className="space-y-4">
+                <div className="text-center mb-8 relative z-10">
+                    <div className="flex items-center justify-center gap-1 mb-2">
+                        <span className="text-6xl font-black font-display tracking-tighter">₹149</span>
+                        <span className="text-xl font-bold text-gray-400 self-end mb-2">/mo</span>
+                    </div>
+                    <p className="text-sm font-bold text-gray-500 uppercase tracking-wide">
+                        Cancel anytime • No commitment
+                    </p>
+                </div>
+
+                <div className="space-y-4 mb-8">
                     {PREMIUM_FEATURES.map((feature) => (
-                        <div key={feature.id} className="feature-item flex items-start gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div>{feature.icon}</div>
-                            <div className="flex-1">
-                                <div className="flex items-center justify-between mb-1">
-                                    <h3 className="font-semibold text-lg">{feature.name}</h3>
-                                    {!feature.available && <ComingSoonBadge />}
-                                </div>
-                                <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                        <div key={feature.id} className="flex items-start gap-4">
+                            <div className={`p-1 mt-0.5 rounded border-2 border-ink ${feature.available ? 'bg-banky-green text-ink' : 'bg-gray-100 text-gray-400 border-gray-300'}`}>
+                                <Check className="w-3 h-3 stroke-[4]" />
+                            </div>
+                            <div>
+                                <h3 className={`font-black uppercase text-sm ${feature.available ? 'text-ink' : 'text-gray-400 line-through decoration-2'}`}>
+                                    {feature.name}
+                                </h3>
+                                <p className="text-xs font-bold text-gray-500 leading-tight mt-0.5 pr-4">
+                                    {feature.description}
+                                </p>
                             </div>
                         </div>
                     ))}
                 </div>
+
+                <button
+                    onClick={handleSubscribe}
+                    disabled={loading}
+                    className="w-full py-4 bg-banky-yellow border-2 border-ink text-ink text-lg font-black uppercase tracking-wider shadow-neo hover:bg-banky-pink hover:text-white hover:shadow-neo-sm transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group-hover:shadow-neo-lg"
+                >
+                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Sparkles className="w-5 h-5 fill-current" />}
+                    {loading ? 'Processing...' : 'Upgrade Now'}
+                </button>
             </div>
 
-            <div className="value-proposition mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <h3 className="font-semibold mb-3">Why Premium?</h3>
-                <ul className="space-y-2 text-sm">
-                    <li className="flex items-start gap-2">
-                        <span className="text-green-500">✓</span>
-                        <span>Never manually log expenses again - snap, speak, or auto-sync</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <span className="text-green-500">✓</span>
-                        <span>Save 30+ minutes daily with automation</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <span className="text-green-500">✓</span>
-                        <span>Unlimited AI financial advisor conversations</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <span className="text-green-500">✓</span>
-                        <span>All future premium features included at no extra cost</span>
-                    </li>
-                </ul>
+            <div className="text-center">
+                <p className="text-xs font-bold text-gray-400 uppercase">
+                    Secure 256-bit SSL Encrypted Payment via Razorpay
+                </p>
             </div>
         </div>
     );
 };
+

@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useBanky } from '../context/useBanky';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateNetBalances, simplifyDebts } from '../services/billSplitterService';
 import AddExpenseModal from './AddExpenseModal';
-import { Plus, Users, CheckCircle, Receipt, Mail, UserPlus, Trash2, X } from 'lucide-react';
+import { Trash2, UserPlus, Receipt, ArrowUpRight, DollarSign, Calendar, Users, X, Plus, CheckCircle } from 'lucide-react';
 import { Member } from '../types';
 
 const BillSplitter: React.FC = () => {
@@ -83,7 +84,7 @@ const BillSplitter: React.FC = () => {
 
     const handleDeleteGroup = async () => {
         if (!activeGroup) return;
-        if (confirm(`Are you sure you want to delete the group "${activeGroup.name}"? This cannot be undone.`)) {
+        if (confirm(`Are you sure you want to delete the group "${activeGroup.name}" ? This cannot be undone.`)) {
             await deleteGroup(activeGroup.id);
             setActiveGroupId(null); // Reset selection
         }
@@ -272,7 +273,7 @@ const BillSplitter: React.FC = () => {
                         return (
                             <div key={member.id} className="flex justify-between items-center bg-white border-2 border-ink p-3 shadow-sm group rounded-xl">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 flex items-center justify-center font-black text-white border-2 border-ink ${isOwed ? 'bg-banky-green' : owes ? 'bg-banky-pink' : 'bg-gray-300'}`}>
+                                    <div className={`w - 8 h - 8 flex items - center justify - center font - black text - white border - 2 border - ink ${isOwed ? 'bg-banky-green' : owes ? 'bg-banky-pink' : 'bg-gray-300'} `}>
                                         {member.name[0]}
                                     </div>
                                     <div>
@@ -280,7 +281,7 @@ const BillSplitter: React.FC = () => {
                                         {member.email && <span className="text-[10px] text-gray-400 font-mono">{member.email}</span>}
                                     </div>
                                 </div>
-                                <div className={`font-mono font-bold ${isOwed ? 'text-banky-green' : owes ? 'text-banky-pink' : 'text-gray-400'}`}>
+                                <div className={`font - mono font - bold ${isOwed ? 'text-banky-green' : owes ? 'text-banky-pink' : 'text-gray-400'} `}>
                                     {isOwed ? '+' : ''}{currency.symbol}{bal.toFixed(2)}
                                 </div>
                             </div>

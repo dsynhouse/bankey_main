@@ -29,13 +29,13 @@ try {
 }
 
 // --- SHARED HELPER FOR ROBUST AI CALLS (Direct SDK -> Timeout -> Supabase Proxy) ---
-const callGeminiWithFallback = async (
+const callGeminiWithFallback = async <T = any>(
   methodName: string,
-  fn: () => Promise<any>,
-  promptOrPayload: any,
+  fn: () => Promise<T | { text?: string }>,
+  promptOrPayload: string | { contents: any[]; config?: any } | null,
   fallbackModel: string = 'gemini-2.5-flash',
-  isImageOrAudio: boolean = false
-) => {
+  _isImageOrAudio: boolean = false
+): Promise<any> => {
   if (!apiKey || !ai) throw new Error(`${methodName}: Missing API Key or AI instance.`);
 
   // 1. Try Direct Method with Timeout
@@ -46,11 +46,12 @@ const callGeminiWithFallback = async (
     const response = await Promise.race([
       fn(),
       timeoutPromise
-    ]) as any;
+    ]);
 
     return response; // Success
 
   } catch (error) {
+
     console.warn(`${methodName}: Direct Call Failed(Timeout / Error).Switching to Proxy.`, error);
 
     // 2. Fallback to Supabase Proxy
@@ -59,7 +60,7 @@ const callGeminiWithFallback = async (
       // Fallback to proxy...
 
       // Construct Body based on request type
-      let body: any = {
+      const body: any = {
         model: fallbackModel
       };
 
@@ -264,8 +265,70 @@ export const parseTransactionInput = async (input: string): Promise<{
   // 3. Fallback to Regex
   const fallback = regexParse(input);
   if (fallback.amount > 0) return fallback;
-
   return null;
+};
+
+export const parseNaturalLanguageTransaction = async (input: string): Promise<Partial<Transaction> | null> => {
+  if (!isApiLikelyAvailable()) {
+    console.info("Gemini API limited, using regex");
+    return regexParse(input) as unknown as Partial<Transaction>;
+  }
+
+  if (apiKey && ai) {
+    const startTime = Date.now();
+    // Prompt optimized for voice transcripts which might be messy
+    const prompt = `Parse this financial text: "${input}".
+    Return a JSON object with:
+    - amount (number)
+    - category (String from: Food, Transport, Leisure, Shopping, Bills, Investment, Income, Other)
+    - description (Clean, short title case string)
+    - type ('expense' or 'income')
+    - date (ISO string YYYY-MM-DD if mentioned, else null)
+    
+    Example: "Spent 50 on burger yesterday" -> {"amount": 50, "category": "Food", "description": "Burger", "type": "expense", "date": "2023-10-27"}
+    `;
+
+    try {
+      const result = await callGeminiWithFallback(
+        'parseNaturalLanguageTransaction',
+        async () => {
+          return await retryWithBackoff(async () => {
+            const response = await ai!.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: prompt,
+              config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                  type: Type.OBJECT,
+                  properties: {
+                    amount: { type: Type.NUMBER },
+                    category: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                    type: { type: Type.STRING, enum: ['expense', 'income'] },
+                    date: { type: Type.STRING, nullable: true }
+                  },
+                  required: ["amount", "category", "description", "type"]
+                }
+              }
+            });
+            return response;
+          });
+        },
+        prompt
+      );
+
+      const text = result.text;
+      if (text) {
+        geminiUsage.logRequest('NLP Parse', 'gemini-2.5-flash', Date.now() - startTime, true);
+        return JSON.parse(text);
+      }
+    } catch (error) {
+      console.warn("Gemini NLP Parse Failed", error);
+      geminiUsage.logRequest('NLP Parse', 'gemini-2.5-flash', Date.now() - startTime, false, String(error));
+    }
+  }
+
+  return regexParse(input) as unknown as Partial<Transaction>;
 };
 
 // Helper for providing educational financial insights (NOT financial advice)

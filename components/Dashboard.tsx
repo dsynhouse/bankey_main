@@ -6,13 +6,14 @@ import DreamBoard from './DreamBoard.tsx';
 import WidgetGrid from './widgets/WidgetGrid';
 import WidgetLibrary from './widgets/WidgetLibrary';
 import { SEO } from './SEO';
-import { Sparkles, Grid3x3, Mic, Camera, Plus, Loader2, Filter, ArrowUpRight, ArrowDownRight, RotateCcw, Wallet, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Trash2, ArrowUpDown } from 'lucide-react';
+import { Sparkles, Grid3x3, Mic, Camera, Plus, Loader2, ChevronLeft, ChevronRight, Trash2, ArrowUpDown } from 'lucide-react';
 import VoiceInput from './VoiceInput';
 import ReceiptScanner from './ReceiptScanner';
-import Mascot from './Mascot';
+import ForecastWidget from './widgets/ForecastWidget';
 import { parseTransactionInput } from '../services/geminiService';
 import { Category, Transaction } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, subDays } from 'date-fns';
 import CategoryIcon from './CategoryIcon';
 
 /**
@@ -38,7 +39,6 @@ const Dashboard: React.FC = () => {
 
     // AI Input State
     const [aiInput, setAiInput] = useState('');
-    const [aiAccountId, setAiAccountId] = useState<string>('');
     const [isAiLoading, setIsAiLoading] = useState(false);
 
     // Manual Form State
@@ -47,17 +47,23 @@ const Dashboard: React.FC = () => {
     const [desc, setDesc] = useState('');
     const [category, setCategory] = useState<Category>(Category.FOOD);
     const [type, setType] = useState<'expense' | 'income'>('expense');
-    const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+    const [selectedAccountId] = useState<string>('');
+
 
     // Filter and Sort State
     const [listFilter, setListFilter] = useState<'all' | 'expense' | 'income'>('all');
-    const [analyticsView, setAnalyticsView] = useState<'expense' | 'income'>('expense');
-    const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const [_analyticsView, setAnalyticsView] = useState<'weekly' | 'monthly'>('weekly');
+    const [_sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+    const [_sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [_dateRange, setDateRange] = useState({ start: startOfMonth(new Date()), end: endOfMonth(new Date()) });
+    const [_calendarSelectedDate, setCalendarSelectedDate] = useState<Date | null>(null);
+    /* eslint-enable @typescript-eslint/no-unused-vars */
 
     // Calendar State
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDateLog, setSelectedDateLog] = useState<Transaction[] | null>(null);
+
 
     // === TRACKER HANDLERS ===
     const handleTypeChange = (newType: 'expense' | 'income') => {
@@ -105,21 +111,9 @@ const Dashboard: React.FC = () => {
         setShowManualForm(false);
     };
 
-    const resetFilters = () => {
-        setListFilter('all');
-        setAnalyticsView('expense');
-        setSortBy('date');
-        setSortOrder('desc');
-    };
 
-    const toggleSort = (field: 'date' | 'amount') => {
-        if (sortBy === field) {
-            setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortBy(field);
-            setSortOrder('desc');
-        }
-    };
+
+
 
     // Calendar functions
     const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -176,12 +170,12 @@ const Dashboard: React.FC = () => {
         if (listFilter === 'all') return true;
         return t.type === listFilter;
     }).sort((a, b) => {
-        if (sortBy === 'date') {
-            return sortOrder === 'asc' ?
+        if (_sortBy === 'date') {
+            return _sortOrder === 'asc' ?
                 new Date(a.date).getTime() - new Date(b.date).getTime() :
                 new Date(b.date).getTime() - new Date(a.date).getTime();
         } else {
-            return sortOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount;
+            return _sortOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount;
         }
     });
 
@@ -192,7 +186,7 @@ const Dashboard: React.FC = () => {
 
     // Chart data
     const dataByCategory = Object.values(Category).map(cat => {
-        const total = transactions.filter(t => t.category === cat && t.type === analyticsView).reduce((sum, t) => sum + t.amount, 0);
+        const total = transactions.filter(t => t.category === cat && t.type === _analyticsView).reduce((sum, t) => sum + t.amount, 0);
         return { name: cat, value: total };
     }).filter(d => d.value > 0);
 
@@ -413,6 +407,11 @@ const Dashboard: React.FC = () => {
                                         </form>
                                     )}
 
+                                    {/* Forecast Widget (AI Evolution) */}
+                                    <div className="mb-6">
+                                        <ForecastWidget />
+                                    </div>
+
                                     {/* Transactions List */}
                                     <div className="space-y-3">
                                         {displayTransactions.length === 0 ? (
@@ -504,24 +503,30 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Modals */}
-            {showWidgetLibrary && (
-                <WidgetLibrary onClose={() => setShowWidgetLibrary(false)} />
-            )}
+            {
+                showWidgetLibrary && (
+                    <WidgetLibrary onClose={() => setShowWidgetLibrary(false)} />
+                )
+            }
 
-            {showVoiceInput && (
-                <VoiceInput
-                    onClose={() => setShowVoiceInput(false)}
-                    defaultAccountId={accounts[0]?.id}
-                />
-            )}
+            {
+                showVoiceInput && (
+                    <VoiceInput
+                        onClose={() => setShowVoiceInput(false)}
+                        defaultAccountId={accounts[0]?.id}
+                    />
+                )
+            }
 
-            {showReceiptScanner && (
-                <ReceiptScanner
-                    onClose={() => setShowReceiptScanner(false)}
-                    defaultAccountId={accounts[0]?.id}
-                />
-            )}
-        </div>
+            {
+                showReceiptScanner && (
+                    <ReceiptScanner
+                        onClose={() => setShowReceiptScanner(false)}
+                        defaultAccountId={accounts[0]?.id}
+                    />
+                )
+            }
+        </div >
     );
 };
 

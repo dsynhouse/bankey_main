@@ -1,7 +1,17 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
+
+// Create a fresh QueryClient for each test
+const createTestQueryClient = () => new QueryClient({
+    defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+    },
+});
+
 
 // CRITICAL: We do NOT mock the providers here. We want to test the REAL provider stack.
 // We only mock external services (Supabase, Razorpay, etc.)
@@ -74,8 +84,14 @@ describe('App Integration (Full Provider Stack)', () => {
     it('boots without crashing and renders Landing Page for unauthenticated user', async () => {
         // Tests that BankyProvider -> FeatureFlagProvider -> DomainContexts -> Router nesting is valid.
         // If "useBanky must be used within..." error exists, this will throw.
+        const queryClient = createTestQueryClient();
 
-        render(<App />);
+        render(
+            <QueryClientProvider client={queryClient}>
+                <App />
+            </QueryClientProvider>
+        );
+
 
         // Then loads Landing Page
         await waitFor(() => {
@@ -99,7 +115,14 @@ describe('App Integration (Full Provider Stack)', () => {
             data: { session: { user: mockUser } }
         });
 
-        render(<App />);
+        const queryClient = createTestQueryClient();
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <App />
+            </QueryClientProvider>
+        );
+
 
         await waitFor(() => {
             // Should verify Dashboard is rendered

@@ -1,7 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { Transaction, Account, AccountType, UserState, Budget, Category, UserProfile, Currency, Goal, Theme, RegionCode, Group, Member, Expense } from '../types';
-import { INITIAL_USER_STATE, SUPPORTED_CURRENCIES, DEFAULT_CURRENCY } from '../constants';
+import { Transaction, Category, Account, UserProfile, Budget, Goal, Group, Member, Expense, UserState, Currency, AccountType } from '../types';
+
+
+import { INITIAL_USER_STATE, DEFAULT_CURRENCY } from '../constants';
+
 import { handleSupabaseError } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
 import { BASE_MODULES } from '../data/educationData';
@@ -28,7 +30,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const queryClient = useQueryClient();
     const {
         transactions,
-        addTransaction: addTxQuery,
         deleteTransaction: deleteTxQuery
     } = useTransactions(user?.id);
 
@@ -293,10 +294,12 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     })));
                 });
             })
-            // 5. Profiles: Sync XP, Level, Streak
+            // 5. Profiles: Sync XP, Level, Streak, AND Premium Status
             .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, (payload) => {
                 if (payload.new) {
                     const p = payload.new as any; // Fix TS type error
+
+                    // Update user state (gamification)
                     setUserState(prev => ({
                         ...prev,
                         totalXp: p.total_xp,
@@ -304,6 +307,13 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         streakDays: p.streak_days,
                         hasCompletedOnboarding: p.has_completed_onboarding
                     }));
+
+                    // CRITICAL: Update user object with premium status for instant reflection
+                    setUser(prev => prev ? {
+                        ...prev,
+                        isPremium: p.is_premium || false,
+                        premiumExpiresAt: p.premium_expires_at || undefined
+                    } : null);
                 }
             })
             // 6. Bill Splitter Sync: Listen for balance changes in groups
@@ -472,20 +482,45 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (supabase && user && targetAccountId) {
             try {
-                await addTxQuery(newTx); // Use React Query Mutation
+                console.log('[addTransaction] Saving transaction:', {
+                    id: newTx.id,
+                    amount: newTx.amount,
+                    type: newTx.type,
+                    category: newTx.category,
+                    accountId: targetAccountId
+                });
+
+                const { error: saveError } = await saveTransaction(supabase, user.id, newTx);
+
+                if (saveError) {
+                    console.error('[addTransaction] Failed to save transaction:', saveError);
+                    alert(`Failed to save transaction: ${saveError.message}`);
+                    return;
+                }
+
+                console.log('[addTransaction] Transaction saved successfully, invalidating cache...');
+
+                // CRITICAL: Invalidate React Query cache to trigger UI update
+                queryClient.invalidateQueries({ queryKey: TRANSACTION_KEYS.lists() });
 
                 // Update Account Balance in DB
                 const account = accounts.find(a => a.id === targetAccountId);
                 if (account) {
                     const newBalance = t.type === 'income' ? account.balance + t.amount : account.balance - t.amount;
-                    await updateAccountBalance(supabase, targetAccountId, newBalance);
+                    const { error: balanceError } = await updateAccountBalance(supabase, targetAccountId, newBalance);
+                    if (balanceError) {
+                        console.error('[addTransaction] Failed to update balance:', balanceError);
+                    }
                 }
+
+                console.log('[addTransaction] Complete!');
             } catch (error) {
-                console.error("Failed to add transaction", error);
-                // handleSupabaseError(error, 'addTransaction'); // Type mismatch potentially
+                console.error("[addTransaction] Unexpected error:", error);
+                alert(`Transaction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         } else {
-            logger.warn('Cannot save transaction: Missing user or account ID');
+            console.warn('[addTransaction] Cannot save: Missing user or account ID', { user: !!user, supabase: !!supabase, targetAccountId });
+            alert('Cannot save transaction: Please ensure you have a wallet set up.');
         }
     };
 
@@ -897,7 +932,31 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             groups, addGroup, addExpense, settleDebt,
             deleteGroup: deleteGroupFn,
             deleteExpense: deleteExpenseFn,
-            refreshProfile: async () => { if (user) await fetchData(user.id); }
+            refreshProfile: async () => {
+                if (!user || !supabase) return;
+
+                // Direct query for premium status - most reliable approach
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('is_premium, premium_expires_at, name')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) {
+                    console.error('[refreshProfile] Failed to fetch profile:', error);
+                    return;
+                }
+
+                if (profile) {
+                    console.log('[refreshProfile] Syncing premium status:', profile.is_premium);
+                    setUser(prev => prev ? {
+                        ...prev,
+                        name: profile.name || prev.name,
+                        isPremium: profile.is_premium || false,
+                        premiumExpiresAt: profile.premium_expires_at || undefined
+                    } : null);
+                }
+            }
         }}>
             {children}
         </BankyContext.Provider>
