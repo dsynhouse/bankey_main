@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
             <div className="flex justify-center -mt-4 relative z-20">
                 <div className="inline-flex bg-white p-2 border-2 border-ink rounded-2xl shadow-neo overflow-x-auto max-w-full no-scrollbar">
                     {[
-                        { id: 'widgets', label: 'Home', icon: Plus },
+                        { id: 'widgets', label: 'Add', icon: Plus },
                         { id: 'tracker', label: 'Tracker', icon: ArrowUpDown },
                         { id: 'dreamboard', label: 'Dreams', icon: Sparkles },
                         { id: 'bills', label: 'Squads', icon: Plus }
