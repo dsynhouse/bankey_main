@@ -23,7 +23,8 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
 
     // Compute initial state
     const getInitialState = (): ScanState => {
-        if (!isPremium) return 'premium-gate';
+        // TEMPORARY: Premium gate disabled for testing
+        // if (!isPremium) return 'premium-gate';
         return 'idle';
     };
 

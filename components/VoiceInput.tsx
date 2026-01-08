@@ -28,7 +28,8 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
 
     // Compute initial state based on premium status and voice support
     const getInitialState = (): VoiceState => {
-        if (!isPremium) return 'premium-gate';
+        // TEMPORARY: Premium gate disabled for testing
+        // if (!isPremium) return 'premium-gate';
         if (!isVoiceSupported()) return 'error';
 
         return 'idle';
