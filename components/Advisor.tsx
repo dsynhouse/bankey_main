@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { getFinancialInsights, getPersonalizedAnalysis } from '../services/geminiService';
 import { ChatMessage } from '../types';
-import { Send, Bot, User, ExternalLink, Globe, BarChart3, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, ExternalLink, Globe, BarChart3, AlertCircle, Info } from 'lucide-react';
 import { PremiumUpgradeCTA } from './PremiumUpgradeCTA';
 import { useBanky } from '../context/useBanky';
 import { usePremium } from '../context/usePremium';
@@ -18,6 +18,7 @@ const Advisor: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -92,45 +93,50 @@ const Advisor: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col pb-4 font-sans">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white border-4 border-ink p-6 md:p-8 shadow-neo rounded-xl relative overflow-hidden mb-6">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-banky-blue rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-banky-blue border-2 border-ink rounded-lg flex items-center justify-center shadow-sm">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
-            <p className="font-black text-ink/40 uppercase tracking-widest text-sm font-display">AI Advisor</p>
+      <div className="flex items-center justify-between gap-4 bg-white border-4 border-ink p-4 shadow-neo rounded-xl relative mb-4 z-20">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-banky-blue border-2 border-ink rounded-lg flex items-center justify-center shadow-sm">
+            <Bot className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black italic text-ink font-display leading-[0.9] mb-2">
-            Learning Hub
-          </h1>
-          <p className="font-bold text-gray-500">Educational insights. Real-time facts.</p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-black italic text-ink font-display leading-none">
+                Learning Hub
+              </h1>
+              <button
+                onClick={() => setShowInfo(!showInfo)}
+                className="text-gray-400 hover:text-banky-blue transition-colors"
+              >
+                <Info className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="font-black text-ink/40 uppercase tracking-widest text-[10px] font-display">AI Advisor</p>
+          </div>
         </div>
 
-        <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-3">
+        {showInfo && (
+          <div className="absolute top-16 left-4 right-4 bg-white border-2 border-ink p-4 rounded-xl shadow-neo z-50 animate-fade-in text-sm">
+            <p className="font-bold text-gray-500 mb-2">Educational insights. Real-time facts.</p>
+            <div className="flex items-start gap-2 bg-blue-50 p-2 rounded border border-blue-200">
+              <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-800">
+                This AI provides educational information, not financial advice. Always consult a licensed financial advisor.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          {!isPremium && <PremiumUpgradeCTA variant="minimal" context="advisor" />}
           <button
             onClick={handleAnalysis}
-            className="px-4 py-2 bg-banky-yellow border-2 border-ink rounded-xl font-black uppercase text-xs flex items-center gap-2 shadow-neo hover:translate-y-0.5 hover:shadow-none transition-all group"
+            className="p-2 md:px-3 md:py-2 bg-banky-yellow border-2 border-ink rounded-xl font-black uppercase text-[10px] md:text-xs flex items-center gap-2 shadow-neo hover:translate-y-0.5 hover:shadow-none transition-all group"
           >
-            <BarChart3 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            <span>Deep Dive</span>
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden md:inline">Deep Dive</span>
           </button>
-          <PremiumUpgradeCTA variant="minimal" context="advisor" />
         </div>
       </div>
-
-      {/* Educational Disclaimer */}
-      <div className="mb-4 bg-blue-50 border-2 border-ink p-4 flex items-start gap-3 shadow-neo-sm">
-        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm">
-          <p className="font-black uppercase text-blue-900 mb-1">Educational Tool Only</p>
-          <p className="text-gray-700">This AI provides educational information, not financial advice. Always consult a licensed financial advisor for personalized recommendations.</p>
-        </div>
-      </div>
-
-      {/* Premium Upgrade Banner */}
-      <PremiumUpgradeCTA variant="banner" context="advisor" className="mb-4 border-2 border-ink" />
 
       <div className="flex-1 bg-white border-2 border-ink shadow-neo overflow-hidden flex flex-col relative">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
