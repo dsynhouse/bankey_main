@@ -190,7 +190,7 @@ const Settings: React.FC = () => {
                         </div>
                         <p className="font-black text-ink/40 uppercase tracking-widest text-sm font-display">Configuration</p>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black italic text-ink font-display leading-[0.9] mb-2">
+                    <h1 className="text-3xl md:text-4xl font-black italic text-ink font-display leading-[0.9] mb-2">
                         Settings
                     </h1>
                     <p className="font-bold text-gray-500">Manage your account and preferences.</p>

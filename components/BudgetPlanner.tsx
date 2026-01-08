@@ -69,7 +69,7 @@ const BudgetPlanner: React.FC = () => {
             </div>
             <p className="font-black text-ink/40 uppercase tracking-widest text-sm font-display">Budgets</p>
           </div>
-          <h1 className="text-5xl font-black italic text-ink font-display leading-[0.9] mb-2">
+          <h1 className="text-3xl md:text-4xl font-black italic text-ink font-display leading-[0.9] mb-2">
             The Limit
           </h1>
           <p className="font-bold text-gray-500">Don't blow the bag in one place.</p>
