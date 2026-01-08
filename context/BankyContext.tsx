@@ -348,25 +348,37 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // Check "Stay Signed In" preference from session storage
         supabase.auth.getSession().then(async ({ data: { session } }) => {
-            // Check if user explicitly opted out of persistence in previous session
-            // If 'banky_no_persist' is set, we might want to sign out, but Supabase handles session persistence by default.
-            // The 'rememberMe' logic here is primarily for *future* sessions or explicit sign-outs on window close.
-
-            if (session?.user) {
-                // Get profile to load premium status
-                const { data: profile } = await supabase.from('profiles').select('is_premium, premium_expires_at, name').eq('id', session.user.id).maybeSingle();
-
-                setUser({
-                    id: session.user.id,
-                    email: session.user.email || 'User',
-                    name: profile?.name || session.user.user_metadata?.name || 'User',
-                    isPremium: profile?.is_premium || false,
-                    premiumExpiresAt: profile?.premium_expires_at || undefined
-                });
-                fetchData(session.user.id);
-            } else {
+            // Failsafe timeout - ensure loading screen never hangs indefinitely
+            const loadingTimeout = setTimeout(() => {
+                console.warn('[BankyContext] Loading timeout triggered - forcing loading state to false');
                 setIsLoading(false);
+            }, 10000); // 10 second timeout
+
+            try {
+                if (session?.user) {
+                    // Get profile to load premium status
+                    const { data: profile } = await supabase.from('profiles').select('is_premium, premium_expires_at, name').eq('id', session.user.id).maybeSingle();
+
+                    setUser({
+                        id: session.user.id,
+                        email: session.user.email || 'User',
+                        name: profile?.name || session.user.user_metadata?.name || 'User',
+                        isPremium: profile?.is_premium || false,
+                        premiumExpiresAt: profile?.premium_expires_at || undefined
+                    });
+                    await fetchData(session.user.id);
+                } else {
+                    setIsLoading(false);
+                }
+            } catch (error) {
+                console.error('[BankyContext] Error during session check:', error);
+                setIsLoading(false);
+            } finally {
+                clearTimeout(loadingTimeout);
             }
+        }).catch((error) => {
+            console.error('[BankyContext] Failed to get session:', error);
+            setIsLoading(false);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
