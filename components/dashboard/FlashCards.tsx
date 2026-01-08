@@ -137,8 +137,8 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                                     value={flashSpendAmount}
                                     onChange={(e) => setFlashSpendAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className="text-left text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none min-w-[3ch]"
-                                    style={{ width: `${Math.max(3, flashSpendAmount.length)}ch` }}
+                                    className="text-left text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
+                                    style={{ width: `${Math.max(5, flashSpendAmount.length + 1)}ch` }}
                                     autoFocus
                                 />
                             </div>
@@ -230,8 +230,8 @@ const FlashCards: React.FC<FlashCardsProps> = ({ accounts, currency, addTransact
                                     value={flashEarnAmount}
                                     onChange={(e) => setFlashEarnAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className="text-left text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none min-w-[3ch]"
-                                    style={{ width: `${Math.max(3, flashEarnAmount.length)}ch` }}
+                                    className="text-left text-5xl md:text-6xl font-black text-ink bg-transparent placeholder-gray-200 focus:outline-none"
+                                    style={{ width: `${Math.max(5, flashEarnAmount.length + 1)}ch` }}
                                     autoFocus
                                 />
                             </div>
