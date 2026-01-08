@@ -102,8 +102,25 @@ export const initiateSubscription = async (
         if (error) {
             console.error('Error creating subscription:', error);
 
-            // Parse error message
-            const errorMsg = typeof error === 'object' && error.message ? error.message : String(error);
+            // Try to parse the actual JSON error from the server response
+            let serverErrorMsg = '';
+            if (error instanceof Error && 'context' in error) {
+                try {
+                    const response = (error as any).context as Response;
+                    if (response && !response.bodyUsed) {
+                        const errorData = await response.json();
+                        if (errorData && errorData.error) {
+                            serverErrorMsg = errorData.error;
+                            console.error('Server-side Error:', serverErrorMsg);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to parse error body:', e);
+                }
+            }
+
+            // Parse error message (use server error if found, otherwise generic message)
+            const errorMsg = serverErrorMsg || (typeof error === 'object' && error.message ? error.message : String(error));
             const errorContext = typeof error === 'object' && error.context ? JSON.stringify(error.context) : '';
 
             console.error('Full Error Details:', { errorMsg, errorContext, error });
