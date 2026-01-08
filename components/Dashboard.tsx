@@ -194,8 +194,13 @@ const Dashboard: React.FC = () => {
     const netFlow = totalIncome - totalExpense;
 
     // Chart data
+    // Chart data (synced with currentDate month)
     const dataByCategory = Object.values(Category).map(cat => {
-        const total = transactions.filter(t => t.category === cat && t.type === _analyticsView).reduce((sum, t) => sum + t.amount, 0);
+        const total = transactions.filter(t => {
+            const tDate = new Date(t.date);
+            const isSameMonth = tDate.getMonth() === currentDate.getMonth() && tDate.getFullYear() === currentDate.getFullYear();
+            return t.category === cat && t.type === 'expense' && isSameMonth;
+        }).reduce((sum, t) => sum + t.amount, 0);
         return { name: cat, value: total };
     }).filter(d => d.value > 0);
 
@@ -444,7 +449,16 @@ const Dashboard: React.FC = () => {
                             {/* Analytics View */}
                             {trackerSubTab === 'analytics' && (
                                 <div className="space-y-6 animate-fade-in">
-                                    <div className="h-64 bg-gray-50 rounded-xl border-2 border-gray-200 flex items-center justify-center">
+                                    {/* Shared Month Navigator */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="font-black uppercase">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft /></button>
+                                            <button onClick={() => changeMonth(1)} className="p-1 hover:bg-gray-100 rounded"><ChevronRight /></button>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-64 bg-gray-50 rounded-xl border-2 border-gray-200 flex items-center justify-center relative">
                                         {dataByCategory.length > 0 ? (
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <PieChart>
