@@ -207,7 +207,18 @@ const Dashboard: React.FC = () => {
         return { name: cat, value: total };
     }).filter(d => d.value > 0);
 
-    const COLORS = ['#DEFF00', '#FF88DC', '#54C7EC', '#00E08F', '#A688FA', '#FF9F1C', '#EF4444', '#121212'];
+    // Category Colors (Stable Mapping)
+    const CATEGORY_COLORS: Record<string, string> = {
+        [Category.FOOD]: '#FF9F1C', // Orange
+        [Category.TRANSPORT]: '#54C7EC', // Light Blue
+        [Category.LEISURE]: '#FF88DC', // Pink
+        [Category.SHOPPING]: '#A688FA', // Purple
+        [Category.BILLS]: '#EF4444', // Red
+        [Category.INVESTMENT]: '#00E08F', // Mint (Darker than neon)
+        [Category.BUSINESS]: '#121212', // Black
+        [Category.INCOME]: '#00E08F', // Green
+        [Category.OTHER]: '#9CA3AF' // Gray
+    };
 
 
 
@@ -413,10 +424,7 @@ const Dashboard: React.FC = () => {
                                         </form>
                                     )}
 
-                                    {/* Forecast Widget (AI Evolution) */}
-                                    <div className="mb-6">
-                                        <ForecastWidget />
-                                    </div>
+
 
                                     {/* Transactions List */}
                                     <div className="space-y-3">
@@ -445,6 +453,11 @@ const Dashboard: React.FC = () => {
                                                 </div>
                                             ))
                                         )}
+                                    </div>
+
+                                    {/* Forecast Widget (AI Evolution) */}
+                                    <div className="mb-6">
+                                        <ForecastWidget />
                                     </div>
                                 </div>
                             )}
@@ -493,7 +506,7 @@ const Dashboard: React.FC = () => {
                                                         dataKey="value"
                                                     >
                                                         {dataByCategory.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                            <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.name]} />
                                                         ))}
                                                     </Pie>
                                                     <Tooltip />
