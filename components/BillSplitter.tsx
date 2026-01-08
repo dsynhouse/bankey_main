@@ -4,7 +4,7 @@ import { useBanky } from '../context/useBanky';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateNetBalances, simplifyDebts } from '../services/billSplitterService';
 import AddExpenseModal from './AddExpenseModal';
-import { Trash2, UserPlus, Receipt, ArrowUpRight, DollarSign, Calendar, Users, X, Plus, CheckCircle } from 'lucide-react';
+import { Trash2, UserPlus, Receipt, Users, X, Plus, CheckCircle } from 'lucide-react';
 import { Member } from '../types';
 
 const BillSplitter: React.FC = () => {

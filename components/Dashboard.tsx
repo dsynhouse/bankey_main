@@ -13,7 +13,7 @@ import ForecastWidget from './widgets/ForecastWidget';
 import { parseTransactionInput } from '../services/geminiService';
 import { Category, Transaction } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, subDays } from 'date-fns';
+import { startOfMonth, endOfMonth } from 'date-fns';
 import CategoryIcon from './CategoryIcon';
 
 /**
@@ -40,7 +40,7 @@ const Dashboard: React.FC = () => {
     // AI Input State
     const [aiInput, setAiInput] = useState('');
     const [isAiLoading, setIsAiLoading] = useState(false);
-    const [aiAccountId, setAiAccountId] = useState('');
+    const [aiAccountId] = useState('');
 
     // Manual Form State
     const [showManualForm, setShowManualForm] = useState(false);

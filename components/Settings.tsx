@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useBanky } from '../context/useBanky';
 import { usePreferences } from '../context/PreferencesContext';
-import { useSettings } from '../context/SettingsContext';
 import { Currency, ChatMessage } from '../types';
+import { SUPPORTED_CURRENCIES } from '../constants';
 import { getSupportAdvice } from '../services/geminiService';
 import { PremiumSettings } from './PremiumSettings';
 import {
@@ -49,7 +49,7 @@ const Settings: React.FC = () => {
     const [isSavingName, setIsSavingName] = useState(false);
 
     // Preferences State - Pending Changes
-    const [pendingCurrency] = useState<Currency>(currency);
+    const [pendingCurrency, setPendingCurrency] = useState<Currency>(currency);
     const [pendingNotifications, setPendingNotifications] = useState(() => {
         const saved = localStorage.getItem('banky_notifs');
         return saved ? JSON.parse(saved) : { budget: true, tips: false, news: true };
@@ -305,22 +305,39 @@ const Settings: React.FC = () => {
                             <div>
                                 <h2 className="text-2xl font-black uppercase font-display mb-6 border-b-2 border-gray-200 pb-2">Regional Settings</h2>
 
-                                {/* Currency selection hidden - INR only for now */}
+                                {/* Currency Selection Grid */}
                                 <div className="mb-6">
                                     <label className="block text-sm font-black uppercase text-ink mb-3 font-display">Currency</label>
-                                    <div className="flex items-center justify-between p-4 border-2 border-ink bg-banky-green shadow-neo-sm -translate-y-1">
-                                        <div className="flex items-center gap-3">
-                                            <span className="w-8 h-8 flex items-center justify-center bg-ink text-white font-mono font-bold rounded-full">
-                                                ₹
-                                            </span>
-                                            <div className="text-left">
-                                                <p className="font-black font-display">INR</p>
-                                                <p className="text-xs font-bold text-gray-600">Indian Rupee</p>
-                                            </div>
-                                        </div>
-                                        <Check className="w-6 h-6" />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {SUPPORTED_CURRENCIES.map((curr) => {
+                                            const isSelected = pendingCurrency.code === curr.code;
+                                            return (
+                                                <button
+                                                    key={curr.code}
+                                                    type="button"
+                                                    onClick={() => setPendingCurrency(curr)}
+                                                    className={`border-2 border-ink p-4 transition-all text-left ${isSelected
+                                                        ? 'bg-banky-green shadow-neo -translate-y-1'
+                                                        : 'bg-white hover:shadow-neo-sm hover:-translate-y-0.5'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <span className={`w-10 h-10 flex items-center justify-center border-2 border-ink font-mono font-bold text-xl ${isSelected ? 'bg-ink text-white' : 'bg-white text-ink'
+                                                            }`}>
+                                                            {curr.symbol}
+                                                        </span>
+                                                        <div className="flex-1">
+                                                            <p className="font-black font-display text-ink">{curr.code}</p>
+                                                            <p className="text-xs font-bold text-gray-600">{curr.name}</p>
+                                                        </div>
+                                                        {isSelected && (
+                                                            <Check className="w-5 h-5 text-ink" />
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-2 font-medium">More currencies coming soon!</p>
                                 </div>
                             </div>
 
