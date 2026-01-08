@@ -8,6 +8,18 @@ export const TRANSACTION_KEYS = {
     lists: () => [...TRANSACTION_KEYS.all, 'list'] as const,
 };
 
+// Database format type (snake_case)
+interface DbTransaction {
+    id: string;
+    user_id: string;
+    account_id: string;
+    amount: string;
+    type: string;
+    category: string;
+    description: string | null;
+    date: string;
+}
+
 // Fetch function
 const fetchTransactions = async (userId: string | undefined) => {
     if (!userId) return [];
@@ -23,7 +35,7 @@ const fetchTransactions = async (userId: string | undefined) => {
     // Transform database format (snake_case) to frontend format (camelCase)
     if (!data) return [];
 
-    return data.map((tx: any) => ({
+    return (data as DbTransaction[]).map((tx) => ({
         id: tx.id,
         userId: tx.user_id,
         accountId: tx.account_id,
