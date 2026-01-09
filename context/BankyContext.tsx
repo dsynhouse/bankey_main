@@ -696,9 +696,35 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     const updateUserName = async (name: string) => {
+        console.log('[BankyContext] updateUserName called with:', name);
+        if (!user) {
+            console.error('[BankyContext] Cannot update name: User is null');
+            return;
+        }
+
+        // 1. Optimistic Update
         setUser(prev => prev ? { ...prev, name } : null);
-        if (supabase && user) {
-            await supabase.from('profiles').upsert({ id: user.id, name });
+
+        // 2. Persist to DB
+        if (supabase) {
+            const { error } = await supabase.from('profiles').upsert({ id: user.id, name });
+
+            if (error) {
+                console.error('[BankyContext] Failed to update name in DB:', error);
+                handleSupabaseError(error, 'updateUserName');
+                // Revert optimistic update? Or just let it be and warn?
+                // For now, alerting user is better.
+                alert('Failed to save name changes. Please try again.');
+            } else {
+                console.log('[BankyContext] Name updated in DB successfully');
+
+                // 3. Try key-value update for redundancy (optional, but robust)
+                // Update auth metadata if possible (requires supabase admin usually, but user can update own meta)
+                const { error: authError } = await supabase.auth.updateUser({
+                    data: { name: name }
+                });
+                if (authError) console.warn('[BankyContext] Failed to update auth metadata:', authError);
+            }
         }
     };
 
