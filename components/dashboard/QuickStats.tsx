@@ -8,6 +8,7 @@ interface QuickStatsProps {
     currency: Currency;
     userState: UserState;
     totalUnits?: number;
+    isPremium?: boolean;
 }
 
 /**
@@ -18,7 +19,8 @@ const QuickStats: React.FC<QuickStatsProps> = ({
     totalBalance,
     currency,
     userState,
-    totalUnits = 44
+    totalUnits = 44,
+    isPremium = false
 }) => {
     const rawProgress = (userState.completedUnitIds?.length || 0) / totalUnits * 100;
     const progressPercent = Math.min(rawProgress, 100);
@@ -28,9 +30,9 @@ const QuickStats: React.FC<QuickStatsProps> = ({
     };
 
     return (
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 lg:gap-8">
             {/* Net Worth Card */}
-            <div className="xl:col-span-1 border-4 border-ink p-6 shadow-neo relative overflow-hidden group bg-white">
+            <div className="border-4 border-ink p-6 shadow-neo relative overflow-hidden group bg-white min-w-0">
                 <div className="absolute top-0 right-0 bg-banky-green px-4 py-1 border-l-4 border-b-4 border-ink font-black uppercase text-xs tracking-widest">
                     Total Balance
                 </div>
@@ -83,31 +85,33 @@ const QuickStats: React.FC<QuickStatsProps> = ({
                 </Link>
             </div>
 
-            {/* Premium Promo Card */}
-            <div className="bg-gradient-to-br from-gray-900 to-black p-6 shadow-neo border-4 border-ink text-white flex flex-col justify-between relative overflow-hidden group h-full">
-                <Link to="/settings?tab=premium" className="absolute top-0 right-0 bg-yellow-400 text-ink text-xs font-black px-2 py-1 uppercase hover:bg-yellow-300 transition-colors">
-                    Upgrade
-                </Link>
+            {/* Premium Promo Card - Only show for non-premium users */}
+            {!isPremium && (
+                <div className="bg-gradient-to-br from-gray-900 to-black p-6 shadow-neo border-4 border-ink text-white flex flex-col justify-between relative overflow-hidden group h-full">
+                    <Link to="/settings?tab=premium" className="absolute top-0 right-0 bg-yellow-400 text-ink text-xs font-black px-2 py-1 uppercase hover:bg-yellow-300 transition-colors">
+                        Upgrade
+                    </Link>
 
-                <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-6">
-                        <div className="bg-white text-ink border-2 border-ink p-1 shadow-neo-sm">
-                            <Sparkles className="w-6 h-6 text-yellow-500" />
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-6">
+                            <div className="bg-white text-ink border-2 border-ink p-1 shadow-neo-sm">
+                                <Sparkles className="w-6 h-6 text-yellow-500" />
+                            </div>
+                            <span className="font-black tracking-widest bg-yellow-400 text-ink px-2 py-1 transform -rotate-2 font-display uppercase">Premium</span>
                         </div>
-                        <span className="font-black tracking-widest bg-yellow-400 text-ink px-2 py-1 transform -rotate-2 font-display uppercase">Premium</span>
+                        <h3 className="text-3xl font-black mb-2 uppercase leading-none font-display">
+                            Go Pro
+                        </h3>
+                        <p className="text-gray-300 font-medium text-sm leading-relaxed mt-2">
+                            Unlock AI Advisor, Voice Commands, and Bank Sync.
+                        </p>
                     </div>
-                    <h3 className="text-3xl font-black mb-2 uppercase leading-none font-display">
-                        Go Pro
-                    </h3>
-                    <p className="text-gray-300 font-medium text-sm leading-relaxed mt-2">
-                        Unlock AI Advisor, Voice Commands, and Bank Sync.
-                    </p>
-                </div>
 
-                <Link to="/settings?tab=premium" className="relative z-10 mt-6 w-full bg-white text-ink border-2 border-ink shadow-neo font-black py-4 text-center hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all uppercase tracking-wider text-lg font-display flex items-center justify-center gap-2">
-                    Upgrade <ArrowUpRight className="w-5 h-5" />
-                </Link>
-            </div>
+                    <Link to="/settings?tab=premium" className="relative z-10 mt-6 w-full bg-white text-ink border-2 border-ink shadow-neo font-black py-4 text-center hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all uppercase tracking-wider text-lg font-display flex items-center justify-center gap-2">
+                        Upgrade <ArrowUpRight className="w-5 h-5" />
+                    </Link>
+                </div>
+            )}
         </div>
     );
 };

@@ -428,27 +428,32 @@ const Dashboard: React.FC = () => {
                                         {displayTransactions.length === 0 ? (
                                             <div className="text-center py-12 text-gray-400 font-bold italic border-2 border-dashed border-gray-200 rounded-xl">No transactions found.</div>
                                         ) : (
-                                            displayTransactions.map(t => (
-                                                <div key={t.id} className="group bg-white border-2 border-gray-100 hover:border-ink rounded-xl p-4 flex items-center justify-between transition-all hover:shadow-neo-sm">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 border-ink ${t.type === 'income' ? 'bg-banky-green' : 'bg-white'}`}>
-                                                            <CategoryIcon category={t.category} className="w-5 h-5" />
+                                            displayTransactions.map(t => {
+                                                const walletName = accounts.find(a => a.id === t.accountId)?.name || 'Unknown';
+                                                return (
+                                                    <div key={t.id} className="group bg-white border-2 border-gray-100 hover:border-ink rounded-xl p-4 flex items-center justify-between transition-all hover:shadow-neo-sm">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 border-ink ${t.type === 'income' ? 'bg-banky-green' : 'bg-white'}`}>
+                                                                <CategoryIcon category={t.category} className="w-5 h-5" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-ink">{t.description}</p>
+                                                                <p className="text-xs font-bold text-gray-400 uppercase">
+                                                                    {new Date(t.date).toLocaleDateString()} • <span className="text-banky-purple">{walletName}</span>
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="font-bold text-ink">{t.description}</p>
-                                                            <p className="text-xs font-bold text-gray-400 uppercase">{new Date(t.date).toLocaleDateString()}</p>
+                                                        <div className="flex items-center gap-4">
+                                                            <span className={`font-mono font-black ${t.type === 'income' ? 'text-banky-green-darker' : 'text-ink'}`}>
+                                                                {t.type === 'income' ? '+' : '-'}{currency.symbol}{t.amount.toFixed(2)}
+                                                            </span>
+                                                            <button onClick={() => deleteTransaction(t.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-4">
-                                                        <span className={`font-mono font-black ${t.type === 'income' ? 'text-banky-green-darker' : 'text-ink'}`}>
-                                                            {t.type === 'income' ? '+' : '-'}{currency.symbol}{t.amount.toFixed(2)}
-                                                        </span>
-                                                        <button onClick={() => deleteTransaction(t.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         )}
                                     </div>
 

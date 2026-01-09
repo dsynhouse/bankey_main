@@ -17,7 +17,7 @@ interface WidgetGridProps {
 
 const WidgetGrid: React.FC<WidgetGridProps> = ({ onAddWidget, onViewHistory }) => {
     const { enabledWidgets } = useWidgets();
-    const { accounts, transactions, addTransaction, deleteTransaction, userState } = useBanky();
+    const { accounts, transactions, addTransaction, deleteTransaction, userState, user } = useBanky();
     const { currency } = usePreferences();
 
     const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
@@ -52,6 +52,7 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ onAddWidget, onViewHistory }) =
                         totalBalance={totalBalance}
                         currency={currency}
                         userState={userState}
+                        isPremium={user?.isPremium ?? false}
                     />
                 );
 

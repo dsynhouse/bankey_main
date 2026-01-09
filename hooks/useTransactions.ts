@@ -35,6 +35,8 @@ const fetchTransactions = async (userId: string | undefined) => {
     // Transform database format (snake_case) to frontend format (camelCase)
     if (!data) return [];
 
+    console.log('[useTransactions] Fetched transactions:', data); // DEBUG LOG
+
     return (data as DbTransaction[]).map((tx) => ({
         id: tx.id,
         userId: tx.user_id,
@@ -62,13 +64,18 @@ export const useTransactions = (userId: string | undefined) => {
         mutationFn: async (newTransaction: Omit<Transaction, 'id' | 'user_id'>) => {
             if (!userId) throw new Error("User not authenticated");
 
+            console.log('[useTransactions] Adding transaction:', newTransaction); // DEBUG LOG
+
             const { data, error } = await supabase
                 .from('transactions')
                 .insert([{ ...newTransaction, user_id: userId }])
                 .select()
                 .single();
 
-            if (error) throw new Error(error.message);
+            if (error) {
+                console.error('[useTransactions] Add error:', error); // DEBUG LOG
+                throw new Error(error.message);
+            }
             return data;
         },
         onSuccess: () => {

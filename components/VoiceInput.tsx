@@ -121,8 +121,12 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onClose, defaultAccountId }) =>
             setError('');
             await startRecording();
             setState('recording');
-        } catch {
-            setError('Microphone access denied. Please allow mic permissions.');
+        } catch (err: any) {
+            const errorMsg = err.name === 'NotAllowedError' ? 'Microphone permission denied' :
+                err.name === 'NotFoundError' ? 'No microphone found' :
+                    err.message || 'Failed to access microphone';
+
+            setError(errorMsg + '. Please check app settings.');
             setState('error');
         }
     };

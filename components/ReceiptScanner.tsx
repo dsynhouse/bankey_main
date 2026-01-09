@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X, Loader2, Check, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { useBanky } from '../context/useBanky';
 import { usePreferences } from '../context/PreferencesContext';
 import { usePremium } from '../context/usePremium';
@@ -13,8 +14,6 @@ interface ReceiptScannerProps {
     onClose: () => void;
     defaultAccountId?: string;
 }
-
-
 
 const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccountId }) => {
     const { addTransaction, accounts } = useBanky();
@@ -48,6 +47,28 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
             setState('idle');
         }
     }, [isPremium, state]);
+
+    const handleNativeCamera = async () => {
+        try {
+            const image = await CapacitorCamera.getPhoto({
+                quality: 90,
+                allowEditing: false,
+                resultType: CameraResultType.DataUrl,
+                source: CameraSource.Camera // Forces camera only
+            });
+
+            if (image.dataUrl) {
+                setImagePreview(image.dataUrl);
+                setState('preview');
+            }
+        } catch (err: any) {
+            // "User cancelled photos app" error is common, ignore it or show toast
+            if (err.message !== 'User cancelled photos app') {
+                setError('Failed to open camera: ' + err.message);
+                setState('error');
+            }
+        }
+    };
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -185,7 +206,7 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onClose, defaultAccount
                         <div className="grid grid-cols-2 gap-4">
                             {/* Camera Button */}
                             <button
-                                onClick={() => cameraInputRef.current?.click()}
+                                onClick={handleNativeCamera}
                                 className="bg-banky-green border-4 border-ink p-6 shadow-neo flex flex-col items-center gap-3 hover:-translate-y-1 transition-transform"
                             >
                                 <Camera className="w-10 h-10 text-ink" />

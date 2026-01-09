@@ -84,7 +84,8 @@ export const startRecording = async (): Promise<void> => {
 
     } catch (error) {
         console.error('Failed to start recording:', error);
-        throw new Error('Microphone access denied');
+        // Throw the actual error so the UI can display it
+        throw error;
     }
 };
 

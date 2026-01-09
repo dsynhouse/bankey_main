@@ -444,6 +444,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // --- ACTIONS ---
 
     const addTransaction = async (t: Omit<Transaction, 'id'>) => {
+        console.log('[BankyContext] addTransaction called with:', t); // DEBUG LOG
         let targetAccountId = t.accountId;
 
         // Auto-create default account if none exists
@@ -477,10 +478,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const optimisticId = crypto.randomUUID();
         const newTx: Transaction = { ...t, id: optimisticId, accountId: targetAccountId };
 
-        // Optimistic UI for List (Handled by Query Cache via addTxQuery, but we have local optimistics too?)
-        // TankStack query handles the list. We just need to handle the accounts.
-        // setTransactions(prev => [newTx, ...prev]); // Removed
-
         setAccounts(prev => prev.map(a => {
             if (a.id === targetAccountId) {
                 const newBalance = t.type === 'income' ? a.balance + t.amount : a.balance - t.amount;
@@ -493,15 +490,16 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (supabase && user && targetAccountId) {
             try {
-
                 const { error: saveError } = await saveTransaction(supabase, user.id, newTx);
 
                 if (saveError) {
-                    console.error('[addTransaction] Failed to save transaction:', saveError);
+                    console.error('[BankyContext] Failed to save transaction (DB Error):', saveError); // DEBUG LOG
+                    console.error('[BankyContext] Error details:', JSON.stringify(saveError)); // DEBUG LOG
                     alert(`Failed to save transaction: ${saveError.message}`);
                     return;
                 }
 
+                console.log('[BankyContext] Transaction saved successfully!'); // DEBUG LOG
 
                 // CRITICAL: Invalidate React Query cache to trigger UI update
                 queryClient.invalidateQueries({ queryKey: TRANSACTION_KEYS.lists() });

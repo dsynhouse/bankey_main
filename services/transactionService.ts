@@ -35,7 +35,7 @@ export const saveTransaction = async (
     userId: string,
     transaction: Transaction
 ): Promise<{ error: PostgrestError | null }> => {
-    const { error } = await supabase.from('transactions').insert({
+    const payload = {
         id: transaction.id,
         user_id: userId,
         account_id: transaction.accountId,
@@ -44,7 +44,18 @@ export const saveTransaction = async (
         description: transaction.description,
         type: transaction.type,
         date: transaction.date
-    });
+    };
+
+    console.log('[transactionService] Inserting transaction payload:', payload); // DEBUG LOG
+
+    const { error } = await supabase.from('transactions').insert(payload);
+
+    if (error) {
+        console.error('[transactionService] Insert failed:', error); // DEBUG LOG
+    } else {
+        console.log('[transactionService] Insert successful!'); // DEBUG LOG
+    }
+
     return { error };
 };
 
