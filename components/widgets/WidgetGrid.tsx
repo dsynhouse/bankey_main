@@ -112,18 +112,6 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ onAddWidget, onViewHistory }) =
                     <p className="text-gray-500 mt-2">Click the widget library button to add widgets</p>
                 </div>
             )}
-            {/* Add Widget Card */}
-            {onAddWidget && (
-                <div
-                    onClick={onAddWidget}
-                    className="bg-gray-50 border-4 border-dashed border-gray-300 p-6 min-h-[150px] flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white hover:border-ink hover:border-4 transition-all group"
-                >
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-4 group-hover:bg-banky-yellow group-hover:text-ink transition-colors">
-                        <span className="text-2xl font-black text-gray-400 group-hover:text-ink">+</span>
-                    </div>
-                    <h3 className="text-lg font-black uppercase text-gray-400 group-hover:text-ink transition-colors">Add Widget</h3>
-                </div>
-            )}
         </div>
     );
 };
