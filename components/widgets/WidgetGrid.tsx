@@ -104,7 +104,11 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ onAddWidget, onViewHistory }) =
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {enabledWidgets.map((widget) => renderWidget(widget.id, widget.type))}
+            {enabledWidgets.map((widget) => (
+                <div key={widget.id} className={widget.type === 'quick-stats' ? 'lg:col-span-full' : ''}>
+                    {renderWidget(widget.id, widget.type)}
+                </div>
+            ))}
 
             {enabledWidgets.length === 0 && (
                 <div className="col-span-full bg-gray-100 border-4 border-dashed border-gray-300 p-12 text-center">
