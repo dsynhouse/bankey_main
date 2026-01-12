@@ -51,16 +51,25 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // --- DAILY BONUS LOGIC (Robust ISO Date Check) ---
     const checkDailyBonus = async (userId: string, lastBonusDate: string | null, currentStreak: number) => {
+        // 0. Session Guard (Prevent spamming in same session)
+        if (sessionStorage.getItem('banky_bonus_checked')) return;
+        sessionStorage.setItem('banky_bonus_checked', 'true');
+
         const now = new Date();
         const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format (UTC)
-        // NOTE: Using UTC ensures consistency across devices, though it might reset at a different time than local midnight.
 
         // 1. Check LocalStorage first (Double-Lock)
         const localLastBonus = localStorage.getItem(`banky_last_bonus_${userId}`);
         if (localLastBonus === todayStr) return;
 
         // 2. If already claimed today (from DB), do nothing.
-        if (lastBonusDate === todayStr) return;
+        if (lastBonusDate === todayStr) {
+            // Ensure local storage is synced if missing
+            localStorage.setItem(`banky_last_bonus_${userId}`, todayStr);
+            return;
+        }
+
+        console.log('[BankyContext] Awarding Daily Bonus!', { last: lastBonusDate, today: todayStr });
 
         // 2. Calculate Streak
         let newStreak = 1;
@@ -115,7 +124,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         try {
-            // 1. Profile & Preferences
+            // 1. Profile & Preferences (Critical Flow)
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
             if (profile) {
@@ -127,44 +136,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     inventory: profile.inventory || [],
                     hasCompletedOnboarding: profile.has_completed_onboarding || false
                 });
-
-                // --- RECALCULATE XP & LEVEL (Self-Healing) ---
-                // Module XP calculation removed (Education feature disabled)
-                const completedIds = profile.completed_unit_ids || [];
-                const moduleXp = completedIds.length * 50; // Simplified XP calculation
-
-                // 2. Calculate XP from Transactions (Async fetch count)
-                const { count: txCount } = await supabase
-                    .from('transactions')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', userId);
-
-                const txXp = (txCount || 0) * 50;
-                const calculatedXp = moduleXp + txXp;
-                const calculatedLevel = Math.floor(Math.sqrt(calculatedXp / 100)) + 1;
-
-                // 3. Update State & DB if mismatch
-                if (calculatedXp !== profile.total_xp || calculatedLevel !== profile.level) {
-                    if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
-                        logger.warn(`XP Mismatch! Fixing... Old: ${profile.total_xp} (Lvl ${profile.level}) -> New: ${calculatedXp} (Lvl ${calculatedLevel})`);
-                    }
-
-                    setUserState(prev => ({ ...prev, totalXp: calculatedXp, level: calculatedLevel }));
-
-                    await supabase.from('profiles').update({
-                        total_xp: calculatedXp,
-                        level: calculatedLevel
-                    }).eq('id', userId);
-                }
-
-                // LocalStorage Override for Onboarding
-                const localOnboarding = localStorage.getItem(`banky_onboarding_${userId}`);
-                if (localOnboarding === 'true' && !profile.has_completed_onboarding) {
-                    setUserState(prev => ({ ...prev, hasCompletedOnboarding: true }));
-                    // Try to sync back to DB if it was missed
-                    if (supabase) supabase.from('profiles').upsert({ id: userId, has_completed_onboarding: true });
-                }
-                // Currency now handled by PreferencesContext
 
                 // Sync user name from profile if available
                 if (profile.name) {
@@ -178,30 +149,51 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     premiumExpiresAt: profile.premium_expires_at || undefined
                 } : prev);
 
-                // Check Daily Bonus using DB date and streak
+                // Check Daily Bonus using DB date and streak (Non-blocking)
                 checkDailyBonus(userId, profile.last_bonus_date, profile.streak_days || 1);
             } else {
                 // Profile missing? Create one.
                 logger.info('Profile not found. Creating default profile...');
-                const { error: insertError } = await supabase.from('profiles').upsert({
+                await supabase.from('profiles').upsert({
                     id: userId,
                     total_xp: 0,
                     level: 1,
                     streak_days: 1,
                     has_completed_onboarding: false
                 });
+            }
 
-                if (insertError) {
-                    handleSupabaseError(insertError, 'fetchData:createProfile');
-                } else {
-                    // Re-fetch or just set default state
-                    // We'll let the next reload or state update handle it, but ideally we should set state here.
-                    // For now, default state is already set by useState(INITIAL_USER_STATE).
+            // --- PARALLEL FETCHING FOR SPEED ---
+            // Fetch everything else in parallel to reduce load time
+            const [
+                { count: txCount },
+                { data: accs },
+                { data: bgs },
+                { data: gls },
+                { groups: loadedGroups }
+            ] = await Promise.all([
+                supabase.from('transactions').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+                supabase.from('accounts').select('*').eq('user_id', userId),
+                supabase.from('budgets').select('*').eq('user_id', userId),
+                supabase.from('goals').select('*').eq('user_id', userId),
+                getGroups(supabase, userId)
+            ]);
+
+            // 2. Process XP (Self-Healing)
+            if (profile) {
+                const txXp = (txCount || 0) * 50;
+                const completedIds = profile.completed_unit_ids || [];
+                const moduleXp = completedIds.length * 50;
+                const calculatedXp = moduleXp + txXp;
+                const calculatedLevel = Math.floor(Math.sqrt(calculatedXp / 100)) + 1;
+
+                if (calculatedXp !== profile.total_xp || calculatedLevel !== profile.level) {
+                    setUserState(prev => ({ ...prev, totalXp: calculatedXp, level: calculatedLevel }));
+                    supabase.from('profiles').update({ total_xp: calculatedXp, level: calculatedLevel }).eq('id', userId).then();
                 }
             }
 
-            // 2. Accounts
-            const { data: accs } = await supabase.from('accounts').select('*').eq('user_id', userId);
+            // 3. Process Accounts
             if (accs && accs.length > 0) {
                 setAccounts(accs.map(a => ({
                     id: a.id,
@@ -213,11 +205,7 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 })));
             }
 
-            // 3. Transactions handled by React Query
-            // const { data: txs } = await supabase...
-
             // 4. Budgets
-            const { data: bgs } = await supabase.from('budgets').select('*').eq('user_id', userId);
             if (bgs && bgs.length > 0) {
                 setBudgets(bgs.map(b => ({
                     id: b.id,
@@ -227,7 +215,6 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
 
             // 5. Goals
-            const { data: gls } = await supabase.from('goals').select('*').eq('user_id', userId);
             if (gls && gls.length > 0) {
                 setGoals(gls.map(g => ({
                     id: g.id,
@@ -239,12 +226,10 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 })));
             }
 
-            // 6. Bill Splitter Groups
-            const { groups: loadedGroups, error: groupsError } = await getGroups(supabase, userId);
+            // 6. Groups
             if (loadedGroups) {
                 setGroups(loadedGroups);
             }
-            if (groupsError) handleSupabaseError(groupsError, 'fetchData:loadGroups');
 
         } catch (error) {
             handleSupabaseError(error, 'fetchData');
@@ -353,11 +338,11 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const loadingTimeout = setTimeout(() => {
                 console.warn('[BankyContext] Loading timeout triggered - forcing loading state to false');
                 setIsLoading(false);
-            }, 10000); // 10 second timeout
+            }, 5000); // REduced to 5 seconds
 
             try {
                 if (session?.user) {
-                    // Get profile to load premium status
+                    // 1. Get profile CORE data (Premium + Name) - FAST
                     const { data: profile } = await supabase.from('profiles').select('is_premium, premium_expires_at, name').eq('id', session.user.id).maybeSingle();
 
                     setUser({
@@ -367,7 +352,13 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         isPremium: profile?.is_premium || false,
                         premiumExpiresAt: profile?.premium_expires_at || undefined
                     });
-                    await fetchData(session.user.id);
+
+                    // 2. UNBLOCK UI IMMEDIATELY
+                    setIsLoading(false); // <--- KEY FIX: Show app skeleton immediately
+                    clearTimeout(loadingTimeout);
+
+                    // 3. Load heavy data in background
+                    fetchData(session.user.id);
                 } else {
                     setIsLoading(false);
                 }
@@ -394,7 +385,12 @@ export const BankyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     isPremium: profile?.is_premium || false,
                     premiumExpiresAt: profile?.premium_expires_at || undefined
                 });
-                if (event === 'SIGNED_IN') fetchData(session.user.id);
+
+                if (event === 'SIGNED_IN') {
+                    if (event === 'SIGNED_IN') setIsLoading(true); // Temporary load state for login transition
+                    await fetchData(session.user.id);
+                    setIsLoading(false);
+                }
             } else if (event === 'SIGNED_OUT') {
                 setUser(null);
                 setIsLoading(false);
